@@ -1,0 +1,192 @@
+body {
+    margin: 0;
+    line-height: normal;
+    padding: 0;
+    font-size: 20px;
+    /*box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);*/
+
+    background-size: cover;
+    /* Keeps the background fixed while scrolling */
+    background: linear-gradient(180deg, rgba(78, 181, 144, 0.7), rgba(53, 153, 143, 0.7) 50%, rgba(53, 124, 130, 0.7)) no-repeat fixed center center;
+
+    box-sizing: border-box;
+    position: relative;
+}
+
+/*#main {
+    display: flex;
+    flex-direction: row;
+    justify-content: stretch;
+}*/
+
+
+/** @header **/
+header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 28px 130px;
+    color: white;
+    font-size: 16px;
+    gap: 63px;
+    position: relative;
+    font-family: Verdana, serif;
+    box-sizing: border-box;
+    height: 160px;
+}
+
+.logo-nav {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.logo {
+    width: 50px;
+}
+
+.navigation {
+    display: flex;
+    gap: 30px;
+}
+
+.navigation a {
+    color: #003459;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s;
+    font-family: Verdana, serif;
+}
+
+.navigation a:hover {
+    color: #caf0f8;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    padding: 8px 15px;
+    border-radius: 20px;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-box img {
+    width: 16px;
+    margin-right: 10px;
+}
+
+.create-account {
+    background-color: #013a63;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.create-account:hover {
+    background-color: #01497c;
+}
+
+.currency {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.currency img {
+    width: 20px;
+}
+
+.samsung {
+    height: 96.88%;
+    font-weight: 800;
+    display: inline-block;
+    margin: 0 60px;
+}
+.lenovo {
+    height: 96.88%;
+    font-weight: 800;
+    display: inline-block;
+    margin: 0 60px;
+}
+.acer {
+    height: 96.88%;
+    font-weight: 600;
+    display: inline-block;
+    margin: 0 60px;
+}
+.asus {
+    height: 96.88%;
+    font-weight: 600;
+    display: inline-block;
+    margin: 0 60px;
+}
+.dell {
+    height: 87.5%;
+    font-weight: 600;
+    display: inline-block;
+    margin: 0 60px;
+}
+
+.brands {
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    color: #fff;
+    font-family: Inter, Verdana, serif;
+}
+
+.brands > div {
+    cursor: pointer;
+}
+
+.brands > div:hover {
+    color: #caf0f8;
+    transition: color 0.1ms;
+}
+
+
+
+@media (max-width: 900px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px;
+    }
+
+    .logo-nav, .actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .navigation {
+        gap: 15px;
+    }
+
+    .search-box, .create-account, .currency {
+        width: 100%;
+        justify-content: center;
+    }
+
+
+}
