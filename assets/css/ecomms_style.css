@@ -166,6 +166,146 @@ header {
 }
 
 
+/**Body Page**/
+.explore-logic-peripherals {
+    width: 512px;
+    position: relative;
+    line-height: 64px;
+    font-weight: 800;
+    display: inline-block;
+}
+.div {
+    position: relative;
+    font-weight: 500;
+}
+.peripherals-parts {
+    position: relative;
+    font-size: 18px;
+    font-weight: 500;
+}
+.parent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+.frame-child {
+    width: 1px;
+    position: relative;
+    border-right: 1px solid #1e1e1e;
+    box-sizing: border-box;
+    height: 65px;
+}
+.frame-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 48px;
+    font-size: 32px;
+    color: #1e1e1e;
+}
+.explore-logic-peripherals-au-parent {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 24px;
+}
+.what-are-you {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    font-weight: 500;
+}
+.frame-item {
+    position: absolute;
+    top: 8px;
+    left: 393px;
+    border-radius: 12px;
+    background-color: #c1dcdc;
+    width: 48px;
+    height: 48px;
+}
+.search-icon {
+    position: absolute;
+    top: 22px;
+    left: 407px;
+    width: 20px;
+    height: 20px;
+    overflow: hidden;
+}
+.what-are-you-looking-for-parent {
+    width: 449px;
+    position: relative;
+    border-radius: 12px;
+    background-color: #fff;
+    height: 64px;
+    overflow: hidden;
+    flex-shrink: 0;
+    font-size: 18px;
+    color: rgba(30, 30, 30, 0.5);
+}
+.frame-group {
+    position: absolute;
+    top: 48px;
+    left: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 48px;
+}
+.frame-inner {
+    position: absolute;
+    top: 123px;
+    left: 726px;
+    border-radius: 200px 200px 0px 200px;
+    background-color: #1e1e1e;
+    width: 450px;
+    height: 400px;
+}
+.image-icon {
+    position: absolute;
+    top: 193px;
+    left: 815px;
+    width: 272px;
+    height: 275px;
+    object-fit: cover;
+}
+.vector-icon {
+    position: absolute;
+    top: 269px;
+    left: 522px;
+    width: 203.5px;
+    height: 192.1px;
+    object-fit: contain;
+}
+.frame-child1 {
+    position: absolute;
+    top: 13px;
+    left: 1085px;
+    width: 159.2px;
+    height: 180.3px;
+    object-fit: contain;
+}
+.frame-parent {
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 3rem;
+    border-radius: 24px;
+    text-align: left;
+    overflow: hidden;
+    position: relative;
+    background-color: #c1dcdc;
+    height: 512px;
+    font-size: 54px;
+    color: #000;
+    font-family: Poppins, Verdana, serif;
+    margin: 84px auto;
+}
+
+
 
 @media (max-width: 900px) {
     .header {
