@@ -1,6 +1,7 @@
 <?php
 
-$path_body_images =  "../assets/images/body_page/"
+$path_body_images =  "../assets/images/body_page/";
+$searchPageLink = "";
 
 ?>
 
@@ -22,11 +23,25 @@ $path_body_images =  "../assets/images/body_page/"
             </div>
         </div>
         <div class="what-are-you-looking-for-parent">
-            <div class="what-are-you">What are you looking for?</div>
-            <div class="frame-item">
-            </div>
-            <img class="search-icon" alt="" src="<?php echo $path_body_images ?>Search.svg">
+            <form action="<?php echo $searchPageLink; ?>" method="get">
+                <input
+                        type="text"
+                        name="query"
+                        placeholder="What are you looking for?"
+                        class="what-are-you"
+                        style="border: none; outline: none; background: transparent; width: 85%; height: 100%; padding-left: 18px;"
+                >
+                <button type="submit" class="frame-item" style="border: none; cursor: pointer;">
+                    <img class="search-icon" src="<?php echo $path_body_images ?>Search.svg" alt="Search Icon">
+                </button>
+            </form>
         </div>
+<!--        <div class="what-are-you-looking-for-parent">-->
+<!--            <div class="what-are-you">What are you looking for?</div>-->
+<!--            <div class="frame-item">-->
+<!--            </div>-->
+<!--            <img class="search-icon" alt="" src="--><?php //echo $path_body_images ?><!--Search.svg">-->
+<!--        </div>-->
     </div>
     <div class="frame-inner">
     </div>
