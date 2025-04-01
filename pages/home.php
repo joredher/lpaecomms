@@ -24,13 +24,15 @@ $searchPageLink = "";
         </div>
         <div class="what-are-you-looking-for-parent">
             <form action="<?php echo $searchPageLink; ?>" method="get">
-                <input
-                        type="text"
-                        name="query"
-                        placeholder="What are you looking for?"
-                        class="what-are-you"
-                        style="border: none; outline: none; background: transparent; width: 85%; height: 100%; padding-left: 18px;"
-                >
+                <label>
+                    <input
+                            type="text"
+                            name="query"
+                            placeholder="What are you looking for?"
+                            class="what-are-you"
+                            style="border: none; outline: none; background: transparent; height: 100%; padding-left: 18px;"
+                    >
+                </label>
                 <button type="submit" class="frame-item" style="border: none; cursor: pointer;">
                     <img class="search-icon" src="<?php echo $path_body_images ?>Search.svg" alt="Search Icon">
                 </button>
@@ -48,4 +50,45 @@ $searchPageLink = "";
     <img class="image-icon" alt="" src="<?php echo $path_body_images?>image.png">
     <img class="vector-icon" alt="" src="<?php echo $path_body_images?>Vector 186.svg">
     <img class="frame-child1" alt="" src="<?php echo $path_body_images?>Vector 187.svg">
+</div>
+
+<div class="about-us-section">
+    <div class="about-us-container">
+        <div class="about-us-item">
+            <b class="feature-title">About us</b>
+            <div class="about-us-subtitle">Proudly designed for Australia by Logic Peripherals</div>
+        </div>
+        <div class="features-list">
+            <div class="about-us-item">
+                <div class="feature-item">
+                    <img class="feature-icon" alt="" src="<?php echo $path_body_images?>Bulb1.svg">
+                    <b class="feature-title">Large Assortment</b>
+                </div>
+                <div class="feature-description">we offer many different types of products with fewer variations in each category.</div>
+            </div>
+            <div class="about-us-item">
+                <div class="feature-item">
+                    <img class="feature-icon" alt="" src="<?php echo $path_body_images?>Box1.svg">
+                    <b class="feature-title">Fast & Free Shipping</b>
+                </div>
+                <div class="feature-description">4-day or less delivery time, free shipping and an expedited delivery option.</div>
+            </div>
+            <div class="about-us-item">
+                <div class="feature-item">
+                    <img class="feature-icon" alt="" src="<?php echo $path_body_images?>TelephoneOutbound1.svg">
+                    <b class="feature-title">24/7 Support</b>
+                </div>
+                <div class="feature-description">answers to any business related inquiry 24/7 and in real-time.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="features-items">
+        <img src="<?php echo $path_body_images?>fast_free_shipping.png" alt="fast free shipping">
+    </div>
+    <div class="features-items"></div>
+    <div class="features-items"></div>
+    <div class="features-items"></div>
 </div>
