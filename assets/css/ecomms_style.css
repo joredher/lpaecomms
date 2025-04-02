@@ -425,18 +425,130 @@ header {
     align-items: center;
 }
 
-.features-items {
+.feature-grid {
+    display: flex;
+    gap: 32px;
+    padding: 20px;
+}
+
+.feature-card {
+    width: 240px;
+    height: 212px;
+    background-color: #edf3f5;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feature-card img {
+    width: 80%;
+    height: auto;
+}
+
+
+/**FOOTER**/
+
+.site-footer {
     width: 100%;
     position: relative;
-    max-width: 100%;
+    background-color: #c1dcdc;
+    height: 400px;
     overflow: hidden;
-    height: 212px;
+    text-align: left;
+    font-size: 18px;
+    color: rgba(30, 30, 30, 0.5);
+    font-family: Poppins, Verdana, serif;
+    display: flex;
+    justify-content: space-around;
 }
 
-.features-items > image {
-    width: 212px;
+.footer-branding {
+    position: relative;
+    top: 48px;
+    /*left: 96px;*/
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*justify-content: space-around;*/
+    gap: 24px;
+    color: #000;
+    font-family: Poppins, Verdana, serif;
 }
 
+.footer-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 24px;
+}
+
+.footer-title {
+    position: relative;
+}
+
+.footer-description {
+    width: 189px;
+    position: relative;
+    font-weight: 500;
+    font-family: Poppins, serif;
+    color: rgba(30, 30, 30, 0.5);
+    display: inline-block;
+}
+
+.footer-description-line {
+    margin: 0;
+}
+
+.footer-socials {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 24px;
+}
+
+.social-icon {
+    width: 48px;
+    position: relative;
+    height: 48px;
+}
+
+.footer-links {
+    position: relative;
+    top: 48px;
+    /*left: 1013px;*/
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    /*justify-content: flex-start;*/
+    gap: 48px;
+}
+
+.footer-heading {
+    position: relative;
+    color: #1e1e1e;
+}
+
+.footer-link {
+    position: relative;
+}
+
+.footer-credits {
+    position: absolute;
+    top: 325px;
+    /*left: 97px;*/
+    font-weight: 500;
+}
+
+@media screen and (max-width: 1024px) {
+    .feature-grid {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
 
 
 @media (max-width: 900px) {

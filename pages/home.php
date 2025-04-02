@@ -85,10 +85,18 @@ $searchPageLink = "";
 </div>
 
 <div class="features-section">
-    <div class="features-items">
-        <img src="<?php echo $path_body_images?>fast_free_shipping.png" alt="fast free shipping">
+    <div class="feature-grid">
+        <div class="feature-card">
+            <img src="<?php echo $path_body_images?>assortment.png" alt="Large Assortment">
+        </div>
+        <div class="feature-card">
+            <img src="<?php echo $path_body_images?>fast_free_shipping.png" alt="Fast & Free Shipping">
+        </div>
+        <div class="feature-card">
+            <img src="<?php echo $path_body_images?>24_7_support.png" alt="24/7 Support">
+        </div>
+        <div class="feature-card">
+            <img src="<?php echo $path_body_images?>proudly_australian.png" alt="Proudly Australian">
+        </div>
     </div>
-    <div class="features-items"></div>
-    <div class="features-items"></div>
-    <div class="features-items"></div>
 </div>
