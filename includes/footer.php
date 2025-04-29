@@ -12,9 +12,9 @@ $path_footer_images =  "../assets/images/";
             </div>
         </div>
         <div class="footer-socials">
-            <img class="social-icon" alt="" src="<?php echo $path_footer_images ?>gg_facebook.svg">
-            <img class="social-icon" alt="" src="<?php echo $path_footer_images ?>ri_instagram-fill.svg">
-            <img class="social-icon" alt="" src="<?php echo $path_footer_images ?>X.svg">
+            <img class="social-icon" alt="" src="<?= $path_footer_images ?>gg_facebook.svg">
+            <img class="social-icon" alt="" src="<?= $path_footer_images ?>ri_instagram-fill.svg">
+            <img class="social-icon" alt="" src="<?= $path_footer_images ?>X.svg">
         </div>
     </div>
     <div class="footer-links">
@@ -31,5 +31,5 @@ $path_footer_images =  "../assets/images/";
             <div class="footer-link">Resources</div>
         </div>
     </div>
-    <div class="footer-credits">2024 all Right Reserved Term of use LP-AU</div>
+    <div class="footer-credits"><?= date("Y") ?> all Right Reserved Term of use LP-AU</div>
 </div>

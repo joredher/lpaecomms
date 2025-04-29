@@ -5,8 +5,8 @@
     <div class="logo-nav">
         <img class="logo" src="../assets/images/Logo.svg" alt="Logo">
         <nav class="navigation">
-            <a href="#">Home</a>
-            <a href="#">Category</a>
+            <a href="index.php?page=home">Home</a>
+            <a href="index.php?page=categories">Category</a>
             <a href="#">About</a>
             <a href="#">Contact</a>
         </nav>
