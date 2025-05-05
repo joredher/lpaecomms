@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+require_once 'includes/pagination.php';
 $conn = Database::getConnection();
 
 // Get categories
@@ -12,6 +13,10 @@ $typeStmt = $conn->prepare(/** @lang text */ "SELECT * FROM lpa_type");
 $typeStmt->execute();
 $types = $typeStmt->fetchAll();
 
+$pageNum = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+$pageSize = 6;
+$offset = ($pageNum - 1) * $pageSize;
+
 // Get products
 $productQuery = /** @lang text */
     "SELECT 
@@ -21,8 +26,8 @@ $productQuery = /** @lang text */
      FROM lpa_stock s
      JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
      JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
-$params = array();
-$conditions = array();
+$params = [];
+$conditions = [];
 
 $categoryFilter = $_GET['category'] ?? [];
 if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
@@ -30,7 +35,7 @@ if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
 $typeFilter = $_GET['type'] ?? [];
 if (!is_array($typeFilter)) $typeFilter = [$typeFilter];
 
-$typeFilter = array_filter($typeFilter, fn($val) => $val !== 4); // Remove 'All'
+$typeFilter = array_filter($typeFilter, fn($val) => $val !== '4'); // Remove 'All'
 
 // Apply filters: If type is active, ignore category
 if (!empty($typeFilter)) {
@@ -42,6 +47,7 @@ if (!empty($typeFilter)) {
     $conditions[] = "s.lpa_fk_category_ID IN ($placeholders)";
     $params = array_merge($params, $categoryFilter);
 }
+
 // Price filter
 if (isset($_GET['min_price']) && is_numeric($_GET['min_price'])) {
     $conditions[] = "s.lpa_stock_price >= ?";
@@ -57,34 +63,35 @@ if (!empty($conditions)) {
     $productQuery .= " WHERE " . implode(" AND ", $conditions);
 }
 
-if (!empty($_GET['sort'])) {
-    switch ($_GET['sort']) {
-        case 'price_low_high':
-            $productQuery .= /** @lang text */
-                " ORDER BY s.lpa_stock_price ASC";
-            break;
-        case 'price_high_low':
-            $productQuery .= /** @lang text */
-                " ORDER BY s.lpa_stock_price DESC";
-            break;
-        case 'popular':
-        default:
-            // later we can add popularity logic
-            $productQuery .= /** @lang text */
-                " ORDER BY s.lpa_stock_ID DESC";
-            break;
-    }
-} else {
-    $productQuery .= " ORDER BY s.lpa_stock_ID ASC";
+
+switch ($_GET['sort'] ?? '') {
+    case 'price_low_high':
+        $productQuery .= " ORDER BY s.lpa_stock_price ASC";
+        break;
+    case 'price_high_low':
+        $productQuery .= " ORDER BY s.lpa_stock_price DESC";
+        break;
+    case 'popular':
+    default:
+        $productQuery .= " ORDER BY s.lpa_stock_ID DESC";
+        break;
 }
 
-echo '<pre>';
-print_r($_GET['type'] ?? 'no type');
-print_r($_GET['category'] ?? 'no category');
-echo '</pre>';
+//echo '<pre>';
+//print_r($_GET['type'] ?? 'no type');
+//print_r($_GET['category'] ?? 'no category');
+//echo '</pre>';
 
+$countQuery = $productQuery;
+$countStmt = $conn->prepare($countQuery);
+$countStmt->execute($params);
+$productsAll = $countStmt->fetchAll();
+$totalProducts = count($productsAll);
+$totalPages = ceil($totalProducts / $pageSize);
+
+$productQuery .= " LIMIT $offset, $pageSize";
 $productStmt = $conn->prepare($productQuery);
-$productStmt->execute();
+$productStmt->execute($params);
 $products = $productStmt->fetchAll();
 ?>
 
@@ -100,7 +107,8 @@ $products = $productStmt->fetchAll();
                 <?php foreach ($categories as $category): ?>
                     <label class="filter-option">
                         <input type="checkbox" name="category[]" value="<?= $category['lpa_category_ID'] ?>"
-                            <?= (isset($_GET['category']) && in_array($category['lpa_category_ID'], $_GET['category'])) ? 'checked' : '' ?>>
+                            <?= (isset($_GET['category']) && in_array($category['lpa_category_ID'], $_GET['category']))
+                                ? 'checked' : '' ?>>
                         <?= htmlspecialchars($category['lpa_category_name']) ?>
                     </label>
                 <?php endforeach; ?>
@@ -110,8 +118,8 @@ $products = $productStmt->fetchAll();
             <div class="filter-group">
                 <h3 class="filter-title">Price</h3>
                 <div class="price-inputs">
-                    <input type="number" name="min_price" placeholder="Min" value="<?= $_GET['min_price'] ?? '' ?>" class="price-field">
-                    <input type="number" name="max_price" placeholder="Max" value="<?= $_GET['max_price'] ?? '' ?>" class="price-field">
+                    <input type="number" name="min_price" min="20" minlength="2" placeholder="Min" value="<?= $_GET['min_price'] ?? '' ?>" class="price-field">
+                    <input type="number" name="max_price" min="50" maxlength="5" max="9999" placeholder="Max" value="<?= $_GET['max_price'] ?? '' ?>" class="price-field">
                 </div>
             </div>
 
@@ -120,19 +128,16 @@ $products = $productStmt->fetchAll();
                 <h3 class="filter-title">Types</h3>
                 <?php foreach ($types as $type): ?>
                     <label class="filter-option">
-                        <input type="checkbox" name="type[]" value="<?= $type['lpa_type_ID'] ?>"
-                            <?php
-                            $isAll = $type['lpa_type_ID'] == 4;
-                            $userTypes = $_GET['type'] ?? [];
-
-                            if (!is_array($userTypes)) {
-                                $userTypes = [$userTypes];
-                            }
-
-                            echo ($isAll && empty($userTypes)) || (!$isAll && in_array($type['lpa_type_ID'], $userTypes))
-                                ? 'checked' : '';
-                            ?>>
-                        <?= htmlspecialchars($type['lpa_type_name']) ?>
+                        <?php
+                        $isAll = $type['lpa_type_ID'] == 4;
+                        $userTypes = $_GET['type'] ?? [];
+                        if (!is_array($userTypes)) $userTypes = [$userTypes];
+                        $checked = ($isAll && empty($userTypes)) || (!$isAll && in_array($type['lpa_type_ID'], $userTypes));
+                        ?>
+                        <label class="filter-option">
+                            <input type="checkbox" name="type[]" value="<?= $type['lpa_type_ID'] ?>" <?= $checked ? 'checked' : '' ?> class="type-checkbox" data-type-id="<?= $type['lpa_type_ID'] ?>">
+                            <?= htmlspecialchars($type['lpa_type_name']) ?>
+                        </label>
                     </label>
                 <?php endforeach; ?>
             </div>
@@ -148,7 +153,7 @@ $products = $productStmt->fetchAll();
                     ?>
 
                     <span class="filter-tag <?= ($activeLabel === 'Filtered') ? 'is-active' : '' ?>">
-                  <?= $activeLabel ?>
+                  <?= $activeLabel ?> (<?= count($products) ?> Results)
                 </span>
 
                 </div>
@@ -184,7 +189,10 @@ $products = $productStmt->fetchAll();
                                     </div>
                                     <div class="product-card-add-cart">
                                         <div class="price fw-bolder">$<?= number_format($product['lpa_stock_price'], 2) ?> AUD</div>
-                                        <button class="btn">Add to Cart</button>
+                                        <a class="btn btn-sm btn-outline-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                            Add
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -192,25 +200,51 @@ $products = $productStmt->fetchAll();
                         </div>
                     <?php endforeach; ?>
                 </div>
+                <div class="mt-4">
+                    <?= renderPagination(
+                            $pageNum, $totalPages, $_GET
+                    ) ?>
+                </div>
             </div>
         </div>
 </form>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const filterForm = document.getElementById("filter-form");
+    const filterForm = document.getElementById("filter-form");
 
-        filterForm.querySelectorAll('input[type="checkbox"], input[type="number"]').forEach(input => {
-            input.addEventListener('change', () => {
-                filterForm.submit();
-            });
+    function changeSelection(input) {
+        input.addEventListener('change', () => {
+            filterForm.submit();
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // const filterForm = document.getElementById("filter-form");
+        filterForm.querySelectorAll('input[type="checkbox"]').forEach(input => {
+
+            console.log('input', input);
+
+            changeSelection(input);
+        });
+
+        filterForm.querySelectorAll('input[type="number"]').forEach(input => {
+            console.log('Min', input.value !== '')
+            let hasMinPrice = input.name === 'min_price' && input.value !== '';
+            let hasMaxPrice = input.name === 'max_price' && input.value !== '';
+            if (hasMinPrice && hasMaxPrice) {
+                changeSelection(input);
+            }
+
+            if (!hasMinPrice && !hasMaxPrice) {
+                input.value = ''
+                changeSelection(input)
+            }
+
         });
 
         const sortSelect = document.getElementById("sort");
         if (sortSelect) {
-            sortSelect.addEventListener("change", () => {
-                filterForm.submit();
-            });
+            changeSelection(sortSelect)
         }
 
         // 🧠 Handle logic for "All" type
@@ -219,7 +253,8 @@ $products = $productStmt->fetchAll();
 
         typeCheckboxes.forEach(cb => {
             cb.addEventListener('change', () => {
-                const anyChecked = Array.from(typeCheckboxes).some(input => input.checked && input.dataset.typeId !== '4');
+                const anyChecked = Array.from(typeCheckboxes)
+                    .some(input => input.checked && input.dataset.typeId !== '4');
 
                 allTypeCheckbox.checked = !anyChecked;
             });
