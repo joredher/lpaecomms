@@ -14,7 +14,7 @@ $typeStmt->execute();
 $types = $typeStmt->fetchAll();
 
 $pageNum = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
-$pageSize = 6;
+$pageSize = 9;
 $offset = ($pageNum - 1) * $pageSize;
 
 // Get products
@@ -173,7 +173,7 @@ $products = $productStmt->fetchAll();
                 <div class="product-grid row row-cols-3 m-auto">
                     <?php foreach ($products as $product): ?>
                         <div class="col mb-4">
-                            <div class="product-card">
+                            <div class="product-card clickable-card ripple-container" data-id="<?= $product['lpa_stock_ID'] ?>">
                                 <img src="assets/images/test-images/<?= htmlspecialchars($product['lpa_stock_image']) ?>" alt="<?= htmlspecialchars($product['lpa_stock_name']) ?>">
 
                                 <div class="product-card-description">
@@ -259,5 +259,35 @@ $products = $productStmt->fetchAll();
                 allTypeCheckbox.checked = !anyChecked;
             });
         });
+
+        const cards = document.querySelectorAll('.clickable-card');
+
+        cards.forEach(card => {
+            card.addEventListener('click', function (e) {
+                const ripple = document.createElement('span');
+                ripple.classList.add('ripple-effect');
+
+                const rect = card.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = `${size}px`;
+
+                ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+                ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+
+                card.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+
+        cards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                // Prevent click from Add button inside
+                if (e.target.closest("button")) return;
+
+                const id = card.getAttribute("data-id");
+                if (id) window.location.href = `index.php?page=product&id=${id}`;
+            })
+        })
     });
 </script>
