@@ -1,3 +1,12 @@
+.pd-back-button {
+    width: 55px;
+    position: relative;
+    font-size: 20px;
+    font-weight: 500;
+    font-family: Poppins, Verdana, serif;
+    color: #fff;
+}
+
 .details-product-child {
     position: absolute;
     height: 100%;
@@ -9,60 +18,53 @@
     box-shadow: 0px -45px 31px -45px rgba(0, 0, 0, 0.25);
     background-color: rgba(255, 255, 255, 0.56);
 }
-.memoria-ram-fury {
-    position: absolute;
-    width: 41.12%;
-    top: 7.4%;
+.product-name {
+    position: relative;
+    margin-top: 40px;
     left: 49.96%;
     font-size: 22px;
     line-height: 31px;
     font-weight: 800;
     display: flex;
-    align-items: center;
 }
+
 .au {
-    position: absolute;
-    width: 41.12%;
-    top: 23.63%;
+    position: relative;
+    margin-top: 39px;
     left: 49.96%;
     font-size: 36px;
     line-height: 31px;
-    display: flex;
-    align-items: center;
 }
 .what-you-need {
-    margin: 0;
-}
-.optimize-your-machines {
-    margin-bottom: 0px;
-}
-.optimize-your-machines-perfor {
-    margin: 0;
-    font-family: inherit;
-    font-size: inherit;
-    padding-left: 27px;
-}
-.what-you-need-container1 {
-    width: 100%;
+    margin-top: 39px;
+    font-weight: 500;
 }
 .what-you-need-container {
-    position: absolute;
-    width: 41.12%;
-    top: 33.28%;
+    position: relative;
+    margin-top: 40px;
     left: 49.96%;
     font-size: 20px;
     line-height: 31px;
-    display: flex;
-    align-items: center;
 }
+.product-features {
+    position: relative;
+    font-family: Poppins, Verdana, serif;
+    font-size: 16px;
+    line-height: 28px;
+    color: #000;
+    list-style-type: none;
+    padding-left: 20px;
+}
+
+
 .buy-now-button-child {
     position: absolute;
     height: 101.82%;
     width: 100.67%;
-    top: 0%;
+    top: 0;
     right: -0.67%;
     bottom: -1.82%;
-    left: 0%;
+    left: 0;
     box-shadow: 0px 2.5px 5px 0.5px rgba(0, 0, 0, 0.25);
     border-radius: 50px;
     background-color: #0c8d3b;
@@ -86,13 +88,13 @@
     left: 49.96%;
     text-align: center;
     color: #fff;
-    font-family: Montserrat;
+    font-family: Poppins, Verdana, serif;
 }
 .add-to-cart-button-child {
     position: absolute;
     height: 101.82%;
     width: 100.67%;
-    top: 0%;
+    top: 0;
     right: -0.67%;
     bottom: -1.82%;
     left: 0%;
@@ -119,7 +121,7 @@
     left: 64.42%;
     text-align: center;
     color: #fff;
-    font-family: Montserrat;
+    font-family: Poppins, Verdana, serif;
 }
 .details-product-item {
     position: absolute;
@@ -144,17 +146,25 @@
     height: 500px;
     object-fit: cover;
 }
+
 .details-product {
     width: 100%;
     position: relative;
+    max-width: 100%;
+    overflow: hidden;
     height: 622px;
-    text-align: left;
-    font-size: 18px;
-    color: #000;
-    font-family: Roboto;
+    border-radius: 50px;
+}
+
+.product-actions {
+    position: relative;
+    left: 49.96%;
+    display: flex;
+    gap: 20px;
 }
 
 .btn-buy-now, .btn-add-to-cart {
+    position: relative;
     padding: 10px 24px;
     font-weight: 800;
     font-family: Montserrat, sans-serif;
@@ -163,6 +173,7 @@
     color: #fff;
     cursor: pointer;
     transition: all 0.3s ease;
+    height: 56px;
 }
 
 .btn-buy-now {

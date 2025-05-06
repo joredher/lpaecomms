@@ -30,43 +30,52 @@ $relatedStmt = $conn->prepare(
 );
 $relatedStmt->execute([$product['lpa_fk_category_ID'], $productId]);
 $related = $relatedStmt->fetchAll();
+
+$features = explode('.', $product['lpa_stock_features']) ?? [];
 ?>
 
 <div class="pd-details-section container py-5">
     <div class="pd-details-back mb-4">
-        <a href="index.php?page=categories" class="pd-back-button d-flex align-items-center">
+        <a href="index.php?page=categories" class="pd-back-button d-flex align-items-center text-decoration-none">
             <img src="../assets/images/icons/back.svg" alt="Back" class="me-2">
             <span>Back</span>
         </a>
     </div>
 
-    <div class="details-product">
-        <div class="details-product-child"></div>
-        <img class="image-1-icon" alt="Product Image" src="assets/images/test-images/<?= htmlspecialchars($product['lpa_stock_image']) ?>">
+    <div class="details-product row g-0 row-cols-3 m-auto">
+        <div>
+            <div class="details-product-child"></div>
+            <img class="image-1-icon" alt="Product Image" src="assets/images/test-images/<?= htmlspecialchars($product['lpa_stock_image']) ?>">
+        </div>
+        <div>
+            <div class="product-name">
+                <?= htmlspecialchars($product['lpa_stock_name']) ?>
+            </div>
+            <div class="au">
+                $<?= number_format($product['lpa_stock_price'], 2) ?> AU
+            </div>
+            <div class="what-you-need-container">
+                <div class="what-you-need-container1">
+                    <p class="what-you-need">What you need to know about this product:</p>
+                    <p class="optimize-your-machines-perfor">
+                        Description: <?= $product['lpa_stock_desc'] ?>
+                    </p>
 
-        <div class="memoria-ram-fury">
-            <?= htmlspecialchars($product['lpa_stock_name']) ?>
-        </div>
-        <div class="au">
-            $<?= number_format($product['lpa_stock_price'], 2) ?> AU
-        </div>
-        <div class="what-you-need-container">
-            <div class="what-you-need-container1">
-                <p class="what-you-need">What you need to know about this product</p>
-                <p class="optimize-your-machines-perfor">
-                    <?= nl2br(htmlspecialchars($product['lpa_stock_description'])) ?>
-                </p>
+                    <?php if (!empty($features)): ?>
+                        <ul class="product-features">
+                            <?php foreach ($features as $feature): ?>
+                                <li><?= htmlspecialchars($feature) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="product-actions">
+                <button class="btn-buy-now">Buy now</button>
+                <button class="btn-add-to-cart">Add to cart</button>
             </div>
         </div>
-
-        <button class="buy-now-button">
-            <span class="buy-now-button-child"></span>
-            <span class="buy-now">Buy now</span>
-        </button>
-        <button class="add-to-cart-button">
-            <span class="add-to-cart-button-child"></span>
-            <span class="add-to-cart">Add to cart</span>
-        </button>
     </div>
 
 <!--    <div class="pd-related-section mt-5">-->
