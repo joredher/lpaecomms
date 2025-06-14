@@ -1,12 +1,24 @@
 <?php
- $var = "Example";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$isLoggedIn = isset($_SESSION['user']);
+
+$user = $_SESSION['user'] ?? null;
+
+if (!str_contains(strtolower($_SERVER['REQUEST_URI']), '/cart')) {
+    $_SESSION['previous_page'] = $_SERVER['REQUEST_URI'] ?? 'home';
+}
+
 ?>
 <header class="header">
     <div class="logo-nav">
-        <img class="logo" src="../assets/images/Logo.svg" alt="Logo">
+        <a href="/home" class="text-decoration-none">
+            <img class="logo" src="../assets/images/Logo.svg" alt="Logo">
+        </a>
         <nav class="navigation">
-            <a href="index.php?page=home">Home</a>
-            <a href="index.php?page=categories">Category</a>
+            <a href="/home">Home</a>
+            <a href="/products">Products</a>
             <a href="#">About</a>
             <a href="#">Contact</a>
         </nav>
@@ -18,12 +30,48 @@
                 <input type="text" name="search" placeholder="Search something here!">
             </label>
         </div>
-        <button class="create-account">Create a new account</button>
+        <div class="cart-icon">
+            <a href="/cart" class="position-relative ms-3 text-decoration-none">
+                <img src="../assets/images/header/u_cart.svg" alt="Cart icon">
+<!--                --><?php //if (!empty($_SESSION['cart'])): ?>
+                    <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                        <?= array_sum(array_column(@$_SESSION['cart'] ?? [], 'quantity')); ?>
+                    </span>
+<!--                --><?php //endif; ?>
+            </a>
+        </div>
         <div class="currency">
             <img src="../assets/images/header/Australia.svg" alt="Australia flag">
             <span>AUD</span>
             <img src="../assets/images/header/Caret_Down_SM.svg" alt="Arrow icon">
         </div>
+        <?php if ($isLoggedIn): ?>
+            <div class="dropdown">
+                <button class="create-account account-active dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <?= $user['firstname'] ?>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                    <li>
+                        <a class="dropdown-item" href="/profile">
+                            <i class="bi bi-person-circle me-2"></i> My Account
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="/auth.logout">
+                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        <?php else: ?>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/register" class="create-account text-decoration-none">Create a new account</a>
+                <a href="/login" class="text-decoration-none login-link">Login</a>
+            </div>
+<!--            <a href="/register" class="create-account text-decoration-none">Create a new account</a>-->
+        <?php endif; ?>
+
     </div>
 </header>
 

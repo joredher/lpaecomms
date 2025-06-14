@@ -2,7 +2,7 @@
 
 class Database {
     private static $instance = null;
-    private $conn;
+    private PDO $conn;
 
     private function __construct() {
         $env = parse_ini_file(__DIR__ . '/../.env');
@@ -20,7 +20,8 @@ class Database {
         }
     }
 
-    public static function getConnection() {
+    public static function getConnection(): PDO
+    {
         if (!self::$instance) {
             self::$instance = new Database();
         }

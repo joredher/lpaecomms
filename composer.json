@@ -1,0 +1,22 @@
+{
+  "name": "jored/lpaecomms",
+  "description": "this packages are only for covering some aspects",
+  "type": "lpaecomms-cti-project",
+  "require": {
+    "phpmailer/phpmailer": "^6.10.0",
+    "phpunit/phpunit": "^9.6",
+    "nesbot/carbon": "^3.9.1",
+    "ext-pdo": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Jored\\Lpaecomms\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Eduardo Hernandez",
+      "email": "joredher30@gmail.com"
+    }
+  ]
+}

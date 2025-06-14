@@ -64,18 +64,11 @@ if (!empty($conditions)) {
 }
 
 
-switch ($_GET['sort'] ?? '') {
-    case 'price_low_high':
-        $productQuery .= " ORDER BY s.lpa_stock_price ASC";
-        break;
-    case 'price_high_low':
-        $productQuery .= " ORDER BY s.lpa_stock_price DESC";
-        break;
-    case 'popular':
-    default:
-        $productQuery .= " ORDER BY s.lpa_stock_ID DESC";
-        break;
-}
+$productQuery .= match ($_GET['sort'] ?? '') {
+    'price_low_high' => " ORDER BY s.lpa_stock_price ASC",
+    'price_high_low' => " ORDER BY s.lpa_stock_price DESC",
+    default => " ORDER BY s.lpa_stock_ID DESC",
+};
 
 //echo '<pre>';
 //print_r($_GET['type'] ?? 'no type');
@@ -144,18 +137,15 @@ $products = $productStmt->fetchAll();
         </div>
         <!-- 🔹 RIGHT: Product Area -->
         <div class="products-container container">
-
             <!-- Top Toolbar -->
             <div class="products-toolbar">
                 <div class="active-filter-label">
                     <?php
                     $activeLabel = (!empty($_GET['category']) || !empty($_GET['type'])) ? 'Filtered' : 'All';
                     ?>
-
                     <span class="filter-tag <?= ($activeLabel === 'Filtered') ? 'is-active' : '' ?>">
-                  <?= $activeLabel ?> (<?= count($products) ?> Results)
-                </span>
-
+                      <?= $activeLabel ?> (<?= count($products) ?> Results)
+                    </span>
                 </div>
 
                 <div class="sort-dropdown">
@@ -189,10 +179,12 @@ $products = $productStmt->fetchAll();
                                     </div>
                                     <div class="product-card-add-cart">
                                         <div class="price fw-bolder">$<?= number_format($product['lpa_stock_price'], 2) ?> AUD</div>
-                                        <a class="btn btn-sm btn-outline-primary">
+                                        <button data-product-id="<?= htmlspecialchars($product['lpa_stock_ID']); ?>"
+                                                onclick="addToCartBtn(event)"
+                                                class="btn btn-sm btn-outline-primary add-to-cart-btn">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                             Add
-                                        </a>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -207,87 +199,5 @@ $products = $productStmt->fetchAll();
                 </div>
             </div>
         </div>
+    </div>
 </form>
-
-<script>
-    const filterForm = document.getElementById("filter-form");
-
-    function changeSelection(input) {
-        input.addEventListener('change', () => {
-            filterForm.submit();
-        });
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        // const filterForm = document.getElementById("filter-form");
-        filterForm.querySelectorAll('input[type="checkbox"]').forEach(input => {
-
-            console.log('input', input);
-
-            changeSelection(input);
-        });
-
-        filterForm.querySelectorAll('input[type="number"]').forEach(input => {
-            console.log('Min', input.value !== '')
-            let hasMinPrice = input.name === 'min_price' && input.value !== '';
-            let hasMaxPrice = input.name === 'max_price' && input.value !== '';
-            if (hasMinPrice && hasMaxPrice) {
-                changeSelection(input);
-            }
-
-            if (!hasMinPrice && !hasMaxPrice) {
-                input.value = ''
-                changeSelection(input)
-            }
-
-        });
-
-        const sortSelect = document.getElementById("sort");
-        if (sortSelect) {
-            changeSelection(sortSelect)
-        }
-
-        // 🧠 Handle logic for "All" type
-        const typeCheckboxes = document.querySelectorAll('.type-checkbox');
-        const allTypeCheckbox = Array.from(typeCheckboxes).find(el => el.dataset.typeId === '4');
-
-        typeCheckboxes.forEach(cb => {
-            cb.addEventListener('change', () => {
-                const anyChecked = Array.from(typeCheckboxes)
-                    .some(input => input.checked && input.dataset.typeId !== '4');
-
-                allTypeCheckbox.checked = !anyChecked;
-            });
-        });
-
-        const cards = document.querySelectorAll('.clickable-card');
-
-        cards.forEach(card => {
-            card.addEventListener('click', function (e) {
-                const ripple = document.createElement('span');
-                ripple.classList.add('ripple-effect');
-
-                const rect = card.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                ripple.style.width = ripple.style.height = `${size}px`;
-
-                ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-                ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-
-                card.appendChild(ripple);
-
-                setTimeout(() => ripple.remove(), 600);
-            });
-        });
-
-        cards.forEach(card => {
-            card.addEventListener('click', (e) => {
-                // Prevent click from Add button inside
-                if (e.target.closest("button")) return;
-
-                const id = card.getAttribute("data-id");
-                if (id) window.location.href = `index.php?page=product&id=${id}`;
-            })
-        })
-    });
-</script>

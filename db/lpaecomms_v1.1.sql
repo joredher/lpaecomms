@@ -67,13 +67,8 @@ CREATE TABLE IF NOT EXISTS `lpa_clients` (
   `lpa_clients_ID` int NOT NULL AUTO_INCREMENT,
   `lpa_clients_firstname` varchar(50) NOT NULL,
   `lpa_clients_lastname` varchar(50) CHARACTER SET armscii8 COLLATE armscii8_general_ci NOT NULL,
-  `lpa_client_address` varchar(250) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
-  `lpa_client_street` varchar(250) DEFAULT NULL,
-  `lpa_client_apartment` varchar(250) DEFAULT NULL,
-  `lpa_client_country` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
-  `lpa_client_city` varchar(250) DEFAULT NULL,
+  `lpa_client_address` varchar(250) NOT NULL,
   `lpa_client_phone` int NOT NULL,
-  `lpa_client_postcode` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `lpa_client_email` varchar(500) NOT NULL,
   `lpa_client_status` char(1) DEFAULT 'A',
   `lpa_clients_fk_user_id` int DEFAULT NULL,
@@ -200,21 +195,21 @@ CREATE TABLE IF NOT EXISTS `lpa_users` (
   `token_created_at` datetime DEFAULT NULL,
   `lpa_user_status` char(1) DEFAULT 'A',
   `is_verified` tinyint DEFAULT '0',
-  PRIMARY KEY (`lpa_users_ID`) USING BTREE,
+  PRIMARY KEY (`lpa_users_ID`),
   UNIQUE KEY `lpa_user_username_UNIQUE` (`lpa_user_username`),
   UNIQUE KEY `lpa_user_email_UNIQUE` (`lpa_user_email`),
   KEY `fk_lpa_users_lpa_user_group1_idx` (`lpa_fk_user_group_ID`),
   CONSTRAINT `fk_lpa_users_lpa_user_group1` FOREIGN KEY (`lpa_fk_user_group_ID`) REFERENCES `lpa_user_group` (`lpa_user_group_ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb3;
 
--- Volcando datos para la tabla lpaecommerce.lpa_users: ~2 rows (aproximadamente)
+-- Volcando datos para la tabla lpaecommerce.lpa_users: ~3 rows (aproximadamente)
 DELETE FROM `lpa_users`;
 INSERT INTO `lpa_users` (`lpa_users_ID`, `lpa_user_username`, `lpa_user_email`, `lpa_user_password`, `lpa_user_firstname`, `lpa_user_lastname`, `lpa_fk_user_group_ID`, `validation_token`, `token_created_at`, `lpa_user_status`, `is_verified`) VALUES
 	(15, 'joredher302025', 'joredher30@gmail.com', '$2y$10$CDVFVjngnIUh5NF/JzRBX.OGFAVuVcXGDiKeHsE2oNptNpL7d.Fz6', 'Jorge', 'Hernandez', 2, '', NULL, 'A', 1),
 	(16, 'ben2025', 'ben@mack.com', '$2y$10$N58VFBk/mOzEHbk8a2cJZu8G4Al75ZZ.q3E1r9Ksa89.N0WSr8uN6', 'Ben', 'Mack', 2, '', NULL, 'A', 1),
 	(17, 'maria2025', 'maria@pajona.com', '$2y$10$St2hWTHNnB8bx2Gi1NM8Q.tIFKlU3tmeM2zZa6RyZBnAji1oba.sm', 'Maria', 'Pajona', 2, '', '2025-06-02 07:36:08', 'A', 1),
 	(18, 'msossa692025', 'msossa69@hotmail.com', '$2y$10$1uwMiI.By8XtwOHVISVQReuINXmIIpoKiXyKAV3crCqBFT5VgAfgS', 'Mildred', 'Sossa', 2, '', '2025-06-02 08:09:30', 'A', 1),
-	(19, 'lucia2025', 'lucia@mail.com', '$2y$10$QbdGarU5JIJTb/bojCrBhew8Ppu6rzMal.hPh/dyh9vzqvbvyuIt.', 'Lucia', 'Sossa', 2, '', '2025-06-09 07:29:49', 'A', 1);
+	(19, 'lucia2025', 'lucia@mail.com', '$2y$10$QbdGarU5JIJTb/bojCrBhew8Ppu6rzMal.hPh/dyh9vzqvbvyuIt.', 'Lucia', 'Sossa', 2, '', '2025-06-06 11:39:58', 'A', 1);
 
 -- Volcando estructura para tabla lpaecommerce.lpa_user_group
 CREATE TABLE IF NOT EXISTS `lpa_user_group` (
@@ -233,13 +228,13 @@ INSERT INTO `lpa_user_group` (`lpa_user_group_ID`, `name`) VALUES
 -- Volcando estructura para tabla lpaecommerce.lpa_verification_tokens
 CREATE TABLE IF NOT EXISTS `lpa_verification_tokens` (
   `lpa_verification_token_ID` int NOT NULL AUTO_INCREMENT,
-  `lpa_user_id` int NOT NULL DEFAULT '0',
+  `lpa_users_ID` int NOT NULL DEFAULT '0',
   `token` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`lpa_verification_token_ID`),
-  KEY `FK_USER_ID` (`lpa_user_id`),
-  CONSTRAINT `FK_USER_ID` FOREIGN KEY (`lpa_user_id`) REFERENCES `lpa_users` (`lpa_users_ID`)
+  KEY `FK_USER_ID` (`lpa_users_ID`),
+  CONSTRAINT `FK_USER_ID` FOREIGN KEY (`lpa_users_ID`) REFERENCES `lpa_users` (`lpa_users_ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb3 COMMENT='This table was created to give a flow during the verification process once the user got a registration.';
 
 -- Volcando datos para la tabla lpaecommerce.lpa_verification_tokens: ~0 rows (aproximadamente)

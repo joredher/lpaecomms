@@ -100,6 +100,50 @@ header {
     background-color: #01497c;
 }
 
+.account-active {
+    background: #013a63;
+    box-shadow: 0 2px 6px rgba(53, 153, 143, 0.25);
+    border: 1px dashed whitesmoke;
+    transition: background 0.3s ease-in;
+}
+
+.account-active:hover {
+    background: linear-gradient(135deg, #4eb590, #35998f, #357c82);
+    transition: background 0.3s ease-out;
+}
+
+.dropdown .dropdown-menu {
+    margin-top: 8px;
+    border-radius: 10px;
+    min-width: 180px;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown .dropdown-item {
+    padding: 10px 15px;
+    transition: background-color 0.2s;
+}
+
+.dropdown .dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+
+.login-link {
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid white;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.login-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+
 .currency {
     display: flex;
     align-items: center;
@@ -623,7 +667,7 @@ header {
     gap: 40px;
     align-items: flex-start;
     justify-content: flex-start;
-    margin-top: 110px;
+    margin-top: 80px;
     padding: 20px 190px;
     flex-wrap: wrap;
 }
@@ -775,6 +819,22 @@ header {
     background-color: #f5f5f5; /* Optional: nice background */
 }
 
+.cart-icon > a {
+    cursor: pointer;
+    display: inline-block;
+    transition: transform 0.2s ease, color 0.2s ease;
+    color: white;
+}
+
+.cart-icon > a:hover {
+    transform: scale(1.1);
+    color: #35998f; /* Your main accent color */
+}
+
+.cart-icon > a.clicked {
+    color: #0c8d3b; /* A different color when active */
+}
+
 
 .clickable-card {
     cursor: pointer;
@@ -809,6 +869,74 @@ header {
     background-color: rgba(53, 153, 143, 0.4);
     pointer-events: none;
 }
+
+
+/** CART SECTION **/
+
+.pd-cart-section div table {
+    font-family: Poppins, Verdana, serif;
+    font-size: 16px;
+}
+.pd-cart-section div table th, .pd-cart-section div table td {
+    font-weight: 500;
+    padding: 24px 0;
+    width: 284px;
+}
+
+.pd-cart-section div table th:first-child, .pd-cart-section div table td:first-child {
+    padding-left: 40px;
+}
+
+.pd-cart-section div table th:last-child, .pd-cart-section div table td:last-child {
+    padding-right: 40px;
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+input[name="coupon_code"] {
+    max-width: 250px;
+}
+
+@media (max-width: 768px) {
+    .card .card-body {
+        padding: 1rem;
+    }
+}
+
+
+.btn-return-shop {
+    background-color: #057a28;
+    color: #fff;
+    border: 1px solid #056d24;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.btn-return-shop:hover {
+    background-color: #045d1d;
+    color: #fff;
+}
+
+.btn-update-cart {
+    background-color: #b8e986;
+    color: #ffffff;
+    border: 1px solid #a6d873;
+    padding: 8px 20px;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.btn-update-cart:hover {
+    background-color: #a0d46c;
+    color: #ffffff;
+}
+
 
 @keyframes ripple-animation {
     to {
@@ -910,3 +1038,265 @@ header {
 
 
 /**TEST**/
+/* Checkout Layout Styles */
+.checkout-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 2rem;
+    font-family: 'Poppins', sans-serif;
+    color: #000;
+    min-height: 100vh;
+}
+
+.checkout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.checkout-title {
+    font-size: 2rem;
+    font-weight: 500;
+    color: white;
+}
+
+.checkout-back {
+    font-size: 1.2rem;
+    color: white;
+    cursor: pointer;
+}
+
+.checkout-body {
+    /*display: flex;*/
+    /*justify-content: center;*/
+}
+
+.checkout-form {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 20rem;
+}
+
+.form-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group-custom label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+    color: white;
+}
+
+.input-style {
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: none;
+    background-color: #f5f5f5;
+    width: 100%;
+}
+
+.text-required {
+    color: #db4444;
+}
+
+.option-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+}
+
+.order-summary-container {
+    flex: 1 1 40%;
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 90px;
+    align-content: center;
+}
+
+.item-line {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.item-image {
+    width: 54px;
+    height: 54px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.item-detail {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.text-detail {
+    font-size: 1rem;
+    color: #000;
+}
+
+.summary-box {
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    margin: 1rem 0;
+    padding: 1rem 0;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.radio-button-style {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #000;
+    position: relative;
+}
+
+.radio-button-style.selected::after {
+    content: "";
+    position: absolute;
+    top: 25%;
+    left: 25%;
+    width: 50%;
+    height: 50%;
+    background: #000;
+    border-radius: 50%;
+}
+
+.option-group input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #000;
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+}
+
+.option-group input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    width: 6px;
+    height: 12px;
+    border: solid #000;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+
+.card-icons {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.card-icons img {
+    width: 42px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.btn-place-order {
+    margin-top: 1.5rem;
+}
+
+.btn-place-order button {
+    width: 100%;
+    background-color: #aada6f;
+    color: #fff;
+    padding: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.btn-place-order button:hover {
+    background-color: #96c85d;
+}
+
+/** ACCOUNT **/
+.container-account {
+    max-width: 1280px;
+    margin: 0 auto 400px;
+    padding: 3rem 0;
+    font-size: 16px;
+}
+
+.container-account .form-label {
+    color: #003459;
+    font-weight: 500;
+    line-height: 24px;
+}
+
+.container-account .form-control {
+    border: none;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    height: 40px;
+    padding-left: 16px;
+    font-size: 1rem;
+    color: #333;
+    box-shadow: none;
+}
+
+.container-account .form-control::placeholder {
+    color: #999;
+    opacity: 0.6;
+}
+
+.container-account .btn-success {
+    background-color: #aada6f;
+    color: #fafafa;
+    font-weight: 500;
+    padding: 12px 32px;
+    border: none;
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+.container-account .btn-success:hover {
+    background-color: #96c85d;
+}
+
+.container-account .btn-outline-secondary {
+    border: 1px solid #ccc;
+    color: #003459;
+    padding: 12px 32px;
+    font-weight: 500;
+}
+
+.container-account .bg-white {
+    background-color: #fff !important;
+}
+
+.container-account .text-primary {
+    color: #003459 !important;
+}
+
+.container-account .shadow-sm {
+    box-shadow: 0 1px 13px rgba(0, 0, 0, 0.05) !important;
+}
+
+.container-account .rounded {
+    border-radius: 8px !important;
+}
+

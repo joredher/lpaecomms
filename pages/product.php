@@ -24,7 +24,13 @@ if (!$product) {
 }
 
 $relatedStmt = $conn->prepare(
-    /** @lang text */ "SELECT * FROM lpa_stock 
+    /** @lang text */ "SELECT 
+        s.*,
+        c.lpa_category_name, 
+        t.lpa_type_name
+     FROM lpa_stock s
+     JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
+     JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID
      WHERE lpa_fk_category_ID = ? AND lpa_stock_ID != ? 
      ORDER BY RAND() LIMIT 3"
 );
@@ -36,7 +42,7 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
 
 <div class="pd-details-section container py-5">
     <div class="pd-details-back mb-4">
-        <a href="index.php?page=categories" class="pd-back-button d-flex align-items-center text-decoration-none">
+        <a href="?route=products" class="pd-back-button d-flex align-items-center text-decoration-none">
             <img src="../assets/images/icons/back.svg" alt="Back" class="me-2">
             <span>Back</span>
         </a>
@@ -73,39 +79,72 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
 
             <div class="product-actions">
                 <button class="btn-buy-now">Buy now</button>
-                <button class="btn-add-to-cart">Add to cart</button>
+                <button class="btn-add-to-cart"
+                        data-product-id="<?= htmlspecialchars($product['lpa_stock_ID']); ?>"
+                        onclick="addToCartBtn(event)"
+                >Add to cart</button>
             </div>
         </div>
     </div>
 
-<!--    <div class="pd-related-section mt-5">-->
-<!--        <div class="pd-related-bg"></div>-->
-<!--        <h4 class="pd-related-title mb-4">You may also like</h4>-->
-<!--        <div class="row gy-4">-->
-<!--            --><?php //foreach ($related as $item): ?>
-<!--                <div class="col-md-4">-->
-<!--                    <div class="pd-related-card h-100 shadow-sm rounded p-3 bg-white">-->
-<!--                        <img class="pd-related-img mb-3 w-100 rounded" src="assets/images/test-images/--><?php //= htmlspecialchars($item['lpa_stock_image']) ?><!--" alt="--><?php //= htmlspecialchars($item['lpa_stock_name']) ?><!--">-->
-<!--                        <div class="pd-related-info">-->
-<!--                            <h5 class="pd-related-name mb-2 fw-semibold text-truncate">--><?php //= htmlspecialchars($item['lpa_stock_name']) ?><!--</h5>-->
-<!--                            <div class="pd-related-meta mb-2">-->
-<!--                                <div class="pd-meta-item">-->
-<!--                                    <span class="pd-meta-label">Type:</span>-->
-<!--                                    <span class="pd-meta-value ms-1 text-muted">--><?php //= htmlspecialchars($item['lpa_type_name']) ?><!--</span>-->
-<!--                                </div>-->
-<!--                                <div class="pd-meta-item">-->
-<!--                                    <span class="pd-meta-label">Category:</span>-->
-<!--                                    <span class="pd-meta-value ms-1 text-muted">--><?php //= htmlspecialchars($item['lpa_category_name']) ?><!--</span>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                            <div class="pd-related-price fw-bold">$--><?php //= number_format($item['lpa_stock_price'], 2) ?><!-- AUD</div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            --><?php //endforeach; ?>
-<!--        </div>-->
-<!--    </div>-->
+    <div class="pd-related-section mt-5">
+        <h4 class="pd-related-title mb-5">You may also like</h4>
+        <form method="GET" id="filter-form" action="index.php">
+            <input type="hidden" name="page" value="product">
+            <div class="row gy-4 mb-5">
+                <?php foreach ($related as $item): ?>
+                    <div class="col-md-4">
+                        <div class="product-card clickable-card clickable-card-detail ripple-container" data-id="<?= $item['lpa_stock_ID'] ?>">
+                            <img src="assets/images/test-images/<?= htmlspecialchars($item['lpa_stock_image']) ?>" alt="<?= htmlspecialchars($item['lpa_stock_name']) ?>">
+
+                            <div class="product-card-description">
+                                <h3 class="text-truncate"><?= htmlspecialchars($item['lpa_stock_name']) ?></h3>
+                                <div class="type-category-text">
+                                    <p class="text-truncate">
+                                        Category: <strong><?= $item['lpa_category_name'] ?></strong><br>
+                                    </p>
+                                    <p>*</p>
+                                    <p class="text-truncate">
+                                        Type: <strong><?= $item['lpa_type_name'] ?></strong>
+                                    </p>
+                                </div>
+                                <div class="product-card-add-cart">
+                                    <div class="price fw-bolder">$<?= number_format($item['lpa_stock_price'], 2) ?> AUD</div>
+                                    <button data-product-id="<?= htmlspecialchars($product['lpa_stock_ID']); ?>"
+                                            onclick="addToCartBtn(event)"
+                                            class="btn btn-sm btn-outline-primary add-to-cart-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                        Add
+                                    </button>
+<!--                                    <a class="btn btn-sm btn-outline-primary">-->
+<!--                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>-->
+<!--                                        Add-->
+<!--                                    </a>-->
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+        </form>
+    </div>
 </div>
+<script>
+    const cards = document.querySelectorAll('.clickable-card-detail');
+
+    cards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Prevent click from Add button inside
+            if (e.target.closest("button")) return;
+
+            const id = card.getAttribute("data-id");
+            console.log('LOG', id)
+            if (id) window.location.href = `index.php?page=product&id=${id}`;
+        })
+    })
+</script>
 
 
 
