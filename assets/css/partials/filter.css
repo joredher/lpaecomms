@@ -1,0 +1,115 @@
+/**FILTER CSS**/
+
+/* ========== FILTER SIDEBAR ========== */
+/* 🔹 Filter Panel Styles 🔹 */
+.filter-panel {
+    width: 100%;
+    max-width: 300px;
+    /*padding: 0 20px;*/
+    background-color: transparent;
+    /*border: 1px solid #ddd;*/
+    border-radius: 12px;
+    box-sizing: border-box;
+    margin-bottom: 30px;
+    /*margin-top: 130px;*/
+    /*margin-left: 97px;*/
+    font-family: 'Poppins', sans-serif;
+}
+
+.filter-group {
+    margin-bottom: 25px;
+}
+
+.filter-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #ffffff;
+}
+
+.filter-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--link-color);
+}
+
+.price-inputs {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    flex-wrap: wrap; /* Add this in case it’s on mobile */
+}
+
+.price-field {
+    flex: 1 1 45%; /* Makes both fields shrink evenly */
+    min-width: 0;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* ========== FILTER PANEL HEADER ========== */
+.filter-main-title {
+    font-size: 20px;
+    font-weight: 700;
+    /**margin: 0 50px 0 0;
+    margin-bottom: 20px;*/
+    color: #ffffff;
+    font-family: Poppins, sans-serif;
+}
+
+/* ========== PAGE LAYOUT ========== */
+.categories {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin-top: 80px;
+    padding: 20px 190px;
+    flex-wrap: wrap;
+}
+
+/* ========== PRODUCTS CONTAINER ========== */
+.products-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+/* ========== TOP BAR ABOVE PRODUCTS ========== */
+.products-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-right: 10px;
+}
+
+.active-filter-label {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--link-color);
+    font-family: Poppins, sans-serif;
+}
+
+.filter-tag {
+    background-color: #e5f1ff;
+    color: var(--link-color);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+}

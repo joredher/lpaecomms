@@ -1,0 +1,12 @@
+:root {
+    --color-primary: #003459;
+    --color-primary-hover: #caf0f8;
+    --color-secondary: #013a63;
+    --color-secondary-hover: #01497c;
+    --gradient-start: #4eb590;
+    --gradient-mid: #35998f;
+    --gradient-end: #357c82;
+    --link-color: #0066cc;
+    --success-color: #aada6f;
+    --success-hover: #96c85d;
+}

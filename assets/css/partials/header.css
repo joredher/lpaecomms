@@ -1,0 +1,188 @@
+/** @header **/
+header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 28px 130px;
+    color: white;
+    font-size: 16px;
+    gap: 63px;
+    position: relative;
+    font-family: Verdana, serif;
+    box-sizing: border-box;
+    height: 160px;
+}
+
+.logo-nav {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.logo {
+    width: 50px;
+}
+
+.navigation {
+    display: flex;
+    gap: 30px;
+}
+
+.navigation a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s;
+    font-family: Verdana, serif;
+}
+
+.navigation a:hover {
+    color: var(--color-primary-hover);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    padding: 8px 15px;
+    border-radius: 20px;
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-box img {
+    width: 16px;
+    margin-right: 10px;
+}
+
+.create-account {
+    background-color: var(--color-secondary);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.create-account:hover {
+    background-color: var(--color-secondary-hover);
+}
+
+.account-active {
+    background: var(--color-secondary);
+    box-shadow: 0 2px 6px rgba(53, 153, 143, 0.25);
+    border: 1px dashed whitesmoke;
+    transition: background 0.3s ease-in;
+}
+
+.account-active:hover {
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+    transition: background 0.3s ease-out;
+}
+
+.dropdown .dropdown-menu {
+    margin-top: 8px;
+    border-radius: 10px;
+    min-width: 180px;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown .dropdown-item {
+    padding: 10px 15px;
+    transition: background-color 0.2s;
+}
+
+.dropdown .dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+
+.login-link {
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid white;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.login-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+
+.currency {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.currency img {
+    width: 20px;
+}
+
+.samsung {
+    height: 96.88%;
+    font-weight: 800;
+    display: inline-block;
+    margin: 0 60px;
+}
+.lenovo {
+    height: 96.88%;
+    font-weight: 800;
+    display: inline-block;
+    margin: 0 60px;
+}
+.acer {
+    height: 96.88%;
+    font-weight: 600;
+    display: inline-block;
+    margin: 0 60px;
+}
+.asus {
+    height: 96.88%;
+    font-weight: 600;
+    display: inline-block;
+    margin: 0 60px;
+}
+.dell {
+    height: 87.5%;
+    font-weight: 600;
+    display: inline-block;
+    margin: 0 60px;
+}
+
+.brands {
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    color: #fff;
+    font-family: Inter, Verdana, serif;
+}
+
+.brands > div {
+    cursor: pointer;
+}
+
+.brands > div:hover {
+    color: var(--color-primary-hover);
+    transition: color 0.1ms;
+}
