@@ -12,7 +12,7 @@ $route = $_GET['route'] ?? trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)
 if ($route === ''): $route = 'home'; endif;
 $path = 'pages/';
 RegisterController::register($route, 'auth', 'AuthController', ['login', 'register', 'logout']);
-RegisterController::register($route, 'profile', 'ProfileController', ['create']);
+RegisterController::register($route, 'profile', 'ProfileController', ['create', 'store']);
 RegisterController::register($route, 'cart', 'CartController', ['add', 'remove', 'update', 'applyCoupon']);
 RegisterController::register($route, 'cart', 'CheckoutController', ['process']);
 
@@ -43,8 +43,12 @@ switch ($route) {
         include 'includes/layout.php';
         break;
     case 'cart':
-        $pageContent = $path.'client/view_cart.php';
-        include 'includes/layout.php';
+        if (empty($_SESSION['cart'])):
+            header('Location: /products');
+        else:
+            $pageContent = $path.'client/view_cart.php';
+            include 'includes/layout.php';
+        endif;
         break;
     case 'checkout':
         $controller = new CheckoutController();

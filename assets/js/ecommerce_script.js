@@ -99,9 +99,11 @@ function showToast({
     }, 5000)
 }
 
+
+
 function verifiedIfCartCountIsNeeded () {
     const cartCount = document.querySelector('#cart-count');
-    console.log('LOG', cartCount.textContent)
+    // console.log('LOG', cartCount.textContent)
     if (parseInt(cartCount.textContent) === 0 || typeof parseInt(cartCount.textContent) === 'undefined') {
         cartCount.classList.remove('d-block')
         cartCount.classList.add('d-none')
@@ -110,6 +112,125 @@ function verifiedIfCartCountIsNeeded () {
         cartCount.classList.add('d-block')
     }
 }
+
+// =========================
+// API config
+// =========================
+const url = 'https://addressr.p.rapidapi.com/addresses?q=';
+const headers = {
+    'x-rapidapi-key': 'fdb9e0567dmsha6e1dfa8a5d4f52p1f769bjsn932503b8f8e9',
+    'x-rapidapi-host': 'addressr.p.rapidapi.com'
+};
+
+// =========================
+// Search API Call
+// =========================
+async function searchAddress(query) {
+    const options = {
+        method: 'GET',
+        headers: headers
+    };
+    try {
+        const response = await fetch(`${url}${encodeURIComponent(query)}`, options);
+        const result = await response.json();
+        renderSuggestions(result);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// Optional: enhance suggestion UX with arrow key navigation
+function enableKeyboardNavigation() {
+    const suggestions = document.getElementById('suggestions');
+    const input = document.getElementById('autocomplete-address');
+
+    let selectedIndex = -1;
+
+    input.addEventListener('keydown', function (e) {
+        const items = suggestions.querySelectorAll('li');
+        if (items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = (selectedIndex + 1) % items.length;
+            updateHighlight(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+            updateHighlight(items);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedIndex >= 0 && selectedIndex < items.length) {
+                input.value = items[selectedIndex].textContent;
+                suggestions.innerHTML = '';
+                selectedIndex = -1;
+            }
+        }
+    });
+
+    function updateHighlight(items) {
+        items.forEach((item, index) => {
+            item.classList.toggle('active', index === selectedIndex);
+        });
+    }
+}
+
+
+// =========================
+// Render Address Suggestions
+// =========================
+function renderSuggestions(data) {
+    const list = document.getElementById('suggestions');
+    list.innerHTML = '';
+    if (data && Array.isArray(data) && data.length > 0) {
+        data.forEach(address => {
+            console.log('Show me ', address)
+            const li = document.createElement('li');
+            li.textContent = address.sla;
+            li.className = 'list-group-item list-group-item-action mx';
+            li.style.cursor = 'pointer';
+            li.addEventListener('click', () => {
+                const input = document.getElementById('autocomplete-address');
+                const idHidden = document.getElementById('address-id');
+                if (input) {
+                    input.value = address.sla;
+                    idHidden.value = address.pid
+                }
+                list.innerHTML = ''; // Clear suggestions
+            });
+            list.appendChild(li);
+        });
+    }
+}
+
+// =========================
+// Attach listener after HTML loads
+// =========================
+function attachAutocomplete() {
+    const autocomplete = document.getElementById('autocomplete-address');
+    const suggestions = document.getElementById('suggestions');
+
+    if (!autocomplete || !suggestions) {
+        console.warn("⚠️ Input with ID 'autocomplete-address' not found!");
+        return;
+    }
+
+    autocomplete.addEventListener('input', function () {
+        const input = this.value.trim();
+        if (input.length >= 3) {
+            searchAddress(input);
+        } else {
+            suggestions.innerHTML = '';
+        }
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!event.target.closest('#autocomplete-address')) {
+            suggestions.innerHTML = '';
+        }
+    });
+}
+
 
 document.addEventListener("DOMContentLoaded", function () {
     // const filterForm = document.getElementById("filter-form");
@@ -189,14 +310,23 @@ document.addEventListener("DOMContentLoaded", function () {
     verifiedIfCartCountIsNeeded()
 
     // Profile Account
-    const links = document.querySelectorAll(".nav-link-item");
-    const sections = document.querySelectorAll(".profile-section");
+    const links = document.querySelectorAll("[data-target]");
     const output = document.getElementById("dynamic-content");
 
-    function showSection(id) {
-        sections.forEach(section => section.classList.add("d-none"));
-        const selected = document.getElementById(id);
-        if (selected) output.innerHTML = selected.innerHTML;
+    function showSection(target) {
+        fetch(`pages/user/profile_${target}.php`)
+            .then(response => response.text())
+            .then(html => {
+                output.innerHTML = html;
+                setTimeout(() => {
+                    attachAutocomplete();
+                    enableKeyboardNavigation();
+                }, 20);
+            })
+            .catch(err => {
+                output.innerHTML = `<div class="alert alert-danger">Error loading section.</div>`;
+                console.error(err);
+            });
     }
 
     links.forEach(link => {
@@ -204,7 +334,7 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
             const target = this.dataset.target;
 
-            // Remove active style
+            // Marcar el botón activo
             links.forEach(l => l.classList.remove("fw-bold", "text-primary"));
             this.classList.add("fw-bold", "text-primary");
 
@@ -212,7 +342,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-// Load default view
+// Cargar vista por defecto
     showSection("profile");
     document.querySelector('[data-target="profile"]').classList.add("fw-bold", "text-primary");
 

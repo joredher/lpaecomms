@@ -1300,3 +1300,42 @@ input[name="coupon_code"] {
     border-radius: 8px !important;
 }
 
+/* Limit autocomplete suggestion box width */
+#suggestions {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto; /* Enables scrolling */
+    max-height: 300px; /* Limit height to show scroll */
+    z-index: 1000;
+    background-color: white;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+}
+
+/* Avoid content overflow */
+#suggestions li {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+}
+
+#suggestions li.active {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+
+/* Keep it readable */
+#autocomplete-address {
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1020;
+}
+

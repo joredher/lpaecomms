@@ -2,8 +2,8 @@
 
 use repositories\BaseRepository;
 
-require_once 'repositories/BaseRepository.php';
-require_once 'repositories/UserRepository.php';
+loadRepo('repositories/BaseRepository.php');
+loadRepo('repositories/UserRepository.php');
 
 class UserRepository extends BaseRepository
 {
@@ -53,7 +53,7 @@ class UserRepository extends BaseRepository
 
     public function saveVerificationToken(int $userId, string $token, string $expiresAt): bool
     {
-        $stmt = $this->conn->prepare(/** @lang text */ "INSERT INTO lpa_verification_tokens (lpa_users_ID, token, expires_at) VALUES (?, ?, ?)");
+        $stmt = $this->conn->prepare(/** @lang text */ "INSERT INTO lpa_verification_tokens (lpa_user_ID, token, expires_at) VALUES (?, ?, ?)");
 
         return $stmt->execute([$userId, $token, $expiresAt]);
     }
@@ -61,7 +61,7 @@ class UserRepository extends BaseRepository
     public function verifyUserByToken(string $token): bool
     {
         $stmt = $this->conn->prepare(/** @lang text */ "
-                                SELECT lpa_users_ID, expires_at 
+                                SELECT lpa_user_ID, expires_at 
                                 FROM lpa_verification_tokens 
                                 WHERE token = :token
                             ");

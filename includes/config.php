@@ -1,5 +1,9 @@
 <?php
 
+if (!defined('APP_PATH')) {
+    define('APP_PATH', dirname(__DIR__));
+}
+
 class Database {
     private static $instance = null;
     private PDO $conn;
@@ -28,4 +32,9 @@ class Database {
 
         return self::$instance->conn;
     }
+
+}
+function loadRepo($relativePath): void
+{
+    require_once APP_PATH . '/' . ltrim($relativePath, '/');
 }

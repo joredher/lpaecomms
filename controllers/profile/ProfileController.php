@@ -42,4 +42,9 @@ class ProfileController
         $pageContent = 'pages/user/account.php';
         include 'includes/layout.php';
     }
+
+    public function store()
+    {
+
+    }
 }
