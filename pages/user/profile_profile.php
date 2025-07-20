@@ -6,11 +6,13 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../../bootstrap.php';
 loadRepo('repositories/UserRepository.php');
+loadRepo('repositories/client/ClientRepository.php');
 
 $conn = Database::getConnection();
 
 
 $user = $_SESSION['user'];
+$clientExists = null;
 var_dump($user);
 
 if (isset($_SESSION['user'])) :
@@ -24,11 +26,15 @@ if (isset($_SESSION['user'])) :
         'lpa_fk_user_group_ID',
         'lpa_users_ID',
     ], 'lpa_users_ID');
+
+    $clientExists = (new ClientRepository())->findByUserId($user['lpa_users_ID']);
+
+
 endif;
 
 
 $client = array_merge($user, [
-    'address' => ''
+    'address' => !empty($clientExists) ? $clientExists['lpa_client_address'] : '',
 ]);
 
 ?>
@@ -37,6 +43,7 @@ $client = array_merge($user, [
     <h5 class="fw-semibold text-primary">Edit Your Profile</h5>
 </div>
 <form action="/profile.store" method="POST">
+    <input type="hidden" name="profile_option" value="profile">
     <div class="row g-4">
         <div class="col-md-6">
             <label class="form-label">First Name</label>
@@ -62,12 +69,14 @@ $client = array_merge($user, [
                     placeholder="Type your address"
                     name="address"
                     id="autocomplete-address"
-                    value="<?= htmlspecialchars($client['address']) ?>"
+                    value="<?= ($client['address']) ?>"
                     autocomplete="off"
             >
             <ul id="suggestions" class="list-group position-absolute" style="z-index: 10;"></ul>
 <!--            <ul id="suggestions" class="list-group mt-2 position-absolute w-100 z-3"></ul>-->
         </div>
+
+
 <!--        <div class="col-md-6">-->
 <!--            <label class="form-label">Address</label>-->
 <!--            <input type="text" class="form-control" name="address"-->

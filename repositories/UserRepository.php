@@ -98,5 +98,4 @@ class UserRepository extends BaseRepository
             'token_created_at' => date('Y-m-d H:i:s')
         ]);
     }
-
 }

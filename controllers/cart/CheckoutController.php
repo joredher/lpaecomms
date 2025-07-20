@@ -21,6 +21,9 @@ class CheckoutController
                 'message' => '🕒 Your cart has expired after 30 minutes of inactivity.',
                 'type' => 'warning'
             ];
+            if (isset($_SESSION['from_checkout']) && $_SESSION['from_checkout']) {
+                unset($_SESSION['from_checkout']);
+            }
             header('Location: /products');
             exit;
         }
@@ -43,6 +46,7 @@ class CheckoutController
                 'message' => 'Please complete your customer profile before proceeding to checkout.',
                 'type' => 'info'
             ];
+            $_SESSION['from_checkout'] = true;
             header('Location: /profile.create');
             exit;
         }

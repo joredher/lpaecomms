@@ -54,6 +54,10 @@ switch ($route) {
         $controller = new CheckoutController();
         $controller->start();
         break;
+    case 'account':
+        $pageContent = $path.'/user/account.php';
+        include 'includes/layout.php';
+        break;
     case 'register':
     case 'login':
     case 'forgot':
