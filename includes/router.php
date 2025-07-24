@@ -54,13 +54,13 @@ switch ($route) {
         $controller = new CheckoutController();
         $controller->start();
         break;
-    case 'account':
+    case 'profile':
         $pageContent = $path.'/user/account.php';
         include 'includes/layout.php';
         break;
     case 'register':
     case 'login':
-    case 'forgot':
+    case 'forgot_password':
         $title = $route === 'register' ? 'Register' : 'Login';
 
 //        if ($route === 'register' && isset($_SESSION['pending_user_id'])) {

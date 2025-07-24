@@ -98,4 +98,21 @@ class UserRepository extends BaseRepository
             'token_created_at' => date('Y-m-d H:i:s')
         ]);
     }
+
+    /**
+     * @param $userId
+     * @param $hashedPassword
+     * @return void
+     */
+    public function updatePassword($userId, $hashedPassword): void
+    {
+        $query = /** @lang text */
+            "UPDATE lpa_users SET lpa_user_password = :password WHERE lpa_users_ID = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute([
+            ':password' => $hashedPassword,
+            ':id' => $userId
+        ]);
+    }
+
 }

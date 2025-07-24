@@ -22,7 +22,8 @@ class AuthController
         if (empty($username) || empty($password)) {
             $_SESSION['flash_message'] = [
                 'message' => '⚠️ Please fill out all fields correctly.',
-                'type' => 'danger'
+                'type' => 'danger',
+                'img' => 'assets/images/icons/error.png'
             ];
             header('Location: /login');
             exit;
@@ -72,12 +73,14 @@ class AuthController
 
                 header("Location: $redirectTo");
             }
-
         } else {
             $_SESSION['flash_message'] = [
                 'message' => '⚠️ Invalid credentials.',
-                'type' => 'danger'
+                'type' => 'danger',
+                'img' => 'assets/images/icons/error.png'
             ];
+
+            header('Location: /login');
         }
         exit;
     }

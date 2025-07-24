@@ -58,11 +58,16 @@ class ClientRepository extends BaseRepository
     public function addLpaUserClientAddressValid (array $data): bool
     {
         $baseRepo = new BaseRepository('lpa_user_client_address_valid');
-        $result =  $baseRepo->create($data);
-        if ($result) {
-            return true;
+
+        $exists = $baseRepo->findWhere('lpa_fk_client_ID', $data['lpa_fk_client_ID']) ?: null;
+
+        if (!empty($exists)) {
+            $baseRepo->delete($exists['id']);
         }
-        return false;
+
+        $result =  $baseRepo->create($data);
+
+        return !$result;
     }
 
     public function existsClientWithSameData($data): bool
@@ -75,8 +80,6 @@ class ClientRepository extends BaseRepository
 
         $stmt = $this->conn->prepare($query);
         $stmt->execute([
-            ':firstname' => $data['firstname'],
-            ':lastname' => $data['lastname'],
             ':email' => $data['email'],
             ':address' => $data['address'],
             ':user_id' => $data['user_id'],

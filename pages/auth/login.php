@@ -46,6 +46,7 @@ $hasValidateThroughFirst = isset($_SESSION['pending_user_id']);
                 </form>
             <?php endif; ?>
             <a class="sign-up-link" href="/register">SIGN UP</a>
+            <a class="sign-up-link h6" href="/forgot_password">Forgot Password</a>
         </div>
 
     </div>

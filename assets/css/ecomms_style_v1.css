@@ -1181,12 +1181,13 @@ input[name="coupon_code"] {
 
 .option-group input[type="checkbox"] {
     appearance: none;
-    width: 20px;
+    width: 22px;
     height: 20px;
-    border: 2px solid #000;
+    border: 1px solid #000;
     border-radius: 4px;
     position: relative;
     cursor: pointer;
+    background: white;
 }
 
 .option-group input[type="checkbox"]:checked::after {

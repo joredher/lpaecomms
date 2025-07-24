@@ -3,6 +3,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once __DIR__ . '/../../bootstrap.php';
+loadRepo('repositories/client/ClientRepository.php');
+
 if (!isset($_SESSION['user'])) {
     $_SESSION['intended_route'] = '/checkout';
 
@@ -20,6 +23,21 @@ require_once 'includes/config.php';
 //require_once 'includes/pagination.php';
 $conn = Database::getConnection();
 $backUrl = $_SESSION['previous_page'];
+
+$client = (new ClientRepository())->findByUserId($_SESSION['user']['id']);
+
+$clientData = [
+    'firstname' => $client['lpa_clients_firstname'] ?? '',
+    'lastname' => $client['lpa_clients_lastname'] ?? '',
+    'email' => $client['lpa_client_email'] ?? '',
+    'address' => $client['lpa_client_address'] ?? '',
+    'apartment' => $client['lpa_client_apartment'] ?? '',
+    'zipcode' => trim($_POST['zipcode'] ?? ''),
+    'city' => $client['lpa_client_city'] ?? '',
+    'phone' => ($client['lpa_client_phone'] || ((string) $client['lpa_client_phone'] !== '0')) ? $client['lpa_client_phone'] : ""
+];
+
+
 ?>
 
 <!-- checkout.php -->
@@ -34,35 +52,50 @@ $backUrl = $_SESSION['previous_page'];
         <div class="checkout-title">Billing Details</div>
     </div>
     <div class="checkout-body">
-        <form action="?route=checkout.process" method="POST" class="checkout-form">
+        <form action="/checkout.process" method="POST" class="checkout-form">
             <div class="form-column">
                 <div class="form-group-custom">
                     <label>First Name <span class="text-required">*</span></label>
-                    <input type="text" name="firstname" class="input-style" required>
+                    <input type="text" name="firstname" class="input-style" required value="<?= ($clientData['firstname']) ?>">
                 </div>
                 <div class="form-group-custom">
-                    <label>Company Name</label>
-                    <input type="text" name="company" class="input-style">
+                    <label>Last Name</label>
+                    <input type="text" name="lastname" class="input-style" value="<?= ($clientData['lastname']) ?>">
                 </div>
                 <div class="form-group-custom">
-                    <label>Street Address <span class="text-required">*</span></label>
-                    <input type="text" name="street" class="input-style" required>
+                    <label class="form-label" for="autocomplete-address">Address</label>
+                    <input type="hidden" name="address-id" id="address-id">
+                    <input
+                            type="text"
+                            class="input-style"
+                            placeholder="Type your address"
+                            name="address"
+                            id="autocomplete-address"
+                            value="<?= ($clientData['address']) ?>"
+                            autocomplete="off"
+                    >
+                    <ul id="suggestions" class="list-group position-absolute" style="z-index: 10;"></ul>
+                    <!--            <ul id="suggestions" class="list-group mt-2 position-absolute w-100 z-3"></ul>-->
+                </div>
+<!--                <div class="form-group-custom">-->
+<!--                    <label>Street Address <span class="text-required">*</span></label>-->
+<!--                    <input type="text" name="street" class="input-style" required>-->
+<!--                </div>-->
+<!--                <div class="form-group-custom">-->
+<!--                    <label>Apartment, floor, etc. (optional)</label>-->
+<!--                    <input type="text" name="apartment" class="input-style">-->
+<!--                </div>-->
+<!--                <div class="form-group-custom">-->
+<!--                    <label>Town/City <span class="text-required">*</span></label>-->
+<!--                    <input type="text" name="city" class="input-style" required>-->
+<!--                </div>-->
+                <div class="form-group-custom">
+                    <label for="phone">Phone Number <span class="text-required">*</span></label>
+                    <input type="tel" id="phone" name="phone" class="input-style" maxlength="11"  max="999999999" required value="<?= ($clientData['phone']) ?>">
                 </div>
                 <div class="form-group-custom">
-                    <label>Apartment, floor, etc. (optional)</label>
-                    <input type="text" name="apartment" class="input-style">
-                </div>
-                <div class="form-group-custom">
-                    <label>Town/City <span class="text-required">*</span></label>
-                    <input type="text" name="city" class="input-style" required>
-                </div>
-                <div class="form-group-custom">
-                    <label>Phone Number <span class="text-required">*</span></label>
-                    <input type="tel" name="phone" class="input-style" required>
-                </div>
-                <div class="form-group-custom">
-                    <label>Email Address <span class="text-required">*</span></label>
-                    <input type="email" name="email" class="input-style" required>
+                    <label for="email">Email Address <span class="text-required">*</span></label>
+                    <input type="email" id="email" name="email" class="input-style" required value="<?= ($clientData['email']) ?>">
                 </div>
                 <div class="option-group">
                     <input type="checkbox" name="save_info" id="saveInfo">

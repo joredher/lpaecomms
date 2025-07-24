@@ -57,6 +57,7 @@ class CheckoutController
 
 
     public function process() {
+
         if (!isset($_SESSION['user']) || empty($_SESSION['cart'])) {
             $_SESSION['flash_message'] = [
                 'message' => 'Your session expired or your cart is empty.',
@@ -72,10 +73,11 @@ class CheckoutController
         $billingData = [
             'user_id' => $user['id'],
             'firstname' => trim($_POST['firstname'] ?? ''),
-            'company' => trim($_POST['company'] ?? ''),
+            'lastname' => trim($_POST['lastname'] ?? ''),
             'street' => trim($_POST['street'] ?? ''),
             'apartment' => trim($_POST['apartment'] ?? ''),
             'city' => trim($_POST['city'] ?? ''),
+            'zipcode' => trim($_POST['zipcode'] ?? ''),
             'phone' => trim($_POST['phone'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
         ];

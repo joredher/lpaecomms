@@ -13,7 +13,6 @@ $conn = Database::getConnection();
 
 $user = $_SESSION['user'];
 $clientExists = null;
-var_dump($user);
 
 if (isset($_SESSION['user'])) :
     $repository = new UserRepository();
@@ -83,8 +82,17 @@ $client = array_merge($user, [
 <!--                   value="--><?php //= htmlspecialchars($client['address']) ?><!--">-->
 <!--        </div>-->
     </div>
+    <div class="d-flex justify-content-end gap-3 mt-4">
+        <a href="../../index.php" class="btn btn-outline-secondary">Cancel</a>
+        <button type="submit" class="btn btn-success px-4">Save Changes</button>
+    </div>
+</form>
 
-    <hr class="my-4">
+
+<hr class="my-4">
+<form action="/profile.store" method="POST">
+    <input type="hidden" name="profile_option" value="password">
+
     <h6 class="fw-semibold mb-3">Password Changes</h6>
 
     <div class="row g-4">
@@ -102,8 +110,7 @@ $client = array_merge($user, [
     </div>
 
     <div class="d-flex justify-content-end gap-3 mt-4">
-        <a href="../../index.php" class="btn btn-outline-secondary">Cancel</a>
-        <button type="submit" class="btn btn-success px-4">Save Changes</button>
+        <button type="submit" class="btn btn-success px-4">Update Password</button>
     </div>
 </form>
 
