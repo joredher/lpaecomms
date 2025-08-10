@@ -67,11 +67,11 @@ $client = array_merge($user, [
                    value="<?= htmlspecialchars($client['email']) ?>">
         </div>
         <div class="col-md-6 position-relative">
-            <label class="form-label">Address</label>
+            <label class="form-label" for="autocomplete-address">Address</label>
             <input type="hidden" name="address-id" id="address-id">
             <input
                     type="text"
-                    class="form-control"
+                        class="form-control"
                     placeholder="Type your address"
                     name="address"
                     id="autocomplete-address"

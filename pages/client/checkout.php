@@ -31,9 +31,10 @@ $clientData = [
     'lastname' => $client['lpa_clients_lastname'] ?? '',
     'email' => $client['lpa_client_email'] ?? '',
     'address' => $client['lpa_client_address'] ?? '',
+    'street' => $client['lpa_client_street'] ?? '',
     'apartment' => $client['lpa_client_apartment'] ?? '',
-    'zipcode' => trim($_POST['zipcode'] ?? ''),
     'city' => $client['lpa_client_city'] ?? '',
+    'zipcode' => trim($client['lpa_client_postcode'] ?? ''),
     'phone' => ($client['lpa_client_phone'] || ((string) $client['lpa_client_phone'] !== '0')) ? $client['lpa_client_phone'] : ""
 ];
 
@@ -41,7 +42,7 @@ $clientData = [
 ?>
 
 <!-- checkout.php -->
-<div class="pd-cart-section container py-5">
+<div class="pd-cart-section container py-5" id="checkout-section">
     <div class="mb-5">
         <a href="<?= $backUrl ?>" class="pd-back-button d-flex align-items-center text-decoration-none">
             <img src="../../assets/images/icons/back.svg" alt="Back" class="me-2">
@@ -55,14 +56,14 @@ $clientData = [
         <form action="/checkout.process" method="POST" class="checkout-form">
             <div class="form-column">
                 <div class="form-group-custom">
-                    <label>First Name <span class="text-required">*</span></label>
-                    <input type="text" name="firstname" class="input-style" required value="<?= ($clientData['firstname']) ?>">
+                    <label for="firstname">First Name <span class="text-required">*</span></label>
+                    <input type="text" id="firstname" name="firstname" class="input-style" required value="<?= ($clientData['firstname']) ?>">
                 </div>
                 <div class="form-group-custom">
-                    <label>Last Name</label>
-                    <input type="text" name="lastname" class="input-style" value="<?= ($clientData['lastname']) ?>">
+                    <label for="lastname">Last Name</label>
+                    <input type="text" id="lastname" name="lastname" class="input-style" value="<?= ($clientData['lastname']) ?>">
                 </div>
-                <div class="form-group-custom">
+                <div class="form-group-custom  position-relative">
                     <label class="form-label" for="autocomplete-address">Address</label>
                     <input type="hidden" name="address-id" id="address-id">
                     <input
@@ -77,18 +78,22 @@ $clientData = [
                     <ul id="suggestions" class="list-group position-absolute" style="z-index: 10;"></ul>
                     <!--            <ul id="suggestions" class="list-group mt-2 position-absolute w-100 z-3"></ul>-->
                 </div>
-<!--                <div class="form-group-custom">-->
-<!--                    <label>Street Address <span class="text-required">*</span></label>-->
-<!--                    <input type="text" name="street" class="input-style" required>-->
-<!--                </div>-->
-<!--                <div class="form-group-custom">-->
-<!--                    <label>Apartment, floor, etc. (optional)</label>-->
-<!--                    <input type="text" name="apartment" class="input-style">-->
-<!--                </div>-->
-<!--                <div class="form-group-custom">-->
-<!--                    <label>Town/City <span class="text-required">*</span></label>-->
-<!--                    <input type="text" name="city" class="input-style" required>-->
-<!--                </div>-->
+                <div class="form-group-custom">
+                    <label for="street">Street Address <span class="text-required">*</span></label>
+                    <input type="text" id="street" name="street" value="<?= ($clientData['street']) ?>" class="input-style" required>
+                </div>
+                <div class="form-group-custom">
+                    <label for="apartment">Apartment, floor, etc. (optional)</label>
+                <input type="text" id="apartment" name="apartment" value="<?= ($clientData['apartment']) ?>" class="input-style">
+                </div>
+                <div class="form-group-custom">
+                    <label for="city">Town/City <span class="text-required">*</span></label>
+                    <input type="text" id="city" name="city" value="<?= ($clientData['city']) ?>" class="input-style" required>
+                </div>
+                <div class="form-group-custom">
+                    <label for="zipcode">Postcode <span class="text-required">*</span></label>
+                    <input type="text" id="zipcode" name="zipcode" value="<?= ($clientData['zipcode']) ?>" class="input-style" required>
+                </div>
                 <div class="form-group-custom">
                     <label for="phone">Phone Number <span class="text-required">*</span></label>
                     <input type="tel" id="phone" name="phone" class="input-style" maxlength="11"  max="999999999" required value="<?= ($clientData['phone']) ?>">

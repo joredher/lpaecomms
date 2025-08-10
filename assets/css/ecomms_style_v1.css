@@ -1120,6 +1120,7 @@ input[name="coupon_code"] {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 90px;
     align-content: center;
+    height: fit-content;
 }
 
 .item-line {

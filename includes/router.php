@@ -11,6 +11,7 @@ require_once 'controllers/auth/AuthController.php';
 require_once 'controllers/cart/CheckoutController.php';
 require_once 'controllers/contact/ContactController.php';
 loadRepo('middleware/AuthMiddleware.php');
+loadRepo('services/AddressService.php');
 
 
 $route = $_GET['route'] ?? trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
@@ -115,6 +116,24 @@ switch ($route) {
         AuthMiddleware::authOnly();
         $pageContent = $path . '/user/account.php';
         include 'includes/layout.php';
+        break;
+    case 'address':
+        AuthMiddleware::authOnly();
+        $_GET['address'] = $_GET['address'] ?? null;
+
+        $response = ['success' => false, 'message' => 'No address provided.'];
+
+        if (empty($_GET['address'])) {
+            echo json_encode($response, JSON_THROW_ON_ERROR);
+            break;
+        }
+
+        $service = new AddressService();
+        $result = $service->getStructuredAddress($_GET['address']);
+
+        $response = ['success' => true, 'address' => $result];
+
+        echo json_encode($response);
         break;
     case 'register':
     case 'login':

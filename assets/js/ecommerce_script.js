@@ -86,12 +86,12 @@ function verifiedIfCartCountIsNeeded () {
 // =========================
 // API config
 // =========================
-const url = 'https://addressr.p.rapidapi.com/addresses?q=';
+const url = 'https://addressr.p.rapidapi.com/addresses?q='
 const headers = {
     'x-rapidapi-key': 'fdb9e0567dmsha6e1dfa8a5d4f52p1f769bjsn932503b8f8e9',
     'x-rapidapi-host': 'addressr.p.rapidapi.com'
-};
-
+}
+let checkoutSection = document.getElementById('checkout-section')
 // =========================
 // Search API Call
 // =========================
@@ -103,6 +103,7 @@ async function searchAddress(query) {
     try {
         const response = await fetch(`${url}${encodeURIComponent(query)}`, options);
         const result = await response.json();
+        console.log(result)
         renderSuggestions(result);
     } catch (error) {
         console.error(error);
@@ -149,7 +150,7 @@ function enableKeyboardNavigation() {
 // =========================
 // Render Address Suggestions
 // =========================
-function renderSuggestions(data) {
+async function renderSuggestions(data) {
     const list = document.getElementById('suggestions');
     list.innerHTML = '';
     if (data && Array.isArray(data) && data.length > 0) {
@@ -165,6 +166,9 @@ function renderSuggestions(data) {
                 if (input) {
                     input.value = address.sla;
                     idHidden.value = address.pid
+                    if (checkoutSection) {
+                        lookAddressDetailsById(address.pid)
+                    }
                 }
                 console.log('INPUT', input.value, idHidden.value)
 
@@ -202,6 +206,57 @@ function attachAutocomplete() {
         }
     });
 }
+
+async function lookAddressDetailsById (addressId) {
+
+    const street = document.getElementById('street');
+    const apartment = document.getElementById('apartment');
+    const city = document.getElementById('city');
+    const zipcode = document.getElementById('zipcode');
+
+    console.log('Address', addressId)
+    try {
+        await fetch(`/address?address=${addressId}`, {
+            method: 'GET'
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        }).then(data => {
+
+            console.log('DATA', data)
+
+            if (data.success) {
+                let addressData = data.address
+                street.value = addressData['streetNumberFrom'] + (((!addressData['streetNumberTo']) ? "" : " - ") + (addressData['streetNumberTo'] === null ? "" : addressData['streetNumberTo']))
+                    + ` ${addressData['streetName']} ${addressData['streetType']} ${addressData['suburb']}`
+                apartment.value = `${addressData['typeApt']} ${addressData['unitNumber']}`
+                city.value = addressData.state
+                zipcode.value = addressData['postcode']
+            }
+        }).catch(error => {
+            console.error('Fetch error:', error.response);
+            showToast({
+                title: 'Network Error',
+                message: 'Could not connect to server.',
+                type: 'danger',
+                image: 'assets/images/icons/error.png'
+            });
+            // alert('Network error occurred. Check console for details.');
+        });
+    } catch (error) {
+        console.error(error);
+    }
+
+}
+
+
+
+if (checkoutSection) {
+    attachAutocomplete()
+}
+
 
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -322,6 +377,5 @@ document.addEventListener("DOMContentLoaded", function () {
     if (document.querySelector('[data-target="profile"]')) {
         document.querySelector('[data-target="profile"]').classList.add("fw-bold", "text-primary");
     }
-
 });
 
