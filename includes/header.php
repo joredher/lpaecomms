@@ -6,9 +6,20 @@ $isLoggedIn = isset($_SESSION['user']);
 
 $user = $_SESSION['user'] ?? null;
 
-if (!str_contains(strtolower($_SERVER['REQUEST_URI']), '/cart')) {
-    $_SESSION['previous_page'] = $_SERVER['REQUEST_URI'] ?? 'home';
+$uri = $_SERVER['REQUEST_URI'];
+
+if (!str_contains(strtolower($uri), '/cart')) {
+    $_SESSION['previous_page'] = $uri ?? 'home';
 }
+
+
+
+$style = 'text-decoration-none';
+if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
+    $style = 'text-color-selection text-decoration-underline';
+}
+
+
 
 ?>
 <header class="header">
@@ -17,10 +28,10 @@ if (!str_contains(strtolower($_SERVER['REQUEST_URI']), '/cart')) {
             <img class="logo" src="../assets/images/Logo.svg" alt="Logo">
         </a>
         <nav class="navigation">
-            <a href="/home">Home</a>
-            <a href="/products">Products</a>
-            <a href="#">About</a>
-            <a href="#">Contact</a>
+            <a href="/home" class="<?= strtolower($uri) === '/home' ? $style : '' ?>">Home</a>
+            <a href="/products" class="<?= strtolower($uri) === '/products' ? $style : '' ?>">Products</a>
+            <a href="/about" class="<?= strtolower($uri) === '/about' ? $style : '' ?>">About</a>
+            <a href="/contact" class="<?= strtolower($uri) === '/contact' ? $style : '' ?>">Contact</a>
         </nav>
     </div>
     <div class="actions">

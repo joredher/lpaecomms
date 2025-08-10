@@ -59,9 +59,20 @@ class ClientRepository extends BaseRepository
     {
         $baseRepo = new BaseRepository('lpa_user_client_address_valid');
 
-        $exists = $baseRepo->findWhere('lpa_fk_client_ID', $data['lpa_fk_client_ID']) ?: null;
+        $query = /** @lang text */
+            "SELECT * FROM lpa_user_client_address_valid 
+              WHERE lpa_fk_client_ID = :id";
 
-        if (!empty($exists)) {
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute([
+            ':id' => $data['lpa_fk_client_ID']
+        ]);
+
+        $exists = $stmt->fetch(PDO::FETCH_ASSOC);
+//        $exists = $baseRepo->findWhere('lpa_fk_client_ID', $data['lpa_fk_client_ID']);
+
+
+        if ($exists) {
             $baseRepo->delete($exists['id']);
         }
 
@@ -70,24 +81,36 @@ class ClientRepository extends BaseRepository
         return !$result;
     }
 
-    public function existsClientWithSameData($data): bool
+    public function existsClientWithSameData($data): array
     {
         $query = /** @lang text */
-            "SELECT COUNT(*) as count FROM lpa_clients 
-              WHERE lpa_client_email = :email 
-              AND lpa_client_address = :address 
+            "SELECT * FROM lpa_clients 
+              WHERE lpa_client_email = :email
               AND lpa_clients_fk_user_id = :user_id";
 
         $stmt = $this->conn->prepare($query);
         $stmt->execute([
             ':email' => $data['email'],
-            ':address' => $data['address'],
-            ':user_id' => $data['user_id'],
+            ':user_id' => $data['user_id']
         ]);
 
-        $result = $stmt->fetch();
+        $clients = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return $result['count'] > 0;
+        $response = [];
+
+        if (count($clients) > 0) {
+            foreach ($clients as $client) {
+                // Clean both addresses before comparing
+                $inputAddress = strtolower(trim($data['address']));
+                $storedAddress = strtolower(trim($client['lpa_client_address']));
+
+                if ($inputAddress === $storedAddress) {
+                    $response[] = $client;
+                }
+            }
+        }
+
+        return $response;
     }
 
 

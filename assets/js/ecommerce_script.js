@@ -166,6 +166,8 @@ function renderSuggestions(data) {
                     input.value = address.sla;
                     idHidden.value = address.pid
                 }
+                console.log('INPUT', input.value, idHidden.value)
+
                 list.innerHTML = ''; // Clear suggestions
             });
             list.appendChild(li);
@@ -284,19 +286,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const output = document.getElementById("dynamic-content");
 
     function showSection(target) {
-        fetch(`pages/user/profile_${target}.php`)
-            .then(response => response.text())
-            .then(html => {
-                output.innerHTML = html;
-                setTimeout(() => {
-                    attachAutocomplete();
-                    enableKeyboardNavigation();
-                }, 20);
-            })
-            .catch(err => {
-                output.innerHTML = `<div class="alert alert-danger">Error loading section.</div>`;
-                console.error(err);
-            });
+        if (output && target) {
+            fetch(`pages/user/profile_${target}.php`)
+                .then(response => response.text())
+                .then(html => {
+                    output.innerHTML = html;
+                    setTimeout(() => {
+                        attachAutocomplete();
+                        enableKeyboardNavigation();
+                    }, 20);
+                })
+                .catch(err => {
+                    output.innerHTML = `<div class="alert alert-danger">Error loading section.</div>`;
+                    console.error(err);
+                });
+        }
     }
 
     links.forEach(link => {
@@ -304,7 +308,7 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
             const target = this.dataset.target;
 
-            // Marcar el botón activo
+            // Mark the active button
             links.forEach(l => l.classList.remove("fw-bold", "text-primary"));
             this.classList.add("fw-bold", "text-primary");
 
@@ -312,9 +316,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-// Cargar vista por defecto
+// load the default view
     showSection("profile");
-    document.querySelector('[data-target="profile"]').classList.add("fw-bold", "text-primary");
+
+    if (document.querySelector('[data-target="profile"]')) {
+        document.querySelector('[data-target="profile"]').classList.add("fw-bold", "text-primary");
+    }
 
 });
 

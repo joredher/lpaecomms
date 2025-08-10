@@ -38,9 +38,9 @@ class AddressService
                 'suburb' => $data['structured']['locality']['name'] ?? null,
                 'postcode' => $data['structured']['postcode'] ?? null,
                 'state' => $data['structured']['state']['abbreviation'] ?? null,
-                'sla' => $data['sla'] ?? null,
-                'mla' => $data['mla'] ?? null,
-                'smla' => $data['smla'] ?? null,
+                'sla' => $data['sla'] ?: null,
+                'mla' => $data['mla'] ?: null,
+                'smla' => $data['smla'] ?: null,
             ];
         } catch (\Exception $e) {
             // Log or handle error

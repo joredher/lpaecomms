@@ -31,7 +31,7 @@ $title = $title ?? 'LPA Ecommerce';
         <?php if (isset($pageContent)): ?>
             <?php include $pageContent ?>
         <?php else: ?>
-            <?= "<p>Error: Content not found.</p>" ?>
+            <?php include 'pages/error/404.php' ?>
         <?php endif; ?>
     </div>
     <?php include 'includes/footer.php' ?>

@@ -1219,7 +1219,7 @@ input[name="coupon_code"] {
     margin-top: 1.5rem;
 }
 
-.btn-place-order button {
+.btn-place-order button, .btn-place-order a {
     width: 100%;
     background-color: #aada6f;
     color: #fff;
@@ -1230,7 +1230,7 @@ input[name="coupon_code"] {
     transition: background 0.3s ease;
 }
 
-.btn-place-order button:hover {
+.btn-place-order button:hover, .btn-place-order a:hover {
     background-color: #96c85d;
 }
 
@@ -1338,5 +1338,58 @@ input[name="coupon_code"] {
     box-sizing: border-box;
     position: relative;
     z-index: 1020;
+}
+
+/** Errors **/
+.error-box {
+    background: white;
+    padding: 3rem 2rem;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 500px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.text-color-selection {
+    color: #495057 !important;
+}
+
+.text-contact-form {
+    width: 262px;
+    position: relative;
+    font-size: 14px;
+    line-height: 21px;
+    font-family: Poppins, serif;
+    color: #000;
+    text-align: left;
+    display: inline-block;
+}
+
+.icons-phone {
+    width: 40px;
+    position: relative;
+    border-radius: 31px;
+    background-color: #aada6f;
+    height: 40px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.call-to-us {
+    position: relative;
+    line-height: 24px;
+    font-weight: 500;
+}
+.icons-phone-parent {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    text-align: left;
+    font-size: 16px;
+    color: #000;
+    font-family: Poppins, serif;
 }
 

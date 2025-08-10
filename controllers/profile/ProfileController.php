@@ -3,7 +3,7 @@
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
-require_once __DIR__ . '/../../bootstrap.php';
+    require_once __DIR__ . '/../../bootstrap.php';
 
 loadRepo('repositories/client/ClientRepository.php');
 loadRepo('repositories/UserRepository.php');
@@ -95,12 +95,17 @@ class ProfileController
         unset($data['addressId']);
 
         $clientRepo = new ClientRepository();
+        $client = $clientRepo->existsClientWithSameData($data);
+        $isClientExists = count($client) > 0;
+        $addressData = [];
+        $clientId = null;
 
-        if (!$clientRepo->existsClientWithSameData($data)) {
+        if (!$isClientExists) {
             unset($data['address']);
 
             $addressService = new AddressService();
             $addressData = $addressService->getStructuredAddress($addressId);
+            var_dump('NO CLIENT', $addressId, $addressData);
 
             if ($addressData) {
                 $fullStreet = $addressData['streetNumberFrom']
@@ -121,14 +126,17 @@ class ProfileController
                 );
 
                 $clientId = $clientRepo->createFromBillingForm($data);
-
-                $clientRepo->addLpaUserClientAddressValid([
-                    'lpa_pid_address' => $addressId,
-                    'lpa_full_address' => $addressData['sla'],
-                    'lpa_fk_client_ID' => $clientId,
-                ]);
             }
         }
+
+
+        var_dump('LOG \n', $isClientExists ? $client[0]['lpa_clients_ID'] : '');
+        $clientRepo->addLpaUserClientAddressValid([
+            'lpa_pid_address' => $addressId,
+            'lpa_full_address' => $isClientExists ? $client[0]['lpa_client_address'] : @$addressData['sla'],
+            'lpa_fk_client_ID' => $isClientExists ? $client[0]['lpa_clients_ID'] : @$clientId,
+            'lpa_fk_users_ID' => $data['user_id']
+        ]);
 
         unset($addressId);
 

@@ -115,4 +115,27 @@ class UserRepository extends BaseRepository
         ]);
     }
 
+    public function findByResetToken($token)
+    {
+        $stmt = $this->conn->prepare(/** @lang text */ "
+            SELECT u.*, v.expires_at
+            FROM lpa_users u
+            INNER JOIN lpa_verification_tokens v ON u.lpa_users_ID = v.lpa_user_id
+            WHERE v.token = :token
+            LIMIT 1
+        ");
+        $stmt->execute([':token' => $token]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function deleteToken($token): void
+    {
+        $stmt = $this->conn->prepare(/** @lang text */ "DELETE FROM lpa_verification_tokens WHERE token = :token");
+        $stmt->execute([
+            'token' => $token
+        ]);
+    }
+
+
 }

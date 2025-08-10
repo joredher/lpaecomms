@@ -11,7 +11,14 @@ loadRepo('repositories/client/ClientRepository.php');
 $conn = Database::getConnection();
 
 
-$user = $_SESSION['user'];
+$user = $_SESSION['user'] ?? [
+    'firstname' => '',
+    'username' => '',
+    'lastname' => '',
+    'email' => '',
+    'lpa_fk_user_group_ID' => '',
+    'lpa_users_ID' => ''
+];
 $clientExists = null;
 
 if (isset($_SESSION['user'])) :
@@ -72,15 +79,15 @@ $client = array_merge($user, [
                     autocomplete="off"
             >
             <ul id="suggestions" class="list-group position-absolute" style="z-index: 10;"></ul>
-<!--            <ul id="suggestions" class="list-group mt-2 position-absolute w-100 z-3"></ul>-->
+            <!--            <ul id="suggestions" class="list-group mt-2 position-absolute w-100 z-3"></ul>-->
         </div>
 
 
-<!--        <div class="col-md-6">-->
-<!--            <label class="form-label">Address</label>-->
-<!--            <input type="text" class="form-control" name="address"-->
-<!--                   value="--><?php //= htmlspecialchars($client['address']) ?><!--">-->
-<!--        </div>-->
+        <!--        <div class="col-md-6">-->
+        <!--            <label class="form-label">Address</label>-->
+        <!--            <input type="text" class="form-control" name="address"-->
+        <!--                   value="--><?php //= htmlspecialchars($client['address']) ?><!--">-->
+        <!--        </div>-->
     </div>
     <div class="d-flex justify-content-end gap-3 mt-4">
         <a href="../../index.php" class="btn btn-outline-secondary">Cancel</a>

@@ -204,12 +204,90 @@ class AuthController
         exit;
     }
 
-    public function forgotPassword()
+    public function forgot()
     {
+        $email = $_POST['email'] ?? '';
+
+        $_SESSION['flash_message'] = [
+            'message' => 'There is no user with this email.',
+            'type' => 'warning'
+        ];
+
+        if ($user = $this->userRepo->findByEmail($email)) {
+            [$token, $expiresAt] = $this->getToken('+2 hour');
+
+            $this->userRepo->saveVerificationToken($user['lpa_users_ID'], $token, $expiresAt);
+
+            error_log("🔐 Token generated and saved: $token");
+
+            // Build verification URL
+            $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+                . '://' . $_SERVER['HTTP_HOST'];
+            $reset_password = "$baseUrl/reset_password?key_rpu=$token";
+
+            $sendSuccess = sendResetPasswordEmail([
+                'to' => $email,
+                'firstname' => $user['lpa_user_firstname'],
+                'link_to_reset_password' => $reset_password
+            ]);
+            error_log("📤 Email sending to $email was " . ($sendSuccess ? 'successful' : 'unsuccessful'));
+
+            $_SESSION['flash_message'] = [
+                'message' => 'You have received a password reset link.',
+                'type' => 'success'
+            ];
+        }
+        header('Location: /login');
+
     }
 
     public function resetPassword()
     {
+        $token = $_POST['token'] ?? null;
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        if (!$token || empty($password) || empty($confirmPassword)) {
+            $_SESSION['flash_message'] = [
+                'type' => 'warning',
+                'message' => 'All fields are required.'
+            ];
+            header('Location: /reset_password?key_rpu=' . urlencode($token));
+            exit;
+        }
+
+        if ($password !== $confirmPassword) {
+            $_SESSION['flash_message'] = [
+                'type' => 'danger',
+                'message' => 'Passwords do not match.'
+            ];
+            header('Location: /reset_password?key_rpu=' . urlencode($token));
+            exit;
+        }
+
+        $user = $this->userRepo->findByResetToken($token);
+
+        if (!$user || strtotime($user['expires_at']) < time()) {
+            $_SESSION['flash_message'] = [
+                'type' => 'danger',
+                'message' => 'Invalid or expired reset link.'
+            ];
+            header('Location: /forgot_password');
+            exit;
+        }
+
+        $userId = $user['lpa_users_ID'];
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        $this->userRepo->updatePassword($userId, $hashedPassword);
+        $this->userRepo->deleteToken($token); // Eliminar token tras éxito
+
+        $_SESSION['flash_message'] = [
+            'type' => 'success',
+            'message' => 'Password successfully updated. You can now log in.'
+        ];
+        header('Location: /login');
+        exit;
     }
 
     public function changePassword()
@@ -218,8 +296,7 @@ class AuthController
 
     public function generateToken($user, $firstname, $email)
     {
-        $token = bin2hex(random_bytes(32));
-        $expiresAt = date('Y-m-d H:i:s', strtotime('+1 hour'));
+        [$token, $expiresAt] = $this->getToken();
 
         // Save the token to the database
         $this->userRepo->saveVerificationToken($user['lpa_users_ID'], $token, $expiresAt);
@@ -332,6 +409,14 @@ class AuthController
         }
 
         exit;
+    }
+
+
+    public function getToken(string $time = '+1 hour'): array
+    {
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime($time));
+        return array($token, $expiresAt);
     }
 
 

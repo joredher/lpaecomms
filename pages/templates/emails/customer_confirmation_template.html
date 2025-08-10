@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Contact Confirmation</title>
+</head>
+<body style="font-family: Arial, sans-serif; background: linear-gradient(180deg, rgba(78, 181, 144, 0.8), rgba(53, 153, 143, 0.8) 50%, rgba(53, 124, 130, 0.8)); color: white; text-align: center; padding: 2rem;">
+
+<img src="https://lpaecomms.test/assets/images/logo.svg" alt="LPA Ecommerce" width="120" style="margin-bottom: 20px;">
+
+<h2>Thank you, {{name}}!</h2>
+<p>Your message has been received.</p>
+
+<div style="background-color: white; color: #013a63; border-radius: 10px; padding: 1.5rem; text-align: left; max-width: 600px; margin: 1.5rem auto;">
+    <p><strong>Reference Number:</strong> <span style="color: #4eb590;">{{reference_code}}</span></p>
+    <p><strong>Email:</strong> {{email}}</p>
+    <p><strong>Phone:</strong> {{phone_number}}</p>
+    <hr style="border: none; border-top: 1px solid #ccc;">
+    <p><strong>Your Message:</strong></p>
+    <p style="white-space: pre-wrap;">{{message}}</p>
+</div>
+
+<p style="font-size: 13px; margin-top: 30px;">If you need to contact us again, please mention your reference code.</p>
+<p style="font-size: 12px;">We usually respond within 24 hours. Thank you for reaching out to LPA Ecommerce.</p>
+</body>
+</html>

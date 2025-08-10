@@ -4,7 +4,6 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 require_once __DIR__ . '/../vendor/autoload.php';
-
 function sendEmail($to, $subject, $htmlBody): bool
 {
     $env = parse_ini_file(__DIR__ . '/../.env');
@@ -61,3 +60,53 @@ function sendValidationCodeEmail (array $data): bool
     $subject = "Your Verification Code, {$data['firstname']}!";
     return sendEmail($data['to'], $subject, $html);
 }
+
+function sendResetPasswordEmail (array $data): bool
+{
+    $html = file_get_contents(__DIR__ . '/../pages/templates/emails/reset_password_template.html');
+
+    $html = str_replace(
+        ['{{firstname}}', '{{link_to_reset_password}}'],
+        [htmlspecialchars($data['firstname']), $data['link_to_reset_password']],
+        $html
+    );
+
+    $subject = "Reset Password, {$data['firstname']}!";
+    return sendEmail($data['to'], $subject, $html);
+}
+
+function sendEmailToCustomerService (array $data): bool
+{
+    $env = parse_ini_file(__DIR__ . '/../.env');
+    $html = file_get_contents(__DIR__ . '/../pages/templates/emails/customer_service_template.html');
+    $random_number = "LPA_CONTACT".\Carbon\Carbon::now()->format('Ymd').random_int(1000,9999);
+    $html = str_replace(
+        ['{{name}}', '{{email}}', '{{phone_number}}', '{{message}}', '{{reference_code}}'],
+        [htmlspecialchars($data['name']), $data['email'], $data['phone'], $data['message'], $random_number],
+        $html
+    );
+
+    $name = ucfirst($data['name']);
+
+    sleep(3);
+    $subject = "New Message from Contact Form, {$name}! (REF: $random_number)";
+    $isSentToContactService = sendEmail($env['MAIL_TO_CONTACT'], $subject, $html);
+
+    if ($isSentToContactService) {
+        $html = file_get_contents(__DIR__ . '/../pages/templates/emails/customer_confirmation_template.html');
+        $html = str_replace(
+            ['{{name}}', '{{email}}', '{{phone_number}}', '{{message}}', '{{reference_code}}'],
+            [htmlspecialchars($data['name']), $data['email'], $data['phone'], $data['message'], $random_number],
+            $html
+        );
+
+        $subject = "We received your message, REF: $random_number";
+
+        sleep(3);
+
+        return sendEmail($data['email'], $subject, $html);
+    }
+
+    return false;
+}
+

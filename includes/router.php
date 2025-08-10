@@ -2,35 +2,92 @@
 // router.php
 //use controllers\auth\AuthController;
 use controllers\RegisterController;
+
+require_once __DIR__ . '/../bootstrap.php';
 //use controllers\cart\CartController;
 require_once 'controllers/RegisterController.php';
 //require_once 'controllers/cart/CartController.php';
 require_once 'controllers/auth/AuthController.php';
 require_once 'controllers/cart/CheckoutController.php';
+require_once 'controllers/contact/ContactController.php';
+loadRepo('middleware/AuthMiddleware.php');
+
 
 $route = $_GET['route'] ?? trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 if ($route === ''): $route = 'home'; endif;
 $path = 'pages/';
-RegisterController::register($route, 'auth', 'AuthController', ['login', 'register', 'logout']);
+
+RegisterController::register($route, 'auth', 'AuthController', ['login', 'register', 'logout', 'forgot', 'resetPassword']);
 RegisterController::register($route, 'profile', 'ProfileController', ['create', 'store']);
 RegisterController::register($route, 'cart', 'CartController', ['add', 'remove', 'update', 'applyCoupon']);
 RegisterController::register($route, 'cart', 'CheckoutController', ['process']);
+RegisterController::register($route, 'contact', 'ContactController', ['send', 'capture']);
+
+// --- Helpers
+$ua    = $_SERVER['HTTP_USER_AGENT'] ?? '';
+$isBot = (bool) preg_match('/bot|crawl|spider|slurp|facebookexternalhit|preview/i', $ua);
+
+
+// --- Welcome actions (triggered by the two buttons on the welcome page)
+if (isset($_GET['welcome'])) {
+    $opt = $_GET['welcome'];
+
+    $cookieOpts = [
+        'expires'  => time() + 365 * 24 * 60 * 60, // 1 year
+        'path'     => '/',
+        'secure'   => !empty($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ];
+
+    if ($opt === 'login') {
+        // LOG ON => consent + first_visit, then go to /login
+        setcookie('lpa_cookie_consent', '1', $cookieOpts);
+        setcookie('lpa_first_visit',    '1', $cookieOpts);
+        header('Location: /login');
+        exit;
+    }
+
+    if ($opt === 'go') {
+        // GO AHEAD => only first_visit, then go home
+        setcookie('lpa_first_visit', '1', $cookieOpts);
+        header('Location: /');
+        exit;
+    }
+}
+
+
+// --- Gate: show welcome only if user hasn't seen it yet and it's not a bot
+$firstVisitDone = isset($_COOKIE['lpa_first_visit']);
 
 switch ($route) {
     case 'home':
-        $pageContent = $path.'home.php';
+        if (!$isBot && !$firstVisitDone) {
+            $title = 'Welcome';
+            $pageContent = $path . 'first_visit_content.php';
+            include 'includes/layout_auth.php';
+            break;
+        }
+
+        $pageContent = $path . 'home.php';
         include 'includes/layout.php';
         break;
-
     case 'products':
 //        include 'controllers/products_controller.php';
-        $pageContent = $path.'products.php';
+        $pageContent = $path . 'products.php';
         include 'includes/layout.php';
         break;
-
+    case 'about':
+        $pageContent = $path . 'about.php';
+        include 'includes/layout.php';
+        break;
+    case 'contact':
+        $pageContent = $path . 'contact.php';
+        include 'includes/layout.php';
+        break;
     case 'product':
         if (isset($_GET['id']) && is_numeric($_GET['id'])) {
-            $productId = (int) $_GET['id'];
+            $productId = (int)$_GET['id'];
 
             // Optionally pass the ID to the page
             $title = 'Product Details';
@@ -46,7 +103,7 @@ switch ($route) {
         if (empty($_SESSION['cart'])):
             header('Location: /products');
         else:
-            $pageContent = $path.'client/view_cart.php';
+            $pageContent = $path . 'client/view_cart.php';
             include 'includes/layout.php';
         endif;
         break;
@@ -55,19 +112,39 @@ switch ($route) {
         $controller->start();
         break;
     case 'profile':
-        $pageContent = $path.'/user/account.php';
+        AuthMiddleware::authOnly();
+        $pageContent = $path . '/user/account.php';
         include 'includes/layout.php';
         break;
     case 'register':
     case 'login':
     case 'forgot_password':
-        $title = $route === 'register' ? 'Register' : 'Login';
+    case 'reset_password':
+        AuthMiddleware::guestOnly();
+        $title = match ($route) {
+            'login' => 'Login',
+            'register' => 'Register',
+            'forgot_password' => 'Forgot Password',
+            'reset_password' => 'Reset Password',
+            default => 'home'
+        };
+
+        if ($route === 'reset_password' && !isset($_GET['key_rpu'])):
+            $_SESSION['flash_message'] = [
+                'message' => 'The link was accessed incorrectly.',
+                'type' => 'warning'
+            ];
+
+            header('Location: /login');
+            exit();
+        endif;
+
 
 //        if ($route === 'register' && isset($_SESSION['pending_user_id'])) {
 //            unset($_SESSION['pending_user_id']);
 //        }
 
-        $pageContent = $path.'auth/' . $route . '.php';
+        $pageContent = $path . 'auth/' . $route . '.php';
         include 'includes/layout_auth.php';
         break;
     case 'verify_email':
@@ -91,6 +168,7 @@ switch ($route) {
         $authController->verifyCode();
         break;
     default:
-        include 'pages/404.php';
+        $pageContent = $path . 'error/404.php';
+        include 'includes/layout.php';
         break;
 }
