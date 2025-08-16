@@ -126,7 +126,7 @@ body {
 }
 
 /**TEST**/
-/* Checkout Layout Styles */
+/* checkout Layout Styles */
 .checkout-layout {
     display: flex;
     flex-direction: column;

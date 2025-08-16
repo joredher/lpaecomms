@@ -3,11 +3,12 @@
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
-    require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
 loadRepo('repositories/client/ClientRepository.php');
 loadRepo('repositories/UserRepository.php');
 loadRepo('services/AddressService.php');
+loadRepo('middleware/AuthMiddleware.php');
 //require_once 'repositories/client/ClientRepository.php';
 //require_once 'repositories/UserRepository.php';
 //require_once 'services/AddressService.php';
@@ -18,6 +19,9 @@ class ProfileController
 
     public function __construct()
     {
+
+        AuthMiddleware::authOnly();
+
         $this->clientRepo = new ClientRepository();
         if (session_status() === PHP_SESSION_NONE) session_start();
     }

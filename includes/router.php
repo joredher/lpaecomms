@@ -8,7 +8,7 @@ require_once __DIR__ . '/../bootstrap.php';
 require_once 'controllers/RegisterController.php';
 //require_once 'controllers/cart/CartController.php';
 require_once 'controllers/auth/AuthController.php';
-require_once 'controllers/cart/CheckoutController.php';
+require_once 'controllers/checkout/CheckoutController.php';
 require_once 'controllers/contact/ContactController.php';
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/AddressService.php');
@@ -21,7 +21,7 @@ $path = 'pages/';
 RegisterController::register($route, 'auth', 'AuthController', ['login', 'register', 'logout', 'forgot', 'resetPassword']);
 RegisterController::register($route, 'profile', 'ProfileController', ['create', 'store']);
 RegisterController::register($route, 'cart', 'CartController', ['add', 'remove', 'update', 'applyCoupon']);
-RegisterController::register($route, 'cart', 'CheckoutController', ['process']);
+RegisterController::register($route, 'checkout', 'CheckoutController', ['process', 'confirmation']);
 RegisterController::register($route, 'contact', 'ContactController', ['send', 'capture']);
 
 // --- Helpers
@@ -52,7 +52,7 @@ if (isset($_GET['welcome'])) {
     if ($opt === 'go') {
         // GO AHEAD => only first_visit, then go home
         setcookie('lpa_first_visit', '1', $cookieOpts);
-        header('Location: /');
+        header('Location: /home');
         exit;
     }
 }

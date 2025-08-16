@@ -38,6 +38,8 @@ $clientData = [
     'phone' => ($client['lpa_client_phone'] || ((string) $client['lpa_client_phone'] !== '0')) ? $client['lpa_client_phone'] : ""
 ];
 
+$valueTotal = 0;
+
 
 ?>
 
@@ -119,7 +121,10 @@ $clientData = [
                                 <div class="text-detail">$<?= number_format($item['price'], 2) ?></div>
                             </div>
                         </div>
-                        <?php $total += $item['price'] * $item['quantity']; ?>
+                        <?php
+                            $total += $item['price'] * $item['quantity'];
+                            $valueTotal = $total;
+                        ?>
                     <?php endforeach; ?>
                 </div>
 
@@ -133,6 +138,7 @@ $clientData = [
                         <span class="text-detail">Free</span>
                     </div>
                     <div class="summary-line">
+                        <input type="hidden" name="total" id="total" value="<?= $valueTotal?>">
                         <strong class="text-detail">Total:</strong>
                         <strong class="text-detail">$<?= number_format($total, 2) ?></strong>
                     </div>
