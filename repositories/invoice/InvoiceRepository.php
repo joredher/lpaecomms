@@ -70,8 +70,8 @@ class InvoiceRepository extends BaseRepository
                i.lpa_inv_client_address AS client_address,
                c.lpa_clients_firstname,
                c.lpa_clients_lastname,
-               c.lpa_client_email,
-               c.lpa_client_phone
+               c.lpa_client_email AS client_email,
+               c.lpa_client_phone AS client_phone
         FROM lpa_invoices i
         JOIN lpa_clients c ON c.lpa_clients_ID = i.lpa_fk_clients_ID
         WHERE i.lpa_invoices_ID = :invoice_id
@@ -92,7 +92,8 @@ class InvoiceRepository extends BaseRepository
                    ii.lpa_invitem_qty        AS quantity,
                    ii.lpa_invitem_stock_price AS unit_price,
                    ii.lpa_invitem_stock_amount AS total_price,
-                   s.lpa_stock_ID          AS sku
+                   s.lpa_stock_ID          AS sku,
+                   s.lpa_stock_image       AS image
             FROM lpa_invoice_items ii
             JOIN lpa_stock s ON s.lpa_stock_ID = ii.lpa_fk_stock_ID
             WHERE ii.lpa_fk_invoices_ID = :invoice_id

@@ -16,7 +16,7 @@ unset($_SESSION['notFoundReason']);
             <span>Back</span>
         </a>
     </div>
-    <div class="error-box text-center bg-white rounded shadow" style="padding: 8rem 0">
+    <div class="error-box text-center bg-white rounded shadow" style="padding: 8rem 0; max-width: -webkit-fill-available">
         <h1 class="display-4">404 Not Found</h1>
         <?php if ($notFoundReason !== null): ?>
             <p class="mb-4 text-muted"><?= $notFoundReason ?></p>
