@@ -990,7 +990,6 @@ input[name="coupon_code"] {
         height: auto;
     }
 
-    .logo-nav,
     .actions {
         flex-direction: column;
         gap: 10px;
