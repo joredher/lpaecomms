@@ -1,6 +1,6 @@
 <?php
 $title = $title ?? 'Account';
-$scriptDir = rtrim(dirname($_SERVER['PHP_SELF']), '/');
+$scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $basePath = preg_replace('#/pages(/.*)?$#', '', $scriptDir);
 $basePath = $basePath === '' ? '/' : $basePath . '/';
 ?>

@@ -1,5 +1,5 @@
 <?php
-echo "<!-- ENTERED register.php -->";
+// Path for auth-related images
 $path = "assets/images/auth/";
 
 $hasValidateThroughFirst = isset($_SESSION['pending_user_id']);

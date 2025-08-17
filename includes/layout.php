@@ -1,6 +1,6 @@
 <?php
 $title = $title ?? 'LPA Ecommerce';
-$scriptDir = rtrim(dirname($_SERVER['PHP_SELF']), '/');
+$scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $basePath = preg_replace('#/pages(/.*)?$#', '', $scriptDir);
 $basePath = $basePath === '' ? '/' : $basePath . '/';
 ?>
@@ -18,7 +18,7 @@ $basePath = $basePath === '' ? '/' : $basePath . '/';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
               integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/ecomms_style_v1.css">
+    <link rel="stylesheet" href="assets/css/ecomms_style.css">
     <link rel="stylesheet" href="assets/css/bootstrap_customize.css">
     <link rel="stylesheet" href="assets/css/product_detail.css">
     <link rel="stylesheet" href="assets/css/normalize.css">

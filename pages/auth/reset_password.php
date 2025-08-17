@@ -2,13 +2,13 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-echo "<!-- ENTERED register.php -->";
+// Path for auth-related images
 $path = "assets/images/auth/";
 
 use Lpaecomms\Database;
 use Lpaecomms\Repositories\UserRepository;
 
-$scriptDir = rtrim(dirname($_SERVER['PHP_SELF']), '/');
+$scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $basePath = preg_replace('#/pages(/.*)?$#', '', $scriptDir);
 $basePath = $basePath === '' ? '/' : $basePath . '/';
 
