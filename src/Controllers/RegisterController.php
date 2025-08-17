@@ -1,6 +1,6 @@
 <?php
 
-namespace controllers;
+namespace Lpaecomms\Controllers;
 
 class RegisterController
 {
@@ -17,9 +17,8 @@ class RegisterController
             $action = str_replace("$prefix.", '', $route);
 
             if (in_array($action, $actions, true)):
-                require_once "controllers/$prefix/$controllerClass.php";
-
-                $controller = new $controllerClass();
+                $class = "Lpaecomms\\Controllers\\$prefix\\$controllerClass";
+                $controller = new $class();
                 if (method_exists($controller, $action)) {
                     $controller->$action();
                 } else {

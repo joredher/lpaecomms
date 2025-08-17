@@ -1,6 +1,8 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/pagination.php';
+
+use Lpaecomms\Database;
+use function Lpaecomms\Helpers\renderPagination;
+
 $conn = Database::getConnection();
 
 // Get categories

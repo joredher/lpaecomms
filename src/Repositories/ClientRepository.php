@@ -1,8 +1,8 @@
 <?php
 
-use repositories\BaseRepository;
+namespace Lpaecomms\Repositories;
 
-loadRepo('repositories/BaseRepository.php');
+use PDO;
 
 class ClientRepository extends BaseRepository
 {

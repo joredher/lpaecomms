@@ -1,4 +1,7 @@
 <?php
+
+namespace Lpaecomms\Helpers;
+
 /**
  * @param $currentPage
  * @param $totalPages

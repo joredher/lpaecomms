@@ -1,6 +1,11 @@
 <?php
-require_once 'helpers/mail.php';
-require_once 'repositories/UserRepository.php';
+
+namespace Lpaecomms\Controllers;
+
+use Lpaecomms\Repositories\UserRepository;
+use function Lpaecomms\Helpers\sendValidationCodeEmail;
+use function Lpaecomms\Helpers\sendVerificationEmail;
+use function Lpaecomms\Helpers\sendResetPasswordEmail;
 
 class AuthController
 {

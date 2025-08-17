@@ -1,17 +1,13 @@
 <?php
 // router.php
-//use controllers\auth\AuthController;
-use controllers\RegisterController;
+use Lpaecomms\Controllers\Auth\AuthController;
+use Lpaecomms\Controllers\Cart\CartController;
+use Lpaecomms\Controllers\Checkout\CheckoutController;
+use Lpaecomms\Controllers\Contact\ContactController;
+use Lpaecomms\Middleware\AuthMiddleware;
+use Lpaecomms\Services\AddressService;
+use Lpaecomms\Controllers\RegisterController;
 
-require_once __DIR__ . '/../bootstrap.php';
-//use controllers\cart\CartController;
-require_once 'controllers/RegisterController.php';
-//require_once 'controllers/cart/CartController.php';
-require_once 'controllers/auth/AuthController.php';
-require_once 'controllers/checkout/CheckoutController.php';
-require_once 'controllers/contact/ContactController.php';
-loadRepo('middleware/AuthMiddleware.php');
-loadRepo('services/AddressService.php');
 
 
 $route = $_GET['route'] ?? trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');

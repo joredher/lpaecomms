@@ -1,12 +1,13 @@
 <?php
 
+namespace Lpaecomms\Helpers;
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require_once __DIR__ . '/../vendor/autoload.php';
 function sendEmail($to, $subject, $htmlBody): bool
 {
-    $env = parse_ini_file(__DIR__ . '/../.env');
+    $env = parse_ini_file(__DIR__ . '/../../.env');
 
     $mail = new PHPMailer(true);
     try {
@@ -36,7 +37,7 @@ function sendEmail($to, $subject, $htmlBody): bool
 }
 
 function sendVerificationEmail(array $data): bool {
-    $html = file_get_contents(__DIR__ . '/../pages/templates/emails/verify_email_template.html');
+    $html = file_get_contents(__DIR__ . '/../../pages/templates/emails/verify_email_template.html');
     $html = str_replace(
         ['{{firstname}}', '{{verification_link}}'],
         [htmlspecialchars($data['firstname']), $data['verificationUrl']],
@@ -50,7 +51,7 @@ function sendVerificationEmail(array $data): bool {
 
 function sendValidationCodeEmail (array $data): bool
 {
-    $html = file_get_contents(__DIR__ . '/../pages/templates/emails/verify_code_template.html');
+    $html = file_get_contents(__DIR__ . '/../../pages/templates/emails/verify_code_template.html');
     $html = str_replace(
         ['{{firstname}}', '{{username}}', '{{verification_code}}'],
         [htmlspecialchars($data['firstname']), $data['username'] ,$data['validationCode']],
@@ -63,7 +64,7 @@ function sendValidationCodeEmail (array $data): bool
 
 function sendResetPasswordEmail (array $data): bool
 {
-    $html = file_get_contents(__DIR__ . '/../pages/templates/emails/reset_password_template.html');
+    $html = file_get_contents(__DIR__ . '/../../pages/templates/emails/reset_password_template.html');
 
     $html = str_replace(
         ['{{firstname}}', '{{link_to_reset_password}}'],
@@ -77,8 +78,8 @@ function sendResetPasswordEmail (array $data): bool
 
 function sendEmailToCustomerService (array $data): bool
 {
-    $env = parse_ini_file(__DIR__ . '/../.env');
-    $html = file_get_contents(__DIR__ . '/../pages/templates/emails/customer_service_template.html');
+    $env = parse_ini_file(__DIR__ . '/../../.env');
+    $html = file_get_contents(__DIR__ . '/../../pages/templates/emails/customer_service_template.html');
     $random_number = "LPA_CONTACT".\Carbon\Carbon::now()->format('Ymd').random_int(1000,9999);
     $html = str_replace(
         ['{{name}}', '{{email}}', '{{phone_number}}', '{{message}}', '{{reference_code}}'],
@@ -93,7 +94,7 @@ function sendEmailToCustomerService (array $data): bool
     $isSentToContactService = sendEmail($env['MAIL_TO_CONTACT'], $subject, $html);
 
     if ($isSentToContactService) {
-        $html = file_get_contents(__DIR__ . '/../pages/templates/emails/customer_confirmation_template.html');
+        $html = file_get_contents(__DIR__ . '/../../pages/templates/emails/customer_confirmation_template.html');
         $html = str_replace(
             ['{{name}}', '{{email}}', '{{phone_number}}', '{{message}}', '{{reference_code}}'],
             [htmlspecialchars($data['name']), $data['email'], $data['phone'], $data['message'], $random_number],

@@ -1,7 +1,9 @@
 <?php
 
-namespace repositories;
-use Database;
+namespace Lpaecomms\Repositories;
+
+use Lpaecomms\Database;
+use PDO;
 
 class BaseRepository
 {

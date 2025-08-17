@@ -1,6 +1,8 @@
 <?php
-use repositories\BaseRepository;
-require_once 'repositories/BaseRepository.php';
+
+namespace Lpaecomms\Repositories;
+
+use PDO;
 
 class InvoiceRepository extends BaseRepository
 {

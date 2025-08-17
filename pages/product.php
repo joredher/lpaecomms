@@ -1,5 +1,7 @@
 <?php
-require_once 'includes/config.php';
+
+use Lpaecomms\Database;
+
 $conn = Database::getConnection();
 
 $productId = $_GET['id'] ?? null;

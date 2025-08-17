@@ -1,5 +1,7 @@
 <?php
 
+namespace Lpaecomms\Middleware;
+
 class AuthMiddleware
 {
 

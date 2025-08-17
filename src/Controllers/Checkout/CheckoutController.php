@@ -1,13 +1,11 @@
 <?php
 
-require_once __DIR__ . '/../../bootstrap.php';
+namespace Lpaecomms\Controllers;
 
-require_once 'repositories/client/ClientRepository.php';
-require_once 'repositories/invoice/InvoiceRepository.php';
-loadRepo('services/AddressService.php');
-loadRepo('middleware/AuthMiddleware.php');
-
-
+use Lpaecomms\Repositories\ClientRepository;
+use Lpaecomms\Repositories\InvoiceRepository;
+use Lpaecomms\Services\AddressService;
+use Lpaecomms\Middleware\AuthMiddleware;
 
 class CheckoutController
 {

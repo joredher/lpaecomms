@@ -1,14 +1,17 @@
 <?php
 
-if (!defined('APP_PATH')) {
-    define('APP_PATH', dirname(__DIR__));
-}
+namespace Lpaecomms;
 
-class Database {
-    private static $instance = null;
+use PDO;
+use PDOException;
+
+class Database
+{
+    private static ?self $instance = null;
     private PDO $conn;
 
-    private function __construct() {
+    private function __construct()
+    {
         $env = parse_ini_file(__DIR__ . '/../.env');
 
         $dsn = "mysql:host={$env['DB_HOST']};dbname={$env['DB_NAME']};charset=utf8mb4";
@@ -27,14 +30,10 @@ class Database {
     public static function getConnection(): PDO
     {
         if (!self::$instance) {
-            self::$instance = new Database();
+            self::$instance = new self();
         }
 
         return self::$instance->conn;
     }
+}
 
-}
-function loadRepo($relativePath): void
-{
-    require_once APP_PATH . '/' . ltrim($relativePath, '/');
-}

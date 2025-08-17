@@ -1,7 +1,7 @@
 <?php
 
-require_once 'includes/config.php';
-//require_once 'includes/pagination.php';
+use Lpaecomms\Database;
+
 $conn = Database::getConnection();
 $backUrl = $_SESSION['previous_page'];
 $cart = $_SESSION['cart'] ?? [];

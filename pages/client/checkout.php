@@ -3,8 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../../bootstrap.php';
-loadRepo('repositories/client/ClientRepository.php');
+use Lpaecomms\Database;
+use Lpaecomms\Repositories\ClientRepository;
 
 if (!isset($_SESSION['user'])) {
     $_SESSION['intended_route'] = '/checkout';
@@ -18,9 +18,6 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-require_once 'includes/config.php';
-
-//require_once 'includes/pagination.php';
 $conn = Database::getConnection();
 $backUrl = $_SESSION['previous_page'];
 

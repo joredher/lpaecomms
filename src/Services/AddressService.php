@@ -1,6 +1,7 @@
 <?php
 
-require_once __DIR__ . '/../bootstrap.php';
+namespace Lpaecomms\Services;
+
 use GuzzleHttp\Client;
 
 class AddressService

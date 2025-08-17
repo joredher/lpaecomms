@@ -1,9 +1,9 @@
 <?php
 
-require_once 'helpers/mail.php';
-require_once 'repositories/BaseRepository.php';
+namespace Lpaecomms\Controllers;
 
-use repositories\BaseRepository;
+use Lpaecomms\Repositories\BaseRepository;
+use function Lpaecomms\Helpers\sendEmailToCustomerService;
 
 class ContactController
 {

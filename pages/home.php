@@ -1,5 +1,7 @@
 <?php
-require_once 'includes/config.php';
+
+use Lpaecomms\Database;
+
 $conn = Database::getConnection();
 $path_body_images =  "../assets/images/body_page/";
 $searchPageLink = "";

@@ -1,7 +1,9 @@
 <?php
-//namespace controllers\cart;
 
-require_once 'includes/config.php'; // ✅ Load config first (DB, constants, etc.)
+namespace Lpaecomms\Controllers;
+
+use Lpaecomms\Database;
+use PDO;
 
 header('Content-Type: application/json');
 class CartController

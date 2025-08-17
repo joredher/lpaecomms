@@ -5,8 +5,9 @@ if (session_status() === PHP_SESSION_NONE) {
 echo "<!-- ENTERED register.php -->";
 $path = "./../../assets/images/auth/";
 
-require_once __DIR__ . '/../../bootstrap.php';
-loadRepo('repositories/UserRepository.php');
+use Lpaecomms\Database;
+use Lpaecomms\Repositories\UserRepository;
+
 $conn = Database::getConnection();
 
 $token = $_GET['key_rpu'];

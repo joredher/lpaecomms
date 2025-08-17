@@ -1,12 +1,12 @@
 <?php
 
+use Lpaecomms\Database;
+use Lpaecomms\Repositories\UserRepository;
+use Lpaecomms\Repositories\ClientRepository;
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-require_once __DIR__ . '/../../bootstrap.php';
-loadRepo('repositories/UserRepository.php');
-loadRepo('repositories/client/ClientRepository.php');
 
 $conn = Database::getConnection();
 
