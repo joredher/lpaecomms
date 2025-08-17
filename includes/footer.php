@@ -1,5 +1,5 @@
 <?php
-$path_footer_images =  "../assets/images/";
+$path_footer_images =  "assets/images/";
 
 ?>
 <div class="site-footer">

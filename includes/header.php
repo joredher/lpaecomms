@@ -28,7 +28,7 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
 <header class="header">
     <div class="logo-nav">
         <a href="/home" class="text-decoration-none">
-            <img class="logo" src="../assets/images/Logo.svg" alt="Logo">
+            <img class="logo" src="assets/images/Logo.svg" alt="Logo">
         </a>
         <nav class="navigation">
             <a href="/home" class="<?= strtolower($uri) === '/home' ? $style : '' ?>">Home</a>
@@ -39,14 +39,14 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
     </div>
     <div class="actions">
         <div class="search-box">
-            <img src="../assets/images/header/u_search.svg" alt="Search icon">
+            <img src="assets/images/header/u_search.svg" alt="Search icon">
             <label>
                 <input type="text" name="search" placeholder="Search something here!">
             </label>
         </div>
         <div class="cart-icon">
             <a href="/cart" class="position-relative ms-3 text-decoration-none">
-                <img src="../assets/images/header/u_cart.svg" alt="Cart icon">
+                <img src="assets/images/header/u_cart.svg" alt="Cart icon">
 <!--                --><?php //if (!empty($_SESSION['cart'])): ?>
                     <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
                         <?= array_sum(array_column(@$_SESSION['cart'] ?? [], 'quantity')); ?>
@@ -55,9 +55,9 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
             </a>
         </div>
         <div class="currency">
-            <img src="../assets/images/header/Australia.svg" alt="Australia flag">
+            <img src="assets/images/header/Australia.svg" alt="Australia flag">
             <span>AUD</span>
-            <img src="../assets/images/header/Caret_Down_SM.svg" alt="Arrow icon">
+            <img src="assets/images/header/Caret_Down_SM.svg" alt="Arrow icon">
         </div>
         <?php if ($isLoggedIn): ?>
             <div class="dropdown">
