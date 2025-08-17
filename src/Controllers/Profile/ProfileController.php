@@ -1,6 +1,6 @@
 <?php
 
-namespace Lpaecomms\Controllers;
+namespace Lpaecomms\Controllers\Profile;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;

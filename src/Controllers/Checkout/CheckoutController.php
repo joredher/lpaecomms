@@ -1,6 +1,6 @@
 <?php
 
-namespace Lpaecomms\Controllers;
+namespace Lpaecomms\Controllers\Checkout;
 
 use Lpaecomms\Repositories\ClientRepository;
 use Lpaecomms\Repositories\InvoiceRepository;

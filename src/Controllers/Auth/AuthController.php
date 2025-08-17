@@ -1,6 +1,6 @@
 <?php
 
-namespace Lpaecomms\Controllers;
+namespace Lpaecomms\Controllers\Auth;
 
 use Lpaecomms\Repositories\UserRepository;
 use function Lpaecomms\Helpers\sendValidationCodeEmail;

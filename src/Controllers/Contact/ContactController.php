@@ -1,6 +1,6 @@
 <?php
 
-namespace Lpaecomms\Controllers;
+namespace Lpaecomms\Controllers\Contact;
 
 use Lpaecomms\Repositories\BaseRepository;
 use function Lpaecomms\Helpers\sendEmailToCustomerService;

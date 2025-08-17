@@ -17,7 +17,7 @@ class RegisterController
             $action = str_replace("$prefix.", '', $route);
 
             if (in_array($action, $actions, true)):
-                $class = "Lpaecomms\\Controllers\\$prefix\\$controllerClass";
+                $class = "Lpaecomms\\Controllers\\" . ucfirst($prefix) . "\\$controllerClass";
                 $controller = new $class();
                 if (method_exists($controller, $action)) {
                     $controller->$action();

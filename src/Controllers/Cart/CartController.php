@@ -1,6 +1,6 @@
 <?php
 
-namespace Lpaecomms\Controllers;
+namespace Lpaecomms\Controllers\Cart;
 
 use Lpaecomms\Database;
 use PDO;
