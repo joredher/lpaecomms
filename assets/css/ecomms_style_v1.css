@@ -987,18 +987,27 @@ input[name="coupon_code"] {
         flex-direction: column;
         gap: 15px;
         padding: 15px 20px;
+        height: auto;
     }
 
-    .logo-nav, .actions {
+    .logo-nav,
+    .actions {
         flex-direction: column;
         gap: 10px;
+        width: 100%;
+        align-items: center;
     }
 
     .navigation {
+        flex-direction: column;
         gap: 15px;
+        width: 100%;
+        align-items: center;
     }
 
-    .search-box, .create-account, .currency {
+    .search-box,
+    .create-account,
+    .currency {
         width: 100%;
         justify-content: center;
     }
