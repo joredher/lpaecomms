@@ -19,19 +19,30 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
     $style = 'text-color-selection text-decoration-underline';
 }
 
+$navItems = [
+    '/home' => 'Home',
+    '/products' => 'Products',
+    '/about' => 'About',
+    '/contact' => 'Contact',
+];
+
 
 
 ?>
-<header class="header container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 py-3">
-    <div class="logo-nav d-flex align-items-center gap-3 flex-column flex-md-row">
-        <a href="/home" class="text-decoration-none">
-            <img class="logo img-fluid" src="../assets/images/Logo.svg" alt="Logo">
-        </a>
-        <nav class="navigation d-flex flex-column flex-md-row align-items-center gap-3">
-            <a href="/home" class="<?= strtolower($uri) === '/home' ? $style : '' ?>">Home</a>
-            <a href="/products" class="<?= strtolower($uri) === '/products' ? $style : '' ?>">Products</a>
-            <a href="/about" class="<?= strtolower($uri) === '/about' ? $style : '' ?>">About</a>
-            <a href="/contact" class="<?= strtolower($uri) === '/contact' ? $style : '' ?>">Contact</a>
+<header class="header container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 py-3 navbar-light">
+    <div class="logo-nav d-flex align-items-center gap-3 flex-column flex-md-row w-100 w-md-auto">
+        <div class="d-flex align-items-center justify-content-between w-100">
+            <a href="/home" class="text-decoration-none">
+                <img class="logo img-fluid" src="../assets/images/Logo.svg" alt="Logo">
+            </a>
+            <button class="navbar-toggler d-md-none border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-controls="mobileNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <nav class="navigation d-none d-md-flex flex-column flex-md-row align-items-center gap-3">
+            <?php foreach ($navItems as $path => $label): ?>
+                <a href="<?= $path ?>" class="<?= strtolower($uri) === $path ? $style : '' ?>"><?= $label ?></a>
+            <?php endforeach; ?>
         </nav>
     </div>
     <div class="actions d-flex flex-column flex-md-row align-items-center gap-3 w-100 w-md-auto">
@@ -85,3 +96,17 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
 
     </div>
 </header>
+
+<div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="mobileNav" aria-labelledby="mobileNavLabel" style="--bs-offcanvas-width: 250px;">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mobileNavLabel">Menu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <nav class="navigation d-flex flex-column align-items-start gap-3">
+            <?php foreach ($navItems as $path => $label): ?>
+                <a href="<?= $path ?>" class="<?= strtolower($uri) === $path ? $style : '' ?>"><?= $label ?></a>
+            <?php endforeach; ?>
+        </nav>
+    </div>
+</div>
