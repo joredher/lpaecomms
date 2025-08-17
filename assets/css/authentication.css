@@ -1,3 +1,6 @@
+@import url("partials/variables.css");
+@import url("partials/utilities.css");
+
 body {
   width: 100%;
   height: 100%;
@@ -12,7 +15,12 @@ body {
   position: relative;
   overflow: hidden;
   font-family: "Poppins", sans-serif;
-  background: linear-gradient(135deg, #4eb590, #35998f, #357c82);
+  background: linear-gradient(
+    135deg,
+    var(--gradient-start),
+    var(--gradient-mid),
+    var(--gradient-end)
+  );
   background-size: 400% 400%;
   animation: gradientShift 10s ease infinite;
   min-height: 100vh;
@@ -44,7 +52,7 @@ body {
   max-width: 400px;
   margin: 60px auto;
   padding: 2rem;
-  background-color: rgba(217, 217, 217, 0.45);
+  background-color: var(--neutral-bg);
   box-shadow: 0 14px 16px 3px rgba(0, 0, 0, 0.25);
   border-radius: 0 0 12px 12px;
   display: flex;
@@ -126,7 +134,7 @@ input {
   width: 100%;
   max-width: 180px;
   margin: 0 auto;
-  background-color: #b6e67b;
+  background-color: var(--cta-color);
   color: #fff;
   border: none;
   font-weight: 600;
@@ -139,7 +147,7 @@ input {
 }
 
 .submit-btn:hover {
-  background-color: #a3d066;
+  background-color: var(--cta-hover);
   transform: translateY(-2px);
 }
 
