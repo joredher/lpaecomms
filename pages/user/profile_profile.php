@@ -50,7 +50,7 @@ $client = array_merge($user, [
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h5 class="fw-semibold text-primary">Edit Your Profile</h5>
 </div>
-<form action="/profile.store" method="POST">
+<form action="profile.store" method="POST">
     <input type="hidden" name="profile_option" value="profile">
     <div class="row g-4">
         <div class="col-md-6">
@@ -92,14 +92,14 @@ $client = array_merge($user, [
         <!--        </div>-->
     </div>
     <div class="d-flex justify-content-end gap-3 mt-4">
-        <a href="../../index.php" class="btn btn-outline-secondary">Cancel</a>
+        <a href="home" class="btn btn-outline-secondary">Cancel</a>
         <button type="submit" class="btn btn-success px-4">Save Changes</button>
     </div>
 </form>
 
 
 <hr class="my-4">
-<form action="/profile.store" method="POST">
+<form action="profile.store" method="POST">
     <input type="hidden" name="profile_option" value="password">
 
     <h6 class="fw-semibold mb-3">Password Changes</h6>

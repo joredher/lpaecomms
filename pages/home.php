@@ -3,7 +3,7 @@
 use Lpaecomms\Database;
 
 $conn = Database::getConnection();
-$path_body_images =  "../assets/images/body_page/";
+$path_body_images =  "assets/images/body_page/";
 $searchPageLink = "";
 
 ?>

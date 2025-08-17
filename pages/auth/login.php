@@ -1,6 +1,6 @@
 <?php
 echo "<!-- ENTERED register.php -->";
-$path = "./../../assets/images/auth/";
+$path = "assets/images/auth/";
 
 $hasValidateThroughFirst = isset($_SESSION['pending_user_id']);
 ?>
@@ -8,11 +8,11 @@ $hasValidateThroughFirst = isset($_SESSION['pending_user_id']);
 <div class="auth-page-container">
     <div class="form-wrapper wrapper-login">
         <div class="logo-container text-center mb-4">
-            <img src="./../../assets/images/Logo.svg" alt="Ecommerce Logo" class="logo-img">
+            <img src="assets/images/Logo.svg" alt="Ecommerce Logo" class="logo-img">
         </div>
         <div class="login">
             <?php if ($hasValidateThroughFirst): ?>
-                <form method="post" action="/verify-code" class="m-0 position-relative">
+                <form method="post" action="verify-code" class="m-0 position-relative">
                     <div class="form-group position-relative">
                         <label>
                             <img class="input-icon" src="<?= $path ?>password_key.svg" alt="Code">
@@ -26,7 +26,7 @@ $hasValidateThroughFirst = isset($_SESSION['pending_user_id']);
                     <button type="submit" class="submit-btn">Login</button>
                 </form>
             <?php else: ?>
-                <form method="post" action="/auth.login" class="m-0 position-relative">
+                <form method="post" action="auth.login" class="m-0 position-relative">
                     <div class="form-group position-relative mb-2">
                         <label>
                             <img class="input-icon" src="<?= $path ?>user.svg" alt="username">
@@ -45,8 +45,8 @@ $hasValidateThroughFirst = isset($_SESSION['pending_user_id']);
                     <button type="submit" class="submit-btn">Login</button>
                 </form>
             <?php endif; ?>
-            <a class="sign-up-link" href="/register">SIGN UP</a>
-            <a class="sign-up-link h6" href="/forgot_password">Forgot Password</a>
+            <a class="sign-up-link" href="register">SIGN UP</a>
+            <a class="sign-up-link h6" href="forgot_password">Forgot Password</a>
         </div>
 
     </div>

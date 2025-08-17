@@ -45,7 +45,7 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
 <div class="pd-details-section container py-5">
     <div class="pd-details-back mb-4">
         <a href="?route=products" class="pd-back-button d-flex align-items-center text-decoration-none">
-            <img src="../assets/images/icons/back.svg" alt="Back" class="me-2">
+            <img src="assets/images/icons/back.svg" alt="Back" class="me-2">
             <span>Back</span>
         </a>
     </div>

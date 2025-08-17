@@ -9,7 +9,7 @@
     <!-- Who we are -->
     <div class="row align-items-center mb-5">
         <div class="col-md-5 text-center">
-            <img src="/assets/images/about.png" class="img-fluid rounded-4 shadow-sm" style="max-width: 350px;">
+            <img src="assets/images/about.png" class="img-fluid rounded-4 shadow-sm" style="max-width: 350px;">
         </div>
         <div class="col-md-7">
             <h2 class="fw-bold mb-3">Who we are</h2>

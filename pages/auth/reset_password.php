@@ -3,10 +3,14 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 echo "<!-- ENTERED register.php -->";
-$path = "./../../assets/images/auth/";
+$path = "assets/images/auth/";
 
 use Lpaecomms\Database;
 use Lpaecomms\Repositories\UserRepository;
+
+$scriptDir = rtrim(dirname($_SERVER['PHP_SELF']), '/');
+$basePath = preg_replace('#/pages(/.*)?$#', '', $scriptDir);
+$basePath = $basePath === '' ? '/' : $basePath . '/';
 
 $conn = Database::getConnection();
 
@@ -20,7 +24,7 @@ if (!$token || !($user = $userRepo->findByResetToken($token))) {
         'message' => '❌ Invalid or expired reset link.',
         'type' => 'danger'
     ];
-    header("location: /home");
+    header("location: {$basePath}home");
 
     die('❌ Invalid or expired reset link.');
 }
@@ -30,7 +34,7 @@ if (\Carbon\Carbon::parse($user['expires_at'])->isPast()) {
         'message' => '⏰ This link has expired.',
         'type' => 'danger'
     ];
-    header("location: /home");
+    header("location: {$basePath}home");
 
     die('⏰ This link has expired.');
 }
@@ -41,10 +45,10 @@ if (\Carbon\Carbon::parse($user['expires_at'])->isPast()) {
 <div class="auth-page-container">
     <div class="form-wrapper wrapper-login">
         <div class="logo-container text-center mb-4">
-            <img src="./../../assets/images/Logo.svg" alt="Ecommerce Logo" class="logo-img">
+            <img src="assets/images/Logo.svg" alt="Ecommerce Logo" class="logo-img">
         </div>
         <div class="login">
-            <form method="post" action="/auth.resetPassword" class="m-0 position-relative">
+            <form method="post" action="auth.resetPassword" class="m-0 position-relative">
                 <!-- Hidden Token -->
                 <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
 
@@ -71,7 +75,7 @@ if (\Carbon\Carbon::parse($user['expires_at'])->isPast()) {
                     <span>Reset Password</span>
                 </button>
             </form>
-            <a class="sign-up-link text-decoration-none text-light-emphasis" href="/login">Return to Log In</a>
+            <a class="sign-up-link text-decoration-none text-light-emphasis" href="login">Return to Log In</a>
         </div>
     </div>
 </div>

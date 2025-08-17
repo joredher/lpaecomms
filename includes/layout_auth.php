@@ -1,8 +1,15 @@
+<?php
+$title = $title ?? 'Account';
+$scriptDir = rtrim(dirname($_SERVER['PHP_SELF']), '/');
+$basePath = preg_replace('#/pages(/.*)?$#', '', $scriptDir);
+$basePath = $basePath === '' ? '/' : $basePath . '/';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title><?= $title ?? 'Account' ?></title>
+    <title><?= $title ?></title>
+    <base href="<?= $basePath ?>">
     <link rel="icon" href="assets/images/Logo.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -38,7 +45,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
-<!--<script type="application/javascript" src="../assets/js/ecommerce_script.js"></script>-->
+<!--<script type="application/javascript" src="assets/js/ecommerce_script.js"></script>-->
 <script type="application/javascript" src="assets/js/toast.js"></script>
 <?php if (isset($_SESSION['flash_message'])): $msg = $_SESSION['flash_message']; ?>
     <script>

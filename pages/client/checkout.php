@@ -6,20 +6,24 @@ if (session_status() === PHP_SESSION_NONE) {
 use Lpaecomms\Database;
 use Lpaecomms\Repositories\ClientRepository;
 
+$scriptDir = rtrim(dirname($_SERVER['PHP_SELF']), '/');
+$basePath = preg_replace('#/pages(/.*)?$#', '', $scriptDir);
+$basePath = $basePath === '' ? '/' : $basePath . '/';
+
 if (!isset($_SESSION['user'])) {
-    $_SESSION['intended_route'] = '/checkout';
+    $_SESSION['intended_route'] = 'checkout';
 
     $_SESSION['flash_message'] = [
         'message' => '⚠️ You must log in before checking out.',
         'type' => 'warning'
     ];
 
-    header('Location: /login');
+    header("Location: {$basePath}login");
     exit;
 }
 
 $conn = Database::getConnection();
-$backUrl = $_SESSION['previous_page'] ?? '/home';
+$backUrl = $_SESSION['previous_page'] ?? 'home';
 
 $client = (new ClientRepository())->findByUserId($_SESSION['user']['id']);
 
@@ -44,7 +48,7 @@ $valueTotal = 0;
 <div class="pd-cart-section container py-5" id="checkout-section">
     <div class="mb-5">
         <a href="<?= $backUrl ?>" class="pd-back-button d-flex align-items-center text-decoration-none">
-            <img src="../../assets/images/icons/back.svg" alt="Back" class="me-2">
+            <img src="assets/images/icons/back.svg" alt="Back" class="me-2">
             <span>Back</span>
         </a>
     </div>
@@ -52,7 +56,7 @@ $valueTotal = 0;
         <div class="checkout-title">Billing Details</div>
     </div>
     <div class="checkout-body">
-        <form action="/checkout.process" method="POST" class="checkout-form">
+        <form action="checkout.process" method="POST" class="checkout-form">
             <div class="form-column">
                 <div class="form-group-custom">
                     <label for="firstname">First Name <span class="text-required">*</span></label>
@@ -146,10 +150,10 @@ $valueTotal = 0;
                     <label for="bank" class="text-detail">Bank</label>
                 </div>
                 <div class="card-icons">
-                    <img src="../../assets/images/cards/visa.png" alt="Visa">
-                    <img src="../../assets/images/cards/mastercard.png" alt="Mastercard">
-                    <img src="../../assets/images/cards/amex.png" alt="Amex">
-                    <img src="../../assets/images/cards/bkash.png" alt="Bkash">
+                    <img src="assets/images/cards/visa.png" alt="Visa">
+                    <img src="assets/images/cards/mastercard.png" alt="Mastercard">
+                    <img src="assets/images/cards/amex.png" alt="Amex">
+                    <img src="assets/images/cards/bkash.png" alt="Bkash">
                 </div>
                 <div class="option-group">
                     <input type="radio" name="payment_method" id="cod" value="cod">

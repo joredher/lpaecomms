@@ -1,16 +1,16 @@
 <?php
 echo "<!-- ENTERED register.php -->";
-$path = "./../../assets/images/auth/";
+$path = "assets/images/auth/";
 
 ?>
 
 <div class="auth-page-container">
     <div class="form-wrapper">
         <div class="logo-container text-center mb-4">
-            <img src="./../../assets/images/Logo.svg" alt="Ecommerce Logo" class="logo-img">
+            <img src="assets/images/Logo.svg" alt="Ecommerce Logo" class="logo-img">
         </div>
         <div class="sign-up">
-            <form method="post" action="/auth.register" >
+            <form method="post" action="auth.register" >
                 <div class="form-group position-relative mb-2">
                     <label>
                         <img class="input-icon" src="<?= $path ?>user.svg" alt="name">
@@ -44,7 +44,7 @@ $path = "./../../assets/images/auth/";
 
                 <button type="submit" class="submit-btn">SIGN UP</button>
             </form>
-            <a class="sign-up-link" href="/login">Log In</a>
+            <a class="sign-up-link" href="login">Log In</a>
         </div>
 
     </div>

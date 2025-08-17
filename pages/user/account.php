@@ -3,7 +3,7 @@
 use Lpaecomms\Database;
 
 $conn = Database::getConnection();
-$backUrl = $_SESSION['previous_page'] ?? '/home';
+$backUrl = $_SESSION['previous_page'] ?? 'home';
 
 $user = $_SESSION['user'];
 
@@ -12,7 +12,7 @@ $user = $_SESSION['user'];
 <div class="container-account">
     <div class="d-flex justify-content-between mb-5">
         <a href="<?= $backUrl ?>" class="pd-back-button d-flex align-items-center text-decoration-none">
-            <img src="../../assets/images/icons/back.svg" alt="Back" class="me-2">
+            <img src="assets/images/icons/back.svg" alt="Back" class="me-2">
             <span>Back</span>
         </a>
         <span class="text-muted fw-bolder">

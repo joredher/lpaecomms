@@ -3,14 +3,14 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$backUrl = $_SESSION['previous_page'] ?? '/home';
+$backUrl = $_SESSION['previous_page'] ?? 'home';
 ?>
 
 
 <div class="container py-5">
     <div class="mb-5">
         <a href="<?= $backUrl ?>" class="pd-back-button d-flex align-items-center text-decoration-none">
-            <img src="../assets/images/icons/back.svg" alt="Back" class="me-2">
+            <img src="assets/images/icons/back.svg" alt="Back" class="me-2">
             <span>Back</span>
         </a>
     </div>
@@ -22,7 +22,7 @@ $backUrl = $_SESSION['previous_page'] ?? '/home';
                 <div class="d-flex mb-4 flex-column">
                     <div class="icons-phone-parent">
                         <div class="icons-phone">
-                            <img alt="" src="/assets/images/icons-phone.svg">
+                            <img alt="" src="assets/images/icons-phone.svg">
                         </div>
                         <div class="call-to-us">Call To Us</div>
                     </div>
@@ -35,7 +35,7 @@ $backUrl = $_SESSION['previous_page'] ?? '/home';
                 <div class="d-flex flex-column">
                     <div class="icons-phone-parent">
                         <div class="icons-phone">
-                            <img alt="" src="/assets/images/icons-phone.svg">
+                            <img alt="" src="assets/images/icons-phone.svg">
                         </div>
                         <div class="call-to-us">Write To Us</div>
                     </div>
@@ -49,7 +49,7 @@ $backUrl = $_SESSION['previous_page'] ?? '/home';
 
             <!-- Contact form (right column) -->
             <div class="col-12 col-md-8 mt-sm-2">
-                <form method="post" action="/contact.send" class="row g-3">
+                <form method="post" action="contact.send" class="row g-3">
                     <div class="form-group col-md-4">
                         <label class="w-100" for="name">
                             <input class="form-control rounded-3" type="text" name="name" maxlength="40" placeholder="Your Name *" required>

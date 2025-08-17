@@ -3,7 +3,7 @@
 use Lpaecomms\Database;
 
 $conn = Database::getConnection();
-$backUrl = $_SESSION['previous_page'] ?? '/home';
+$backUrl = $_SESSION['previous_page'] ?? 'home';
 $cart = $_SESSION['cart'] ?? [];
 $total = $_SESSION['total'] ?? 0;
 
@@ -12,7 +12,7 @@ $total = $_SESSION['total'] ?? 0;
 <div class="pd-cart-section container py-5">
     <div class="mb-5">
         <a href="<?= $backUrl ?>" class="pd-back-button d-flex align-items-center text-decoration-none">
-            <img src="../../assets/images/icons/back.svg" alt="Back" class="me-2">
+            <img src="assets/images/icons/back.svg" alt="Back" class="me-2">
             <span>Back</span>
         </a>
     </div>
@@ -108,7 +108,7 @@ $total = $_SESSION['total'] ?? 0;
                                 <span>Total:</span>
                                 <strong>$<?= number_format($total, 2) ?></strong>
                             </div>
-                            <a href="/checkout" class="btn btn-success w-100">Proceed to Checkout</a>
+                            <a href="checkout" class="btn btn-success w-100">Proceed to Checkout</a>
                         </div>
                     </div>
                 </div>
