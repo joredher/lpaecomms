@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../../vendor/autoload.php';
+
 use Lpaecomms\Database;
 use Lpaecomms\Repositories\UserRepository;
 use Lpaecomms\Repositories\ClientRepository;

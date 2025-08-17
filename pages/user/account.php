@@ -1,5 +1,7 @@
 <?php
 
+use Lpaecomms\Database;
+
 $conn = Database::getConnection();
 $backUrl = $_SESSION['previous_page'];
 
