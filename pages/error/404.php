@@ -3,7 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$backUrl = $_SESSION['previous_page'];
+$backUrl = $_SESSION['previous_page'] ?? '/home';
 $notFoundReason = $_SESSION['notFoundReason'] ?: null;
 
 unset($_SESSION['notFoundReason']);

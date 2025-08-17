@@ -7,10 +7,13 @@ $isLoggedIn = isset($_SESSION['user']);
 $user = $_SESSION['user'] ?? null;
 
 $uri = $_SERVER['REQUEST_URI'];
+$prev = $_SESSION['current_page'] ?? '/home';
 
-if (!str_contains(strtolower($uri), '/cart')) {
-    $_SESSION['previous_page'] = $uri ?? 'home';
+if (!str_contains(strtolower($uri), '/cart') || !str_contains(strtolower($prev), '/cart')) {
+    $_SESSION['previous_page'] = $prev;
 }
+
+$_SESSION['current_page'] = $uri;
 
 
 

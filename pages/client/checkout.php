@@ -19,7 +19,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 $conn = Database::getConnection();
-$backUrl = $_SESSION['previous_page'];
+$backUrl = $_SESSION['previous_page'] ?? '/home';
 
 $client = (new ClientRepository())->findByUserId($_SESSION['user']['id']);
 

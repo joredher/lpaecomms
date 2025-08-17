@@ -3,7 +3,7 @@
 use Lpaecomms\Database;
 
 $conn = Database::getConnection();
-$backUrl = $_SESSION['previous_page'];
+$backUrl = $_SESSION['previous_page'] ?? '/home';
 
 $user = $_SESSION['user'];
 
