@@ -15,7 +15,7 @@ function addToCartBtn(event) {
     const productId = target.getAttribute('data-product-id');
     console.log('Product ID:', productId);
 
-    fetch('/cart.add', {
+    fetch('cart.add', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         credentials: 'same-origin',
