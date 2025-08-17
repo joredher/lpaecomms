@@ -24,9 +24,14 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
 ?>
 <header class="header">
     <div class="logo-nav">
-        <a href="/home" class="text-decoration-none">
-            <img class="logo" src="../assets/images/Logo.svg" alt="Logo">
-        </a>
+        <div class="logo-toggle">
+            <a href="/home" class="text-decoration-none">
+                <img class="logo" src="../assets/images/Logo.svg" alt="Logo">
+            </a>
+            <button class="menu-toggle" type="button">
+                <i class="bi bi-list"></i>
+            </button>
+        </div>
         <nav class="navigation">
             <a href="/home" class="<?= strtolower($uri) === '/home' ? $style : '' ?>">Home</a>
             <a href="/products" class="<?= strtolower($uri) === '/products' ? $style : '' ?>">Products</a>

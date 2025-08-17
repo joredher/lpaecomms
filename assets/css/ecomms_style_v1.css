@@ -40,6 +40,21 @@ header {
     gap: 40px;
 }
 
+.logo-toggle {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: #003459;
+    font-size: 28px;
+    cursor: pointer;
+}
+
 .logo {
     width: 50px;
 }
@@ -1032,6 +1047,48 @@ input[name="coupon_code"] {
     .frame-item {
         width: 40px;
         height: 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        padding: 20px;
+        height: auto;
+    }
+
+    .logo-nav {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        gap: 20px;
+    }
+
+    .logo-toggle {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .navigation {
+        display: none;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+    }
+
+    .navigation.active {
+        display: flex;
+    }
+
+    .actions {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 }
 

@@ -19,6 +19,21 @@ header {
     gap: 40px;
 }
 
+.logo-toggle {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    font-size: 28px;
+    cursor: pointer;
+}
+
 .logo {
     width: 50px;
 }
