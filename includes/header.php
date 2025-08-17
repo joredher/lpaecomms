@@ -22,28 +22,28 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
 
 
 ?>
-<header class="header">
-    <div class="logo-nav">
+<header class="header container-fluid d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 py-3">
+    <div class="logo-nav d-flex align-items-center gap-3 flex-column flex-md-row">
         <a href="/home" class="text-decoration-none">
-            <img class="logo" src="../assets/images/Logo.svg" alt="Logo">
+            <img class="logo img-fluid" src="../assets/images/Logo.svg" alt="Logo">
         </a>
-        <nav class="navigation">
+        <nav class="navigation d-flex flex-column flex-md-row align-items-center gap-3">
             <a href="/home" class="<?= strtolower($uri) === '/home' ? $style : '' ?>">Home</a>
             <a href="/products" class="<?= strtolower($uri) === '/products' ? $style : '' ?>">Products</a>
             <a href="/about" class="<?= strtolower($uri) === '/about' ? $style : '' ?>">About</a>
             <a href="/contact" class="<?= strtolower($uri) === '/contact' ? $style : '' ?>">Contact</a>
         </nav>
     </div>
-    <div class="actions">
-        <div class="search-box">
-            <img src="../assets/images/header/u_search.svg" alt="Search icon">
-            <label>
-                <input type="text" name="search" placeholder="Search something here!">
+    <div class="actions d-flex flex-column flex-md-row align-items-center gap-3 w-100 w-md-auto">
+        <div class="search-box d-flex w-100 w-md-auto">
+            <img class="img-fluid" src="../assets/images/header/u_search.svg" alt="Search icon">
+            <label class="flex-grow-1">
+                <input class="form-control" type="text" name="search" placeholder="Search something here!">
             </label>
         </div>
         <div class="cart-icon">
-            <a href="/cart" class="position-relative ms-3 text-decoration-none">
-                <img src="../assets/images/header/u_cart.svg" alt="Cart icon">
+            <a href="/cart" class="position-relative ms-md-3 text-decoration-none">
+                <img class="img-fluid" src="../assets/images/header/u_cart.svg" alt="Cart icon">
 <!--                --><?php //if (!empty($_SESSION['cart'])): ?>
                     <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
                         <?= array_sum(array_column(@$_SESSION['cart'] ?? [], 'quantity')); ?>
@@ -51,10 +51,10 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
 <!--                --><?php //endif; ?>
             </a>
         </div>
-        <div class="currency">
-            <img src="../assets/images/header/Australia.svg" alt="Australia flag">
+        <div class="currency d-flex align-items-center gap-1">
+            <img class="img-fluid" src="../assets/images/header/Australia.svg" alt="Australia flag">
             <span>AUD</span>
-            <img src="../assets/images/header/Caret_Down_SM.svg" alt="Arrow icon">
+            <img class="img-fluid" src="../assets/images/header/Caret_Down_SM.svg" alt="Arrow icon">
         </div>
         <?php if ($isLoggedIn): ?>
             <div class="dropdown">
@@ -76,14 +76,12 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
                 </ul>
             </div>
         <?php else: ?>
-            <div class="d-flex align-items-center gap-3">
-                <a href="/register" class="create-account text-decoration-none">Create a new account</a>
-                <a href="/login" class="text-decoration-none login-link">Login</a>
+            <div class="d-flex align-items-center gap-3 flex-column flex-md-row w-100 w-md-auto">
+                <a href="/register" class="create-account text-decoration-none w-100 w-md-auto text-center">Create a new account</a>
+                <a href="/login" class="text-decoration-none login-link w-100 w-md-auto text-center">Login</a>
             </div>
 <!--            <a href="/register" class="create-account text-decoration-none">Create a new account</a>-->
         <?php endif; ?>
 
     </div>
 </header>
-
-

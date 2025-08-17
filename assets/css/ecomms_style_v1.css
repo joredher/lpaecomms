@@ -982,7 +982,7 @@ input[name="coupon_code"] {
 }
 
 
-@media (max-width: 900px) {
+@media (max-width: 767.98px) {
     .header {
         flex-direction: column;
         gap: 15px;
@@ -1013,6 +1013,21 @@ input[name="coupon_code"] {
     }
 }
 
+@media (min-width: 768px) and (max-width: 1199.98px) {
+    .header {
+        padding: 20px 40px;
+        gap: 30px;
+        height: auto;
+    }
+
+    .logo-nav {
+        gap: 20px;
+    }
+
+    .navigation {
+        gap: 20px;
+    }
+}
 @media (max-width: 768px) {
     .frame-parent {
         padding: 24px;
