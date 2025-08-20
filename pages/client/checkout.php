@@ -22,7 +22,7 @@ require_once 'includes/config.php';
 
 //require_once 'includes/pagination.php';
 $conn = Database::getConnection();
-$backUrl = $_SESSION['previous_page'];
+$backUrl = $_SESSION['previous_page'] ?? '/home';
 
 $client = (new ClientRepository())->findByUserId($_SESSION['user']['id']);
 

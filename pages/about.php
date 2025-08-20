@@ -60,28 +60,17 @@
         <div class="col-md-4 mb-4">
             <h5 class="fw-bold">Our Channel</h5>
             <div class="ratio ratio-16x9">
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/N_kJukeJECI?si=JK4wpJmjQqhMa9JR&amp;start=14" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/N_kJukeJECI?start=14" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
         </div>
 
         <!-- Facebook Feed -->
         <div class="col-md-4 mb-4">
             <h5 class="fw-bold">Follow Us</h5>
-            <div id="fb-root"></div>
-            <script async defer crossorigin="anonymous"
-            src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v17.0">
-            </script>
-
-            <div class="fb-page"
-            data-href="https://www.facebook.com/CanterburyTechnicalInstitute"
-            data-tabs="timeline"
-            data-width="400"
-            data-height="300"
-            data-small-header="false"
-            data-adapt-container-width="true"
-            data-hide-cover="false"
-            data-show-facepile="true">
-            </div>
+            <iframe
+                src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2FCanterburyTechnicalInstitute&tabs=timeline&width=400&height=300&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true"
+                width="400" height="300" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true"
+                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
         </div>
 
     </div>
