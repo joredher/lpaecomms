@@ -400,7 +400,7 @@ document.addEventListener("DOMContentLoaded", function () {
       setTimeout(() => ripple.remove(), 600);
 
       const id = card.getAttribute("data-id");
-      if (id) window.location.href = `?route=product&id=${id}`;
+      if (id) window.location.href = `index.php?route=product&id=${id}`;
     });
   }
 

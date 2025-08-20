@@ -141,7 +141,7 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
 
             const id = card.getAttribute("data-id");
             console.log('LOG', id)
-            if (id) window.location.href = `index.php?page=product&id=${id}`;
+            if (id) window.location.href = `index.php?route=product&id=${id}`;
         })
     })
 </script>
