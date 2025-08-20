@@ -74,7 +74,7 @@ class ProductsController
             ?>
             <div class="col mb-4">
                 <div class="product-card clickable-card ripple-container" data-id="<?= $product['lpa_stock_ID'] ?>">
-                    <img src="assets/images/test-images/<?= htmlspecialchars($product['lpa_stock_image']) ?>" alt="<?= htmlspecialchars($product['lpa_stock_name']) ?>">
+                    <img loading="lazy" decoding="async" src="assets/images/test-images/<?= htmlspecialchars($product['lpa_stock_image']) ?>" alt="<?= htmlspecialchars($product['lpa_stock_name']) ?>">
                     <div class="product-card-description">
                         <h3 class="text-truncate"><?= htmlspecialchars($product['lpa_stock_name']) ?></h3>
                         <div class="type-category-text">

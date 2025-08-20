@@ -80,6 +80,10 @@ document.addEventListener("click", (e) => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  applyFilters();
+});
+
 function addToCartBtn(event) {
   event.preventDefault();
   event.stopPropagation(); // Fix: Use event instead of target

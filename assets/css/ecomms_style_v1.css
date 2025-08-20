@@ -758,6 +758,7 @@ header {
   /*flex-wrap: wrap;*/
   /*align-content: flex-start;*/
   /*gap: 66px 41px;*/
+  overflow-anchor: none;
 }
 
 .product-card {
