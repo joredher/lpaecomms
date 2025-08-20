@@ -1,29 +1,50 @@
 const filterForm = document.getElementById("filter-form");
+const productsGrid = document.getElementById("products-grid");
+const paginationContainer = document.getElementById("pagination-container");
 
-function changeSelection(input) {
-  input.addEventListener("change", () => {
-    if (filterForm.requestSubmit) {
-      filterForm.requestSubmit();
-    } else {
-      filterForm.dispatchEvent(new Event("submit", { cancelable: true }));
-    }
+async function applyFilters(extra = {}) {
+  if (!filterForm) return;
+  const formData = new FormData(filterForm);
+  for (const [key, value] of Object.entries(extra)) {
+    formData.set(key, value);
+  }
+
+  const response = await fetch("/products.filter", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(formData),
   });
+  const data = await response.json();
+
+  if (productsGrid) productsGrid.innerHTML = data.productsHtml;
+  if (paginationContainer) paginationContainer.innerHTML = data.paginationHtml;
+
+  const tag = document.querySelector(".filter-tag");
+  if (tag) {
+    tag.textContent = `${data.activeLabel} (${data.resultCount} Results)`;
+    tag.classList.toggle("is-active", data.activeLabel === "Filtered");
+  }
 }
 
 if (filterForm) {
   filterForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    const formData = new FormData(filterForm);
-    const params = new URLSearchParams();
-    for (const [key, value] of formData.entries()) {
-      if (value !== "") {
-        params.append(key, value);
-      }
-    }
-    const action = filterForm.getAttribute("action") || window.location.pathname;
-    window.location.href = `${action}?${params.toString()}`;
+    applyFilters();
+  });
+
+  filterForm.querySelectorAll("input, select").forEach((el) => {
+    el.addEventListener("change", () => applyFilters());
   });
 }
+
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("#pagination-container a.page-link");
+  if (link) {
+    e.preventDefault();
+    const page = link.getAttribute("data-page");
+    applyFilters({ page_num: page });
+  }
+});
 
 function addToCartBtn(event) {
   event.preventDefault();
