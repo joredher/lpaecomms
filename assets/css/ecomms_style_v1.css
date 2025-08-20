@@ -758,6 +758,7 @@ header {
   /*flex-wrap: wrap;*/
   /*align-content: flex-start;*/
   /*gap: 66px 41px;*/
+  overflow-anchor: none;
 }
 
 .product-card {
@@ -957,9 +958,16 @@ input[name="coupon_code"] {
 }
 
 /* ========== RESPONSIVE ========== */
+@media (max-width: 992px) {
+  .categories {
+    padding: 20px 40px;
+  }
+}
+
 @media (max-width: 768px) {
   .categories {
     flex-direction: column;
+    padding: 20px;
   }
 
   .products-toolbar {
