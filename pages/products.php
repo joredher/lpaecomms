@@ -89,7 +89,8 @@ $products = $productStmt->fetchAll();
 ?>
 
 <form method="GET" id="filter-form" action="index.php">
-    <input type="hidden" name="page" value="categories">
+    <!-- Preserve the products route when submitting filters -->
+    <input type="hidden" name="route" value="products">
     <div class="categories">
         <div class="filter-panel">
             <h2 class="filter-main-title">Filter</h2>
