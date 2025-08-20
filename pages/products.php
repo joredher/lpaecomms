@@ -89,7 +89,8 @@ $products = $productStmt->fetchAll();
 ?>
 
 <form method="GET" id="filter-form" action="index.php">
-    <input type="hidden" name="page" value="categories">
+    <!-- Preserve the products route when submitting filters -->
+    <input type="hidden" name="route" value="products">
     <div class="categories">
         <div class="filter-panel">
             <h2 class="filter-main-title">Filter</h2>
@@ -160,7 +161,7 @@ $products = $productStmt->fetchAll();
 
             <!-- Products Grid -->
             <div class="container p-0">
-                <div class="product-grid row row-cols-3 m-auto">
+                <div class="product-grid row row-cols-1 row-cols-md-2 row-cols-lg-3 m-auto">
                     <?php foreach ($products as $product): ?>
                         <div class="col mb-4">
                             <div class="product-card clickable-card ripple-container" data-id="<?= $product['lpa_stock_ID'] ?>">
