@@ -121,17 +121,15 @@ $products = $productStmt->fetchAll();
             <div class="filter-group">
                 <h3 class="filter-title">Types</h3>
                 <?php foreach ($types as $type): ?>
+                    <?php
+                    $isAll = $type['lpa_type_ID'] == 4;
+                    $userTypes = $_GET['type'] ?? [];
+                    if (!is_array($userTypes)) $userTypes = [$userTypes];
+                    $checked = ($isAll && empty($userTypes)) || (!$isAll && in_array($type['lpa_type_ID'], $userTypes));
+                    ?>
                     <label class="filter-option">
-                        <?php
-                        $isAll = $type['lpa_type_ID'] == 4;
-                        $userTypes = $_GET['type'] ?? [];
-                        if (!is_array($userTypes)) $userTypes = [$userTypes];
-                        $checked = ($isAll && empty($userTypes)) || (!$isAll && in_array($type['lpa_type_ID'], $userTypes));
-                        ?>
-                        <label class="filter-option">
-                            <input type="checkbox" name="type[]" value="<?= $type['lpa_type_ID'] ?>" <?= $checked ? 'checked' : '' ?> class="type-checkbox" data-type-id="<?= $type['lpa_type_ID'] ?>">
-                            <?= htmlspecialchars($type['lpa_type_name']) ?>
-                        </label>
+                        <input type="checkbox" name="type[]" value="<?= $type['lpa_type_ID'] ?>" <?= $checked ? 'checked' : '' ?> class="type-checkbox" data-type-id="<?= $type['lpa_type_ID'] ?>">
+                        <?= htmlspecialchars($type['lpa_type_name']) ?>
                     </label>
                 <?php endforeach; ?>
             </div>

@@ -1,7 +1,27 @@
 const filterForm = document.getElementById("filter-form");
+
 function changeSelection(input) {
   input.addEventListener("change", () => {
-    filterForm.submit();
+    if (filterForm.requestSubmit) {
+      filterForm.requestSubmit();
+    } else {
+      filterForm.dispatchEvent(new Event("submit", { cancelable: true }));
+    }
+  });
+}
+
+if (filterForm) {
+  filterForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const formData = new FormData(filterForm);
+    const params = new URLSearchParams();
+    for (const [key, value] of formData.entries()) {
+      if (value !== "") {
+        params.append(key, value);
+      }
+    }
+    const action = filterForm.getAttribute("action") || window.location.pathname;
+    window.location.href = `${action}?${params.toString()}`;
   });
 }
 
@@ -272,19 +292,11 @@ document.addEventListener("DOMContentLoaded", function () {
       changeSelection(input);
     });
 
-    filterForm.querySelectorAll('input[type="number"]').forEach((input) => {
-      console.log("Min", input.value !== "");
-      let hasMinPrice = input.name === "min_price" && input.value !== "";
-      let hasMaxPrice = input.name === "max_price" && input.value !== "";
-      if (hasMinPrice && hasMaxPrice) {
+    filterForm
+      .querySelectorAll('input[type="number"]')
+      .forEach((input) => {
         changeSelection(input);
-      }
-
-      if (!hasMinPrice && !hasMaxPrice) {
-        input.value = "";
-        changeSelection(input);
-      }
-    });
+      });
   }
 
   const sortSelect = document.getElementById("sort");
