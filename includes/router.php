@@ -74,9 +74,14 @@ switch ($route) {
         include 'includes/layout.php';
         break;
     case 'products':
-//        include 'controllers/products_controller.php';
-        $pageContent = $path . 'products.php';
-        include 'includes/layout.php';
+        $isAjaxReq = !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+            && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+        if ($isAjaxReq) {
+            include $path . 'products.php';
+        } else {
+            $pageContent = $path . 'products.php';
+            include 'includes/layout.php';
+        }
         break;
     case 'about':
         $pageContent = $path . 'about.php';

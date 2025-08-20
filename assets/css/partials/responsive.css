@@ -2,6 +2,7 @@
 @media (max-width: 768px) {
     .categories {
         flex-direction: column;
+        padding: 20px;
     }
 
     .products-toolbar {
