@@ -1,9 +1,84 @@
 const filterForm = document.getElementById("filter-form");
-function changeSelection(input) {
-  input.addEventListener("change", () => {
-    filterForm.submit();
+const productsGrid = document.getElementById("products-grid");
+const paginationContainer = document.getElementById("pagination-container");
+
+async function applyFilters(extra = {}) {
+  if (!filterForm) return;
+  const formData = new FormData(filterForm);
+  for (const [key, value] of Object.entries(extra)) {
+    formData.set(key, value);
+  }
+
+  const response = await fetch("/products.filter", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(formData),
+  });
+  const data = await response.json();
+
+  if (productsGrid) productsGrid.innerHTML = data.productsHtml;
+  if (paginationContainer) paginationContainer.innerHTML = data.paginationHtml;
+
+  const tag = document.querySelector(".filter-tag");
+  if (tag) {
+    tag.textContent = `${data.activeLabel} (${data.resultCount} Results)`;
+    tag.classList.toggle("is-active", data.activeLabel === "Filtered");
+  }
+}
+
+if (filterForm) {
+  const typeCheckboxes = filterForm.querySelectorAll(".type-checkbox");
+  const categoryCheckboxes = filterForm.querySelectorAll('input[name="category[]"]');
+  const typeAll = filterForm.querySelector('.type-checkbox[data-type-id="4"]');
+
+  filterForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    applyFilters();
+  });
+
+  filterForm.addEventListener("change", (e) => {
+    const target = e.target;
+
+    if (target.matches('input[name="category[]"]')) {
+      if (target.checked) {
+        typeCheckboxes.forEach((cb) => (cb.checked = false));
+      }
+    } else if (target.matches('.type-checkbox')) {
+      if (target.dataset.typeId === "4") {
+        if (target.checked) {
+          categoryCheckboxes.forEach((cb) => (cb.checked = false));
+          typeCheckboxes.forEach((cb) => {
+            if (cb !== target) cb.checked = false;
+          });
+        }
+      } else {
+        if (target.checked) {
+          if (typeAll) typeAll.checked = false;
+          categoryCheckboxes.forEach((cb) => (cb.checked = false));
+        }
+      }
+    }
+
+    const anyCategory = Array.from(categoryCheckboxes).some((cb) => cb.checked);
+    const anyType = Array.from(typeCheckboxes).some(
+      (cb) => cb.checked && cb.dataset.typeId !== "4"
+    );
+    if (!anyCategory && !anyType && typeAll) {
+      typeAll.checked = true;
+    }
+
+    applyFilters();
   });
 }
+
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("#pagination-container a.page-link");
+  if (link) {
+    e.preventDefault();
+    const page = link.getAttribute("data-page");
+    applyFilters({ page_num: page });
+  }
+});
 
 function addToCartBtn(event) {
   event.preventDefault();
@@ -272,19 +347,11 @@ document.addEventListener("DOMContentLoaded", function () {
       changeSelection(input);
     });
 
-    filterForm.querySelectorAll('input[type="number"]').forEach((input) => {
-      console.log("Min", input.value !== "");
-      let hasMinPrice = input.name === "min_price" && input.value !== "";
-      let hasMaxPrice = input.name === "max_price" && input.value !== "";
-      if (hasMinPrice && hasMaxPrice) {
+    filterForm
+      .querySelectorAll('input[type="number"]')
+      .forEach((input) => {
         changeSelection(input);
-      }
-
-      if (!hasMinPrice && !hasMaxPrice) {
-        input.value = "";
-        changeSelection(input);
-      }
-    });
+      });
   }
 
   const sortSelect = document.getElementById("sort");
