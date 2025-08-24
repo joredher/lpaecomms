@@ -59,5 +59,8 @@ $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
             </tbody>
         </table>
     </div>
-    <?= renderPagination($pageNum ?? 1, $totalPages ?? 1, array_merge($_GET, ['route' => 'orders']), 'index.php'); ?>
+    <?php
+        $paginationUrl = $paginationBase ?? $_SERVER['PHP_SELF'];
+        echo renderPagination($pageNum ?? 1, $totalPages ?? 1, $_GET, $paginationUrl);
+    ?>
 <?php endif; ?>

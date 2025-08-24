@@ -29,6 +29,7 @@ class OrderController
         $totalInvoices = $this->invoiceRepo->countInvoicesByUser($user['id']);
         $totalPages  = (int)ceil($totalInvoices / $pageSize);
 
+        $paginationBase = '/orders';
         $pageContent = 'pages/user/profile_orders.php';
         include 'includes/layout.php';
     }

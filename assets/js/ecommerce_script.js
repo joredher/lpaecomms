@@ -350,6 +350,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.text())
         .then((html) => {
           output.innerHTML = html;
+          attachPaginationHandlers();
           setTimeout(() => {
             attachAutocomplete();
             enableKeyboardNavigation();
@@ -360,6 +361,29 @@ document.addEventListener("DOMContentLoaded", function () {
           console.error(err);
         });
     }
+  }
+
+  function attachPaginationHandlers() {
+    if (!output) return;
+    const links = output.querySelectorAll(".pagination a");
+    links.forEach((link) => {
+      link.addEventListener("click", function (e) {
+        const href = this.getAttribute("href");
+        if (href && href.includes("profile_orders.php")) {
+          e.preventDefault();
+          fetch(href)
+            .then((resp) => resp.text())
+            .then((html) => {
+              output.innerHTML = html;
+              attachPaginationHandlers();
+            })
+            .catch((err) => {
+              console.error(err);
+              output.innerHTML = `<div class='alert alert-danger'>Error loading section.</div>`;
+            });
+        }
+      });
+    });
   }
 
   links.forEach((link) => {
