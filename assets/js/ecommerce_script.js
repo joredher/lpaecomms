@@ -1,4 +1,9 @@
 const filterForm = document.getElementById("filter-form");
+function changeSelection(input) {
+  input.addEventListener("change", () => {
+    filterForm.submit();
+  });
+}
 
 function addToCartBtn(event) {
   event.preventDefault();
@@ -256,34 +261,6 @@ if (checkoutSection) {
   attachAutocomplete();
 }
 
-// Initialize click handlers for product cards (ripple + navigation)
-function initClickableCards() {
-  document.querySelectorAll(".clickable-card").forEach((card) => {
-    // Avoid binding twice if called multiple times
-    if (card.dataset.bound === "1") return;
-    card.dataset.bound = "1";
-
-    card.addEventListener("click", (e) => {
-      // Ignore clicks on buttons inside the card (e.g., Add to Cart)
-      if (e.target.closest("button")) return;
-
-      const ripple = document.createElement("span");
-      ripple.classList.add("ripple-effect");
-
-      const rect = card.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      ripple.style.width = ripple.style.height = `${size}px`;
-      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-      card.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 600);
-
-      const id = card.getAttribute("data-id");
-      if (id) window.location.href = `?route=product&id=${id}`;
-    });
-  });
-}
-
 document.addEventListener("DOMContentLoaded", function () {
   // const filterForm = document.getElementById("filter-form");
 
@@ -331,8 +308,35 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Attach ripple and navigation to existing product cards
-  initClickableCards();
+  const cards = document.querySelectorAll(".clickable-card");
+
+  cards.forEach((card) => {
+    card.addEventListener("click", function (e) {
+      const ripple = document.createElement("span");
+      ripple.classList.add("ripple-effect");
+
+      const rect = card.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+
+      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+
+      card.appendChild(ripple);
+
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+
+  cards.forEach((card) => {
+    card.addEventListener("click", (e) => {
+      // Prevent click from Add button inside
+      if (e.target.closest("button")) return;
+
+      const id = card.getAttribute("data-id");
+      if (id) window.location.href = `?route=product&id=${id}`;
+    });
+  });
 
   verifiedIfCartCountIsNeeded();
 
@@ -379,121 +383,4 @@ document.addEventListener("DOMContentLoaded", function () {
       .querySelector('[data-target="profile"]')
       .classList.add("fw-bold", "text-primary");
   }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("filter-form");
-  if (!form) return;
-
-  const typeAll = document.querySelector('.type-checkbox[data-type-id="4"]');
-  const typeBoxes = Array.from(document.querySelectorAll('.type-checkbox'));
-  const catBoxes = Array.from(document.querySelectorAll('input[name="category[]"]'));
-  const sortSelect = document.getElementById('sort');
-  const priceInputs = document.querySelectorAll('.price-field');
-  const productsList = document.getElementById('products-list');
-  const pagination = document.getElementById('pagination');
-  const resultsLabel = document.getElementById('results-label');
-
-  function attachPagination() {
-    pagination.querySelectorAll('a').forEach((a) => {
-      a.addEventListener('click', (e) => {
-        e.preventDefault();
-        const pageParam = new URL(a.href).searchParams.get('page_num') || 1;
-        const fd = new FormData(form);
-        fd.set('page_num', pageParam);
-        fd.append('ajax', '1');
-        const params = new URLSearchParams(fd);
-        fetch(`/index.php?route=products&${params.toString()}`, {
-          headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-          .then((r) => r.json())
-          .then((data) => {
-            productsList.innerHTML = data.html;
-            pagination.innerHTML = data.pagination;
-            resultsLabel.textContent = `${data.label} (${data.count} Results)`;
-            if (data.label === 'Filtered') {
-              resultsLabel.classList.add('is-active');
-            } else {
-              resultsLabel.classList.remove('is-active');
-            }
-            initClickableCards();
-            attachPagination();
-          })
-          .catch((err) => console.error(err));
-      });
-    });
-  }
-
-  function applyFilters() {
-    const fd = new FormData(form);
-    fd.append('ajax', '1');
-    const params = new URLSearchParams(fd);
-    fetch(`/index.php?route=products&${params.toString()}`, {
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        productsList.innerHTML = data.html;
-        pagination.innerHTML = data.pagination;
-        resultsLabel.textContent = `${data.label} (${data.count} Results)`;
-        if (data.label === 'Filtered') {
-          resultsLabel.classList.add('is-active');
-        } else {
-          resultsLabel.classList.remove('is-active');
-        }
-        initClickableCards();
-        attachPagination();
-      })
-      .catch((err) => console.error(err));
-  }
-
-  function checkAutoAll() {
-    const nonAllTypes = typeBoxes.filter((cb) => cb.dataset.typeId !== '4');
-    const anyTypeChecked = nonAllTypes.some((cb) => cb.checked);
-    const anyCatChecked = catBoxes.some((cb) => cb.checked);
-    const allTypesSelected = nonAllTypes.length > 0 && nonAllTypes.every((cb) => cb.checked);
-    const allCatsSelected = catBoxes.length > 0 && catBoxes.every((cb) => cb.checked);
-
-    if (allTypesSelected || allCatsSelected || (!anyTypeChecked && !anyCatChecked)) {
-      nonAllTypes.forEach((cb) => (cb.checked = false));
-      catBoxes.forEach((cb) => (cb.checked = false));
-      if (typeAll) typeAll.checked = true;
-    }
-  }
-
-  catBoxes.forEach((cb) => {
-    cb.addEventListener('change', () => {
-      if (cb.checked) {
-        typeBoxes.forEach((t) => (t.checked = false));
-        if (typeAll) typeAll.checked = false;
-      }
-      checkAutoAll();
-      applyFilters();
-    });
-  });
-
-  typeBoxes.forEach((cb) => {
-    cb.addEventListener('change', () => {
-      if (cb.dataset.typeId === '4') {
-        if (cb.checked) {
-          typeBoxes.forEach((t) => {
-            if (t !== cb) t.checked = false;
-          });
-          catBoxes.forEach((c) => (c.checked = false));
-        }
-      } else {
-        if (typeAll) typeAll.checked = false;
-        catBoxes.forEach((c) => (c.checked = false));
-      }
-      checkAutoAll();
-      applyFilters();
-    });
-  });
-
-  sortSelect && sortSelect.addEventListener('change', applyFilters);
-  priceInputs.forEach((input) => {
-    input.addEventListener('change', applyFilters);
-  });
-  attachPagination();
-  initClickableCards();
 });
