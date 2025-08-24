@@ -33,14 +33,11 @@ if (isset($_SESSION['user'])) :
         'lpa_users_ID',
     ], 'lpa_users_ID');
 
-    $clientExists = (new ClientRepository())->findByUserId($user['lpa_users_ID']);
-
-
+    $clientExists = (new ClientRepository())->getAddressByClientId($user['lpa_users_ID']);
 endif;
 
-
 $client = array_merge($user, [
-    'address' => !empty($clientExists) ? $clientExists['lpa_client_address'] : '',
+    'address' => !empty($clientExists) ? $clientExists : '',
 ]);
 
 ?>

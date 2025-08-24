@@ -93,7 +93,7 @@ class CheckoutController
             'email' => trim($_POST['email'] ?? ''),
         ];
 
-        $addressId = trim($_POST['addressId'] ?? '');
+        $addressId = trim($_POST['address-id'] ?? '');
 
 //        $addressData = $billingData['street'] . ' ' . $billingData['apartment'] . ' ' . $billingData['city'];
 //        $billingData['lpa_client_address'] = $addressData;
@@ -120,6 +120,12 @@ class CheckoutController
 
             $addressService = new AddressService();
             $addressData = $addressService->getStructuredAddress($addressId);
+
+            $billingData = array_merge($billingData, [
+                'address' => $addressData['sla'],
+                'addressId' => $addressId
+            ]);
+
             // 2. Save billing info (temporary, specific to this invoice)
             $clientRepo = new ClientRepository();
             $billingId = $clientRepo->createFromBillingForm($billingData); // <- we’ll create this method
@@ -127,6 +133,13 @@ class CheckoutController
             $fullStreet = $addressData['streetNumberFrom']
                 . (empty($addressData['streetNumberTo']) ? "" : " - " . $addressData['streetNumberTo'])
                 . " {$addressData['streetName']} {$addressData['streetType']} {$addressData['suburb']}";
+
+            $clientRepo->addLpaUserClientAddressValid([
+                'lpa_pid_address' => $addressId,
+                'lpa_full_address' => $addressData['sla'],
+                'lpa_fk_client_ID' => $billingId,
+                'lpa_fk_users_ID' =>$user['id']
+            ], true);
         endif;
 
         // 3. Save invoice

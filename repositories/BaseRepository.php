@@ -61,9 +61,10 @@ class BaseRepository
         return $stmt->execute($data);
     }
 
-    public function delete($id): bool
+    public function delete($id, string $byOtherID = null): bool
     {
-        $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE {$this->table}_ID = :id");
+        $byOtherID = $byOtherID ?: "{$this->table}_ID";
+        $stmt = $this->conn->prepare(/** @lang text */ "DELETE FROM {$this->table} WHERE $byOtherID = :id");
         return $stmt->execute(['id' => $id]);
     }
 }

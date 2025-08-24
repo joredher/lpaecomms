@@ -80,6 +80,9 @@ class ProfileController
                 'current_password' => $_POST['current_password'],
                 'new_password' => $_POST['new_password'],
                 'confirm_password' => $_POST['confirm_password'],
+            ],
+            'address' => [
+                'client_id' => $_POST['client_id']
             ]
         };
 
@@ -126,6 +129,7 @@ class ProfileController
                         'address' => $addressData['sla'],     // You can switch to MLA or SMLA if needed
                         'apartment' => trim($fullApt),
                         'city' => $addressData['state'],
+                        'addressId' => $addressId
                     ]
                 );
 
@@ -209,6 +213,33 @@ class ProfileController
             header('Location: /checkout');
         }
 
+    }
+
+    public function address($data)
+    {
+        $clientId = $data['client_id'];
+        $userId = $data['user_id'];
+
+        $client = $this->clientRepo->findById($clientId);
+        if (!$client) {
+            $_SESSION['flash_message'] = [
+                'message' => 'Address not found.',
+                'type' => 'warning'
+            ];
+            return;
+        }
+
+        $this->clientRepo->addLpaUserClientAddressValid([
+            'lpa_fk_client_ID' => $clientId,
+            'lpa_fk_users_ID' => $userId,
+            'lpa_full_address' => $client['lpa_client_address'],
+            'lpa_pid_address' => $client['lpa_pid_address'],
+        ], true);
+
+        $_SESSION['flash_message'] = [
+            'message' => 'Primary address updated.',
+            'type' => 'success'
+        ];
     }
 
     public function password($data)

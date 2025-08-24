@@ -20,6 +20,52 @@ class ClientRepository extends BaseRepository
     }
 
     /**
+     * Retrieve all addresses linked to a given user ID
+     */
+    public function findAllByUserId($userId): array
+    {
+        $stmt = $this->conn->prepare(
+            /** @lang text */
+            "SELECT * FROM {$this->table} WHERE lpa_clients_fk_user_id = :id"
+        );
+        $stmt->execute(['id' => $userId]);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get the primary client ID for the given user if it exists
+     */
+    public function getPrimaryClientId($userId): ?int
+    {
+        $stmt = $this->conn->prepare(
+            /** @lang text */
+            "SELECT lpa_fk_client_ID FROM lpa_user_client_address_valid WHERE lpa_fk_users_ID = :uid LIMIT 1"
+        );
+        $stmt->execute(['uid' => $userId]);
+
+        $id = $stmt->fetchColumn();
+
+        return $id !== false ? (int)$id : null;
+    }
+
+    /**
+     * Get the primary client ID for the given user if it exists
+     */
+    public function getAddressByClientId($userId): ?string
+    {
+        $stmt = $this->conn->prepare(
+            /** @lang text */
+            "SELECT lpa_full_address FROM lpa_user_client_address_valid WHERE lpa_fk_users_ID = :uid LIMIT 1"
+        );
+        $stmt->execute(['uid' => $userId]);
+
+        $address = $stmt->fetchColumn();
+
+        return $address !== false ? (string) $address : null;
+    }
+
+    /**
      * Create a new client from user session data
      */
     public function createFromUser(array $user): bool
@@ -46,10 +92,11 @@ class ClientRepository extends BaseRepository
             'lpa_client_apartment' => $data['apartment'] ?? '',
             'lpa_client_country' => 'Australia',
             'lpa_client_city' => $data['city'],
-            'lpa_client_postcode' => $data['postcode'],
+            'lpa_client_postcode' => $data['zipcode'],
             'lpa_client_phone' => $data['phone'] ?? 000,
             'lpa_client_email' => $data['email'],
-            'lpa_clients_fk_user_id' => $data['user_id']
+            'lpa_clients_fk_user_id' => $data['user_id'],
+            'lpa_pid_address' => $data['addressId']
         ]);
 
         // Return the ID of the new client if successful
@@ -60,17 +107,23 @@ class ClientRepository extends BaseRepository
         return false;
     }
 
-    public function addLpaUserClientAddressValid(array $data): bool
+    public function addLpaUserClientAddressValid(array $data, bool $byUserId = false): bool
     {
         $baseRepo = new BaseRepository('lpa_user_client_address_valid');
 
-        $query = /** @lang text */
-            "SELECT * FROM lpa_user_client_address_valid 
+        if (!$byUserId) {
+            $query = /** @lang text */
+                "SELECT * FROM lpa_user_client_address_valid 
               WHERE lpa_fk_client_ID = :id";
+        } else {
+            $query = /** @lang text */
+                "SELECT * FROM lpa_user_client_address_valid
+                    WHERE lpa_fk_users_ID = :id";
+        }
 
         $stmt = $this->conn->prepare($query);
         $stmt->execute([
-            ':id' => $data['lpa_fk_client_ID']
+            ':id' => !$byUserId ? $data['lpa_fk_client_ID'] : $data['lpa_fk_users_ID'],
         ]);
 
         $exists = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -78,7 +131,7 @@ class ClientRepository extends BaseRepository
 
 
         if ($exists) {
-            $baseRepo->delete($exists['id']);
+            $baseRepo->delete($exists['id'], 'id');
         }
 
         $result = $baseRepo->create($data);
