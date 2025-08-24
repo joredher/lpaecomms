@@ -20,6 +20,36 @@ class ClientRepository extends BaseRepository
     }
 
     /**
+     * Retrieve all addresses linked to a given user ID
+     */
+    public function findAllByUserId($userId): array
+    {
+        $stmt = $this->conn->prepare(
+            /** @lang text */
+            "SELECT * FROM {$this->table} WHERE lpa_clients_fk_user_id = :id"
+        );
+        $stmt->execute(['id' => $userId]);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get the primary client ID for the given user if it exists
+     */
+    public function getPrimaryClientId($userId): ?int
+    {
+        $stmt = $this->conn->prepare(
+            /** @lang text */
+            "SELECT lpa_fk_client_ID FROM lpa_user_client_address_valid WHERE lpa_fk_users_ID = :uid LIMIT 1"
+        );
+        $stmt->execute(['uid' => $userId]);
+
+        $id = $stmt->fetchColumn();
+
+        return $id !== false ? (int)$id : null;
+    }
+
+    /**
      * Create a new client from user session data
      */
     public function createFromUser(array $user): bool
