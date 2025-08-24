@@ -11,6 +11,7 @@ require_once 'controllers/auth/AuthController.php';
 require_once 'controllers/checkout/CheckoutController.php';
 require_once 'controllers/contact/ContactController.php';
 require_once 'controllers/orders/OrderController.php';
+require_once 'controllers/search/SearchEngineController.php';
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/AddressService.php');
 
@@ -25,6 +26,7 @@ RegisterController::register($route, 'cart', 'CartController', ['add', 'remove',
 RegisterController::register($route, 'checkout', 'CheckoutController', ['process', 'confirmation']);
 RegisterController::register($route, 'contact', 'ContactController', ['send', 'capture']);
 RegisterController::register($route, 'orders', 'OrderController', ['index', 'show']);
+RegisterController::register($route, 'search', 'SearchEngineController', ['products']);
 
 // --- Helpers
 $ua    = $_SERVER['HTTP_USER_AGENT'] ?? '';
@@ -84,6 +86,12 @@ switch ($route) {
             $pageContent = $path . 'products.php';
             include 'includes/layout.php';
         }
+        break;
+    case 'search':
+        $controller = new SearchEngineController();
+        $products = $controller->products(true);
+        $pageContent = 'pages/templates/search_engine_template.php';
+        include 'includes/layout.php';
         break;
     case 'about':
         $pageContent = $path . 'about.php';
