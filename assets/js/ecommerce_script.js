@@ -256,6 +256,34 @@ if (checkoutSection) {
   attachAutocomplete();
 }
 
+// Initialize click handlers for product cards (ripple + navigation)
+function initClickableCards() {
+  document.querySelectorAll(".clickable-card").forEach((card) => {
+    // Avoid binding twice if called multiple times
+    if (card.dataset.bound === "1") return;
+    card.dataset.bound = "1";
+
+    card.addEventListener("click", (e) => {
+      // Ignore clicks on buttons inside the card (e.g., Add to Cart)
+      if (e.target.closest("button")) return;
+
+      const ripple = document.createElement("span");
+      ripple.classList.add("ripple-effect");
+
+      const rect = card.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+      card.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+
+      const id = card.getAttribute("data-id");
+      if (id) window.location.href = `?route=product&id=${id}`;
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   // const filterForm = document.getElementById("filter-form");
 
@@ -303,35 +331,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  const cards = document.querySelectorAll(".clickable-card");
-
-  cards.forEach((card) => {
-    card.addEventListener("click", function (e) {
-      const ripple = document.createElement("span");
-      ripple.classList.add("ripple-effect");
-
-      const rect = card.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      ripple.style.width = ripple.style.height = `${size}px`;
-
-      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-
-      card.appendChild(ripple);
-
-      setTimeout(() => ripple.remove(), 600);
-    });
-  });
-
-  cards.forEach((card) => {
-    card.addEventListener("click", (e) => {
-      // Prevent click from Add button inside
-      if (e.target.closest("button")) return;
-
-      const id = card.getAttribute("data-id");
-      if (id) window.location.href = `?route=product&id=${id}`;
-    });
-  });
+  // Attach ripple and navigation to existing product cards
+  initClickableCards();
 
   verifiedIfCartCountIsNeeded();
 
@@ -415,6 +416,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
               resultsLabel.classList.remove('is-active');
             }
+            initClickableCards();
             attachPagination();
           })
           .catch((err) => console.error(err));
@@ -439,6 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           resultsLabel.classList.remove('is-active');
         }
+        initClickableCards();
         attachPagination();
       })
       .catch((err) => console.error(err));
@@ -492,4 +495,5 @@ document.addEventListener("DOMContentLoaded", () => {
     input.addEventListener('change', applyFilters);
   });
   attachPagination();
+  initClickableCards();
 });
