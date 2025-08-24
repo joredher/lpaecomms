@@ -164,7 +164,10 @@ class CheckoutController
             ]);
         }
 
-        // 5. Clear cart
+        // 5. Mark invoice as paid (simulation of payment success)
+        $this->invoiceRepo->updateStatus($invoiceId, 'A');
+
+        // 6. Clear cart
         unset($_SESSION['cart'], $_SESSION['total']);
 
         $_SESSION['flash_message'] = [
