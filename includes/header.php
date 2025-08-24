@@ -37,12 +37,16 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
         </nav>
     </div>
     <div class="actions">
-        <div class="search-box">
-            <img src="../assets/images/header/u_search.svg" alt="Search icon">
-            <label>
-                <input type="text" name="search" placeholder="Search something here!">
-            </label>
-        </div>
+        <form action="/search.products" method="get">
+            <div class="search-box">
+                <button type="submit">
+                    <img src="../assets/images/header/u_search.svg" alt="Search icon">
+                </button>
+                <label>
+                    <input type="text" name="query" placeholder="Search something here!">
+                </label>
+            </div>
+        </form>
         <div class="cart-icon">
             <a href="/cart" class="position-relative ms-3 text-decoration-none">
                 <img src="../assets/images/header/u_cart.svg" alt="Cart icon">

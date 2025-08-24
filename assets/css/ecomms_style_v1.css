@@ -84,6 +84,14 @@ header {
   border-radius: 20px;
 }
 
+.search-box button {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
 .search-box input {
   border: none;
   outline: none;
@@ -92,7 +100,6 @@ header {
 
 .search-box img {
   width: 16px;
-  margin-right: 10px;
 }
 
 .create-account {
