@@ -85,6 +85,11 @@ switch ($route) {
             include 'includes/layout.php';
         }
         break;
+    case 'search.products':
+        $title = 'Search Results';
+        $pageContent = $path . 'search_engine_template.php';
+        include 'includes/layout.php';
+        break;
     case 'about':
         $pageContent = $path . 'about.php';
         include 'includes/layout.php';
