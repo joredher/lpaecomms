@@ -75,6 +75,34 @@ function sendResetPasswordEmail (array $data): bool
     return sendEmail($data['to'], $subject, $html);
 }
 
+function sendInvoiceConfirmationEmail(array $data): bool
+{
+    $html = file_get_contents(__DIR__ . '/../pages/templates/emails/invoice_confirmation_template.html');
+
+    $rows = '';
+    foreach ($data['items'] as $item) {
+        $rows .= '<tr>'
+            . '<td>' . htmlspecialchars($item['name']) . '</td>'
+            . '<td>' . htmlspecialchars((string)$item['quantity']) . '</td>'
+            . '<td>$' . number_format($item['unit_price'], 2) . '</td>'
+            . '<td>$' . number_format($item['total_price'], 2) . '</td>'
+            . '</tr>';
+    }
+
+    $html = str_replace(
+        ['{{invoice_number}}', '{{items}}', '{{total}}'],
+        [
+            htmlspecialchars($data['invoice']['invoice_number']),
+            $rows,
+            number_format($data['totals']['total'], 2)
+        ],
+        $html
+    );
+
+    $subject = "Your Invoice {$data['invoice']['invoice_number']}";
+    return sendEmail($data['invoice']['client_email'], $subject, $html);
+}
+
 function sendEmailToCustomerService (array $data): bool
 {
     $env = parse_ini_file(__DIR__ . '/../.env');
