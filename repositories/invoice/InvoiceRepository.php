@@ -1,6 +1,6 @@
 <?php
 use repositories\BaseRepository;
-require_once 'repositories/BaseRepository.php';
+loadRepo('repositories/BaseRepository.php');
 
 class InvoiceRepository extends BaseRepository
 {
@@ -70,6 +70,46 @@ class InvoiceRepository extends BaseRepository
 
     public function generateInvoiceNumber(): string {
         return "CTI-INV-" . date("YmdHis");
+    }
+
+    public function getInvoicesByUser(int $userId, ?int $offset = null, ?int $limit = null): array
+    {
+        $q = /** @lang text */
+            "SELECT i.lpa_invoices_ID AS id,
+                   i.lpa_inv_no       AS invoice_number,
+                   i.lpa_inv_date     AS created_at,
+                   i.lpa_inv_status   AS status,
+                   i.lpa_inv_amount   AS total_amount
+            FROM lpa_invoices i
+            JOIN lpa_clients c ON c.lpa_clients_ID = i.lpa_fk_clients_ID
+            WHERE c.lpa_clients_fk_user_id = :user_id
+            ORDER BY i.lpa_invoices_ID DESC";
+
+        if ($offset !== null && $limit !== null) {
+            $q .= " LIMIT :offset, :limit";
+        }
+
+        $stmt = $this->conn->prepare($q);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        if ($offset !== null && $limit !== null) {
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countInvoicesByUser(int $userId): int
+    {
+        $stmt = $this->conn->prepare(
+            /** @lang text */ "SELECT COUNT(*)
+             FROM lpa_invoices i
+             JOIN lpa_clients c ON c.lpa_clients_ID = i.lpa_fk_clients_ID
+             WHERE c.lpa_clients_fk_user_id = :user_id"
+        );
+        $stmt->execute([':user_id' => $userId]);
+        return (int)$stmt->fetchColumn();
     }
 
     public function getInvoiceWithItems(int $invoiceId, int $userId): ?array

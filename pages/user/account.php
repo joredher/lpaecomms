@@ -35,6 +35,9 @@ $user = $_SESSION['user'];
                     </li>
                     <h6 class="text-primary fw-semibold mt-4 mb-3">My Orders</h6>
                     <li class="mb-2">
+                        <a href="#" class="text-decoration-none text-muted" data-target="orders">Show Orders</a>
+                    </li>
+                    <li class="mb-2">
                         <a href="#" class="text-decoration-none text-muted" data-target="returns">My Returns</a>
                     </li>
                     <li>
