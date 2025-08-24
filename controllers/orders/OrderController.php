@@ -21,7 +21,13 @@ class OrderController
     public function index(): void
     {
         $user = $_SESSION['user'];
-        $invoices = $this->invoiceRepo->getInvoicesByUser($user['id']);
+        $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+        $pageSize = 10;
+        $offset   = ($pageNum - 1) * $pageSize;
+
+        $invoices    = $this->invoiceRepo->getInvoicesByUser($user['id'], $offset, $pageSize);
+        $totalInvoices = $this->invoiceRepo->countInvoicesByUser($user['id']);
+        $totalPages  = (int)ceil($totalInvoices / $pageSize);
 
         $pageContent = 'pages/user/profile_orders.php';
         include 'includes/layout.php';

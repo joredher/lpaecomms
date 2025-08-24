@@ -72,7 +72,7 @@ class InvoiceRepository extends BaseRepository
         return "CTI-INV-" . date("YmdHis");
     }
 
-    public function getInvoicesByUser(int $userId): array
+    public function getInvoicesByUser(int $userId, ?int $offset = null, ?int $limit = null): array
     {
         $q = /** @lang text */
             "SELECT i.lpa_invoices_ID AS id,
@@ -85,10 +85,31 @@ class InvoiceRepository extends BaseRepository
             WHERE c.lpa_clients_fk_user_id = :user_id
             ORDER BY i.lpa_invoices_ID DESC";
 
+        if ($offset !== null && $limit !== null) {
+            $q .= " LIMIT :offset, :limit";
+        }
+
         $stmt = $this->conn->prepare($q);
-        $stmt->execute([':user_id' => $userId]);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        if ($offset !== null && $limit !== null) {
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        }
+        $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countInvoicesByUser(int $userId): int
+    {
+        $stmt = $this->conn->prepare(
+            /** @lang text */ "SELECT COUNT(*)
+             FROM lpa_invoices i
+             JOIN lpa_clients c ON c.lpa_clients_ID = i.lpa_fk_clients_ID
+             WHERE c.lpa_clients_fk_user_id = :user_id"
+        );
+        $stmt->execute([':user_id' => $userId]);
+        return (int)$stmt->fetchColumn();
     }
 
     public function getInvoiceWithItems(int $invoiceId, int $userId): ?array

@@ -3,12 +3,24 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once __DIR__ . '/../../includes/pagination.php';
+
 if (!isset($invoices)) {
     require_once __DIR__ . '/../../bootstrap.php';
     loadRepo('repositories/invoice/InvoiceRepository.php');
     $repo = new InvoiceRepository();
     $user = $_SESSION['user'] ?? null;
-    $invoices = $user ? $repo->getInvoicesByUser($user['id']) : [];
+    $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+    $pageSize = 10;
+    if ($user) {
+        $totalInvoices = $repo->countInvoicesByUser($user['id']);
+        $totalPages    = (int)ceil($totalInvoices / $pageSize);
+        $offset        = ($pageNum - 1) * $pageSize;
+        $invoices      = $repo->getInvoicesByUser($user['id'], $offset, $pageSize);
+    } else {
+        $invoices   = [];
+        $totalPages = 1;
+    }
 }
 
 $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
@@ -35,7 +47,7 @@ $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
             <?php foreach ($invoices as $order): ?>
                 <tr>
                     <td>
-                        <a href="/orders.show?id=<?= $h($order['id']) ?>" class="text-decoration-none">
+                        <a href="/orders.show?id=<?= $h($order['id']) ?>" class="text-decoration-none" target="_blank">
                             <?= $h($order['invoice_number']) ?>
                         </a>
                     </td>
@@ -47,4 +59,5 @@ $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
             </tbody>
         </table>
     </div>
+    <?= renderPagination($pageNum ?? 1, $totalPages ?? 1, $_GET); ?>
 <?php endif; ?>
