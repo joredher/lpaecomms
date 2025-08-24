@@ -1,6 +1,6 @@
 <?php
 use repositories\BaseRepository;
-require_once 'repositories/BaseRepository.php';
+loadRepo('repositories/BaseRepository.php');
 
 class InvoiceRepository extends BaseRepository
 {
