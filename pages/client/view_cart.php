@@ -54,11 +54,12 @@ $total = $_SESSION['total'] ?? 0;
                                     <input type="hidden" name="id[]" value="<?= $id ?>">
                                     <input type="number"
                                            name="quantity[]"
-                                           class="form-control text-center"
+                                           class="form-control text-center cart-qty"
                                            min="1"
                                            max="<?= $item['stock'] ?? 10 ?>"
                                            value="<?= $item['quantity'] ?>"
                                            style="width: 70px;">
+                                    <div class="invalid-feedback"></div>
                                 </td>
                                 <td>$<?= number_format($subtotal, 2) ?></td>
                                 <td>
@@ -72,7 +73,7 @@ $total = $_SESSION['total'] ?? 0;
 
                 <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-1 mb-5">
                     <a href="?route=products" class="btn btn-return-shop">Return To Shop</a>
-                    <button type="submit" class="btn btn-update-cart">Update Cart</button>
+                    <button type="submit" class="btn btn-update-cart" id="updateCartBtn">Update Cart</button>
                 </div>
             </form>
 
@@ -108,7 +109,7 @@ $total = $_SESSION['total'] ?? 0;
                                 <span>Total:</span>
                                 <strong>$<?= number_format($total, 2) ?></strong>
                             </div>
-                            <a href="/checkout" class="btn btn-success w-100">Proceed to Checkout</a>
+                            <a href="/checkout" class="btn btn-success w-100" id="checkoutBtn">Proceed to Checkout</a>
                         </div>
                     </div>
                 </div>
@@ -116,3 +117,63 @@ $total = $_SESSION['total'] ?? 0;
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const qtyInputs = document.querySelectorAll('.cart-qty');
+        const updateBtn = document.getElementById('updateCartBtn');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+
+        const preventCheckout = (e) => {
+            if (checkoutBtn.classList.contains('disabled')) {
+                e.preventDefault();
+            }
+        };
+
+        const validate = () => {
+            let hasError = false;
+
+            qtyInputs.forEach(input => {
+                const value = parseInt(input.value, 10);
+                const max = parseInt(input.max, 10);
+                const feedback = input.nextElementSibling;
+                let message = '';
+
+                if (!input.value) {
+                    message = 'Quantity required';
+                } else if (value < 1) {
+                    message = 'Quantity must be at least 1';
+                } else if (value > max) {
+                    message = `Only ${max} available`;
+                }
+
+                if (message) {
+                    input.classList.add('is-invalid');
+                    feedback.textContent = message;
+                    hasError = true;
+                } else {
+                    input.classList.remove('is-invalid');
+                    feedback.textContent = '';
+                }
+            });
+
+            updateBtn.disabled = hasError;
+
+            if (hasError) {
+                checkoutBtn.classList.add('disabled');
+                checkoutBtn.setAttribute('aria-disabled', 'true');
+            } else {
+                checkoutBtn.classList.remove('disabled');
+                checkoutBtn.removeAttribute('aria-disabled');
+            }
+        };
+
+        qtyInputs.forEach(input => {
+            input.addEventListener('input', validate);
+        });
+
+        checkoutBtn.addEventListener('click', preventCheckout);
+
+        validate();
+    });
+</script>
