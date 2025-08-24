@@ -3,23 +3,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require_once __DIR__ . '/../../includes/pagination.php';
-
 if (!isset($invoices)) {
     require_once __DIR__ . '/../../bootstrap.php';
     loadRepo('repositories/invoice/InvoiceRepository.php');
     $repo = new InvoiceRepository();
     $user = $_SESSION['user'] ?? null;
-    $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
-    $pageSize = 10;
+    $limit = 5;
     if ($user) {
+        $invoices      = $repo->getInvoicesByUser($user['id'], 0, $limit);
         $totalInvoices = $repo->countInvoicesByUser($user['id']);
-        $totalPages    = (int)ceil($totalInvoices / $pageSize);
-        $offset        = ($pageNum - 1) * $pageSize;
-        $invoices      = $repo->getInvoicesByUser($user['id'], $offset, $pageSize);
+        $hasMore       = $limit < $totalInvoices;
     } else {
-        $invoices   = [];
-        $totalPages = 1;
+        $invoices = [];
+        $hasMore  = false;
     }
 }
 
@@ -43,7 +39,7 @@ $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
                 <th scope="col">Total</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody id="orders-table-body">
             <?php foreach ($invoices as $order): ?>
                 <tr>
                     <td>
@@ -59,8 +55,11 @@ $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
             </tbody>
         </table>
     </div>
-    <?php
-        $paginationUrl = $paginationBase ?? $_SERVER['PHP_SELF'];
-        echo renderPagination($pageNum ?? 1, $totalPages ?? 1, $_GET, $paginationUrl);
-    ?>
+    <?php if (!empty($hasMore)): ?>
+        <button id="load-more-orders"
+                class="btn btn-outline-primary mt-3"
+                data-offset="<?= count($invoices) ?>">
+            Load More
+        </button>
+    <?php endif; ?>
 <?php endif; ?>

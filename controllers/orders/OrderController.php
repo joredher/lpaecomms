@@ -20,16 +20,25 @@ class OrderController
 
     public function index(): void
     {
-        $user = $_SESSION['user'];
-        $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
-        $pageSize = 10;
-        $offset   = ($pageNum - 1) * $pageSize;
+        $user   = $_SESSION['user'];
+        $limit  = isset($_GET['limit']) && is_numeric($_GET['limit']) ? (int)$_GET['limit'] : 5;
+        $offset = isset($_GET['offset']) && is_numeric($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
-        $invoices    = $this->invoiceRepo->getInvoicesByUser($user['id'], $offset, $pageSize);
+        // Handle AJAX request for additional invoices
+        if (isset($_GET['offset'])) {
+            $invoices       = $this->invoiceRepo->getInvoicesByUser($user['id'], $offset, $limit);
+            $totalInvoices  = $this->invoiceRepo->countInvoicesByUser($user['id']);
+            $hasMore        = ($offset + count($invoices)) < $totalInvoices;
+
+            header('Content-Type: application/json');
+            echo json_encode(['invoices' => $invoices, 'hasMore' => $hasMore]);
+            return;
+        }
+
+        $invoices      = $this->invoiceRepo->getInvoicesByUser($user['id'], 0, $limit);
         $totalInvoices = $this->invoiceRepo->countInvoicesByUser($user['id']);
-        $totalPages  = (int)ceil($totalInvoices / $pageSize);
+        $hasMore       = $limit < $totalInvoices;
 
-        $paginationBase = '/orders';
         $pageContent = 'pages/user/profile_orders.php';
         include 'includes/layout.php';
     }

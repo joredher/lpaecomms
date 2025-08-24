@@ -350,7 +350,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.text())
         .then((html) => {
           output.innerHTML = html;
-          attachPaginationHandlers();
+          attachLoadMoreOrders();
           setTimeout(() => {
             attachAutocomplete();
             enableKeyboardNavigation();
@@ -363,26 +363,42 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function attachPaginationHandlers() {
-    if (!output) return;
-    const links = output.querySelectorAll(".pagination a");
-    links.forEach((link) => {
-      link.addEventListener("click", function (e) {
-        const href = this.getAttribute("href");
-        if (href && href.includes("profile_orders.php")) {
-          e.preventDefault();
-          fetch(href)
-            .then((resp) => resp.text())
-            .then((html) => {
-              output.innerHTML = html;
-              attachPaginationHandlers();
-            })
-            .catch((err) => {
-              console.error(err);
-              output.innerHTML = `<div class='alert alert-danger'>Error loading section.</div>`;
+  function attachLoadMoreOrders() {
+    const container = output || document;
+    const btn = container.querySelector("#load-more-orders");
+    const tbody = container.querySelector("#orders-table-body");
+    if (!btn || !tbody) return;
+
+    let offset = parseInt(btn.getAttribute("data-offset"), 10) || tbody.children.length;
+    const limit = 5;
+
+    btn.addEventListener("click", () => {
+      fetch(`/orders?offset=${offset}&limit=${limit}`)
+        .then((resp) => resp.json())
+        .then((data) => {
+          data.invoices.forEach((order) => {
+            const tr = document.createElement("tr");
+            const date = new Date(order.created_at).toLocaleDateString("en-AU", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
             });
-        }
-      });
+            tr.innerHTML = `
+              <td><a href="/orders.show?id=${order.id}" class="text-decoration-none" target="_blank">${order.invoice_number}</a></td>
+              <td>${date}</td>
+              <td>${order.status}</td>
+              <td>AUD ${parseFloat(order.total_amount).toFixed(2)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          offset += data.invoices.length;
+          if (!data.hasMore) {
+            btn.disabled = true;
+            btn.textContent = "No more orders";
+          }
+        })
+        .catch((err) => console.error(err));
     });
   }
 
@@ -407,4 +423,6 @@ document.addEventListener("DOMContentLoaded", function () {
       .querySelector('[data-target="profile"]')
       .classList.add("fw-bold", "text-primary");
   }
+
+  attachLoadMoreOrders();
 });
