@@ -6,17 +6,20 @@ require_once 'repositories/client/ClientRepository.php';
 require_once 'repositories/invoice/InvoiceRepository.php';
 loadRepo('services/AddressService.php');
 loadRepo('middleware/AuthMiddleware.php');
+loadRepo('services/InvoiceWorkflow.php');
 
 
 
 class CheckoutController
 {
     private ClientRepository $clientRepo;
+    private InvoiceWorkflow $workflow;
 
     public function __construct()
     {
         $this->clientRepo = new ClientRepository();
         $this->invoiceRepo = new InvoiceRepository();
+        $this->workflow = new InvoiceWorkflow();
     }
 
     public function start()
@@ -142,29 +145,15 @@ class CheckoutController
             ], true);
         endif;
 
-        // 3. Save invoice
-        $invoiceId = $this->invoiceRepo->createInvoice([
+        // 3-5. Persist invoice, items and mark as paid (workflow)
+        $invoiceId = $this->workflow->handle([
             'client_id' => $billingId,
             'total' => $_POST['total'] ?: 0,
-            'status' => 'P', // P = Pending, A = Active, C = Cancel
             'address' => $fullStreet,
             'client_name' => $billingData['firstname']
-        ]);
+        ], $_SESSION['cart']);
 
-
-        // 4. Save order items
-        foreach ($_SESSION['cart'] as $key => $item) {
-            $this->invoiceRepo->addInvoiceItem([
-                'invoice_id' => $invoiceId,
-                'stock_id' => (int) $key,
-                'name' => $item['name'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'amount' => $item['price'] * $item['quantity']
-            ]);
-        }
-
-        // 5. Clear cart
+        // 6. Clear cart
         unset($_SESSION['cart'], $_SESSION['total']);
 
         $_SESSION['flash_message'] = [

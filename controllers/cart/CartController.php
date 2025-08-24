@@ -34,11 +34,21 @@ class CartController
         $stmt = $this->conn->prepare(/** @lang text */ "SELECT * FROM lpa_stock WHERE lpa_stock_ID = :id");
         $stmt->execute(['id' => $productId]);
         $product = $stmt->fetch();
-        $cart = $_SESSION['cart'] ?? [];
 
-        if ($product) {
+        // Determine how many units have been sold for this product
+        $purchasedStmt = $this->conn->prepare(
+            /** @lang text */ "SELECT COALESCE(SUM(ii.lpa_invitem_qty),0) AS purchased
+            FROM lpa_invoice_items ii
+            JOIN lpa_invoices i ON i.lpa_invoices_ID = ii.lpa_fk_invoices_ID
+            WHERE ii.lpa_fk_stock_ID = :id AND i.lpa_inv_status = 'A'"
+        );
+        $purchasedStmt->execute([':id' => $productId]);
+        $purchased = (int) $purchasedStmt->fetchColumn();
+        $available = (int) $product['lpa_stock_onhand'] - $purchased;
+
+        if ($product && $available > 0) {
             if (isset($_SESSION['cart'][$productId])) {
-                if ($_SESSION['cart'][$productId]['quantity'] < intval($product['lpa_stock_onhand'])) {
+                if ($_SESSION['cart'][$productId]['quantity'] < $available) {
                     $_SESSION['cart'][$productId]['quantity']++;
                 }
             } else {
@@ -46,7 +56,7 @@ class CartController
                     'name' => $product['lpa_stock_name'],
                     'price' => $product['lpa_stock_price'],
                     'image' => 'assets/images/test-images/' . htmlspecialchars($product['lpa_stock_image']),
-                    'stock' => intval($product['lpa_stock_onhand']) ?? 10,
+                    'stock' => $available,
                     'quantity' => 1,
                 ];
 
@@ -63,7 +73,7 @@ class CartController
                 'productName' => $product['lpa_stock_name'],
             ];
         } else {
-            $response = ['success' => false, 'error' => 'Product not found'];
+            $response = ['success' => false, 'error' => 'Product not found or unavailable'];
         }
 
         echo json_encode($response);
