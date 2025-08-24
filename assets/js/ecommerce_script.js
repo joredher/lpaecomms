@@ -446,9 +446,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function checkAutoAll() {
     const nonAllTypes = typeBoxes.filter((cb) => cb.dataset.typeId !== '4');
-    const allTypesSelected = nonAllTypes.every((cb) => cb.checked);
+    const anyTypeChecked = nonAllTypes.some((cb) => cb.checked);
+    const anyCatChecked = catBoxes.some((cb) => cb.checked);
+    const allTypesSelected = nonAllTypes.length > 0 && nonAllTypes.every((cb) => cb.checked);
     const allCatsSelected = catBoxes.length > 0 && catBoxes.every((cb) => cb.checked);
-    if (allTypesSelected || allCatsSelected) {
+
+    if (allTypesSelected || allCatsSelected || (!anyTypeChecked && !anyCatChecked)) {
       nonAllTypes.forEach((cb) => (cb.checked = false));
       catBoxes.forEach((cb) => (cb.checked = false));
       if (typeAll) typeAll.checked = true;
