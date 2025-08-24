@@ -129,6 +129,7 @@ class ProfileController
                         'address' => $addressData['sla'],     // You can switch to MLA or SMLA if needed
                         'apartment' => trim($fullApt),
                         'city' => $addressData['state'],
+                        'addressId' => $addressId
                     ]
                 );
 
@@ -232,8 +233,8 @@ class ProfileController
             'lpa_fk_client_ID' => $clientId,
             'lpa_fk_users_ID' => $userId,
             'lpa_full_address' => $client['lpa_client_address'],
-            'lpa_pid_address' => null,
-        ]);
+            'lpa_pid_address' => $client['lpa_pid_address'],
+        ], true);
 
         $_SESSION['flash_message'] = [
             'message' => 'Primary address updated.',
