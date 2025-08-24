@@ -53,6 +53,21 @@ class InvoiceRepository extends BaseRepository
         ]);
     }
 
+    /**
+     * Update the status of an invoice (e.g. Pending -> Active)
+     */
+    public function updateStatus(int $invoiceId, string $status): bool
+    {
+        $stmt = $this->conn->prepare(
+            /** @lang text */ "UPDATE lpa_invoices SET lpa_inv_status = :status WHERE lpa_invoices_ID = :id"
+        );
+
+        return $stmt->execute([
+            ':status' => $status,
+            ':id' => $invoiceId,
+        ]);
+    }
+
     public function generateInvoiceNumber(): string {
         return "CTI-INV-" . date("YmdHis");
     }
