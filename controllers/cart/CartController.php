@@ -37,8 +37,10 @@ class CartController
 
         // Determine how many units have been sold for this product
         $purchasedStmt = $this->conn->prepare(
-            /** @lang text */ "SELECT COALESCE(SUM(lpa_invitem_qty),0) AS purchased
-            FROM lpa_invoice_items WHERE lpa_fk_stock_ID = :id"
+            /** @lang text */ "SELECT COALESCE(SUM(ii.lpa_invitem_qty),0) AS purchased
+            FROM lpa_invoice_items ii
+            JOIN lpa_invoices i ON i.lpa_invoices_ID = ii.lpa_fk_invoices_ID
+            WHERE ii.lpa_fk_stock_ID = :id AND i.lpa_inv_status = 'A'"
         );
         $purchasedStmt->execute([':id' => $productId]);
         $purchased = (int) $purchasedStmt->fetchColumn();
