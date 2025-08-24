@@ -24,7 +24,9 @@ require_once 'includes/config.php';
 $conn = Database::getConnection();
 $backUrl = $_SESSION['previous_page'] ?? '/home';
 
-$client = (new ClientRepository())->findByUserId($_SESSION['user']['id']);
+$repoClient = new ClientRepository();
+$primaryClientId = $repoClient->getPrimaryClientId($_SESSION['user']['id']);
+$client = $repoClient->findById($primaryClientId);
 
 $clientData = [
     'firstname' => $client['lpa_clients_firstname'] ?? '',
