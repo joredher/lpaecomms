@@ -19,6 +19,14 @@ class ClientRepository extends BaseRepository
         return $this->findWhere('lpa_clients_fk_user_id', $userId);
     }
 
+    public function findAllByUserId($userId): array
+    {
+        $stmt = $this->conn->prepare(/** @lang text */
+            "SELECT * FROM {$this->table} WHERE lpa_clients_fk_user_id = :userId");
+        $stmt->execute(['userId' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /**
      * Create a new client from user session data
      */

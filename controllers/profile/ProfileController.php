@@ -2,6 +2,7 @@
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use repositories\BaseRepository;
 
 require_once __DIR__ . '/../../bootstrap.php';
 
@@ -9,6 +10,7 @@ loadRepo('repositories/client/ClientRepository.php');
 loadRepo('repositories/UserRepository.php');
 loadRepo('services/AddressService.php');
 loadRepo('middleware/AuthMiddleware.php');
+loadRepo('repositories/BaseRepository.php');
 //require_once 'repositories/client/ClientRepository.php';
 //require_once 'repositories/UserRepository.php';
 //require_once 'services/AddressService.php';
@@ -80,6 +82,9 @@ class ProfileController
                 'current_password' => $_POST['current_password'],
                 'new_password' => $_POST['new_password'],
                 'confirm_password' => $_POST['confirm_password'],
+            ],
+            'address' => [
+                'client_id' => $_POST['client_id'] ?? null,
             ]
         };
 
@@ -209,6 +214,40 @@ class ProfileController
             header('Location: /checkout');
         }
 
+    }
+
+    public function address($data)
+    {
+        $baseRepo = new BaseRepository('lpa_user_client_address_valid');
+
+        $clientId = $data['client_id'];
+        if (!$clientId) {
+            return;
+        }
+
+        // Ensure the selected address belongs to the user
+        $client = $this->clientRepo->findById($clientId);
+        if (!$client || $client['lpa_clients_fk_user_id'] != $data['user_id']) {
+            return;
+        }
+
+        $existing = $baseRepo->findWhere('lpa_fk_users_ID', $data['user_id']);
+        $payload = [
+            'lpa_fk_users_ID' => $data['user_id'],
+            'lpa_fk_client_ID' => $clientId,
+            'lpa_full_address' => $client['lpa_client_address'],
+        ];
+
+        if ($existing) {
+            $baseRepo->update($existing['id'], $payload);
+        } else {
+            $baseRepo->create($payload);
+        }
+
+        $_SESSION['flash_message'] = [
+            'message' => 'Default address updated.',
+            'type' => 'success'
+        ];
     }
 
     public function password($data)
