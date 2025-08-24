@@ -24,7 +24,7 @@ $searchPageLink = "";
             </div>
         </div>
         <div class="what-are-you-looking-for-parent">
-            <form method="get">
+            <form action="/search.products" method="get">
                 <label>
                     <input
                             type="text"

@@ -87,12 +87,6 @@ switch ($route) {
             include 'includes/layout.php';
         }
         break;
-    case 'search':
-        $controller = new SearchEngineController();
-        $products = $controller->products(true);
-        $pageContent = 'pages/templates/search_engine_template.php';
-        include 'includes/layout.php';
-        break;
     case 'about':
         $pageContent = $path . 'about.php';
         include 'includes/layout.php';
