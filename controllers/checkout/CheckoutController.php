@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../bootstrap.php';
 
 require_once 'repositories/client/ClientRepository.php';
 require_once 'repositories/invoice/InvoiceRepository.php';
+require_once 'helpers/mail.php';
 loadRepo('services/AddressService.php');
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/InvoiceWorkflow.php');
@@ -152,6 +153,12 @@ class CheckoutController
             'address' => $fullStreet,
             'client_name' => $billingData['firstname']
         ], $_SESSION['cart']);
+
+        // Send invoice confirmation email
+        $invoiceData = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $user['id']);
+        if ($invoiceData && !sendInvoiceConfirmationEmail($invoiceData)) {
+            error_log('❌ Failed to send invoice confirmation email.');
+        }
 
         // 6. Clear cart
         unset($_SESSION['cart'], $_SESSION['total']);
