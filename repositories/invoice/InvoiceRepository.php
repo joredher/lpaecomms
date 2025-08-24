@@ -72,6 +72,25 @@ class InvoiceRepository extends BaseRepository
         return "CTI-INV-" . date("YmdHis");
     }
 
+    public function getInvoicesByUser(int $userId): array
+    {
+        $q = /** @lang text */
+            "SELECT i.lpa_invoices_ID AS id,
+                   i.lpa_inv_no       AS invoice_number,
+                   i.lpa_inv_date     AS created_at,
+                   i.lpa_inv_status   AS status,
+                   i.lpa_inv_amount   AS total_amount
+            FROM lpa_invoices i
+            JOIN lpa_clients c ON c.lpa_clients_ID = i.lpa_fk_clients_ID
+            WHERE c.lpa_clients_fk_user_id = :user_id
+            ORDER BY i.lpa_invoices_ID DESC";
+
+        $stmt = $this->conn->prepare($q);
+        $stmt->execute([':user_id' => $userId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getInvoiceWithItems(int $invoiceId, int $userId): ?array
     {
         // 1) Invoice (scoped)

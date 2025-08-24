@@ -10,6 +10,7 @@ require_once 'controllers/RegisterController.php';
 require_once 'controllers/auth/AuthController.php';
 require_once 'controllers/checkout/CheckoutController.php';
 require_once 'controllers/contact/ContactController.php';
+require_once 'controllers/orders/OrderController.php';
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/AddressService.php');
 
@@ -23,6 +24,7 @@ RegisterController::register($route, 'profile', 'ProfileController', ['create', 
 RegisterController::register($route, 'cart', 'CartController', ['add', 'remove', 'update', 'applyCoupon']);
 RegisterController::register($route, 'checkout', 'CheckoutController', ['process', 'confirmation']);
 RegisterController::register($route, 'contact', 'ContactController', ['send', 'capture']);
+RegisterController::register($route, 'orders', 'OrderController', ['index', 'show']);
 
 // --- Helpers
 $ua    = $_SERVER['HTTP_USER_AGENT'] ?? '';
@@ -116,6 +118,10 @@ switch ($route) {
     case 'checkout':
         $controller = new CheckoutController();
         $controller->start();
+        break;
+    case 'orders':
+        $controller = new OrderController();
+        $controller->index();
         break;
     case 'profile':
         AuthMiddleware::authOnly();
