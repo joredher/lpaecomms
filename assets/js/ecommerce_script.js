@@ -1,4 +1,8 @@
+// =========================
+// Cart & Filter Utilities
+// =========================
 const filterForm = document.getElementById("filter-form");
+
 function changeSelection(input) {
   input.addEventListener("change", () => {
     filterForm.submit();
@@ -7,9 +11,9 @@ function changeSelection(input) {
 
 function addToCartBtn(event) {
   event.preventDefault();
-  event.stopPropagation(); // Fix: Use event instead of target
+  event.stopPropagation();
 
-  const target = event.currentTarget; // element that triggered event
+  const target = event.currentTarget;
   console.log("Target", target);
 
   const productId = target.getAttribute("data-product-id");
@@ -37,7 +41,6 @@ function addToCartBtn(event) {
           type: "success",
           image: "assets/images/header/u_cart.svg",
         });
-        // alert(`Added ${data.productName} to your cart!`);
       } else {
         showToast({
           title: "Error",
@@ -45,7 +48,6 @@ function addToCartBtn(event) {
           type: "danger",
           image: "assets/images/icons/error.png",
         });
-        // alert('Failed to add the product.');
       }
     })
     .catch((error) => {
@@ -56,7 +58,6 @@ function addToCartBtn(event) {
         type: "danger",
         image: "assets/images/icons/error.png",
       });
-      // alert('Network error occurred. Check console for details.');
     });
 }
 
@@ -69,10 +70,8 @@ function updateCartCount(count) {
 }
 
 /*Taking From Bootstrap*/
-
 function verifiedIfCartCountIsNeeded() {
   const cartCount = document.querySelector("#cart-count");
-  // console.log('LOG', cartCount.textContent)
   if (
     parseInt(cartCount.textContent) === 0 ||
     typeof parseInt(cartCount.textContent) === "undefined"
@@ -85,190 +84,13 @@ function verifiedIfCartCountIsNeeded() {
   }
 }
 
-// =========================
-// API config
-// =========================
-const url = "https://addressr.p.rapidapi.com/addresses?q=";
-const headers = {
-  "x-rapidapi-key": "fdb9e0567dmsha6e1dfa8a5d4f52p1f769bjsn932503b8f8e9",
-  "x-rapidapi-host": "addressr.p.rapidapi.com",
-};
-let checkoutSection = document.getElementById("checkout-section");
-// =========================
-// Search API Call
-// =========================
-async function searchAddress(query) {
-  const options = {
-    method: "GET",
-    headers: headers,
-  };
-  try {
-    const response = await fetch(`${url}${encodeURIComponent(query)}`, options);
-    const result = await response.json();
-    console.log(result);
-    renderSuggestions(result);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-// Optional: enhance suggestion UX with arrow key navigation
-function enableKeyboardNavigation() {
-  const suggestions = document.getElementById("suggestions");
-  const input = document.getElementById("autocomplete-address");
-
-  let selectedIndex = -1;
-
-  input.addEventListener("keydown", function (e) {
-    const items = suggestions.querySelectorAll("li");
-    if (items.length === 0) return;
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      selectedIndex = (selectedIndex + 1) % items.length;
-      updateHighlight(items);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      selectedIndex = (selectedIndex - 1 + items.length) % items.length;
-      updateHighlight(items);
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (selectedIndex >= 0 && selectedIndex < items.length) {
-        input.value = items[selectedIndex].textContent;
-        suggestions.innerHTML = "";
-        selectedIndex = -1;
-      }
-    }
-  });
-
-  function updateHighlight(items) {
-    items.forEach((item, index) => {
-      item.classList.toggle("active", index === selectedIndex);
-    });
-  }
-}
 
 // =========================
-// Render Address Suggestions
+// Initialization Helpers
 // =========================
-async function renderSuggestions(data) {
-  const list = document.getElementById("suggestions");
-  list.innerHTML = "";
-  if (data && Array.isArray(data) && data.length > 0) {
-    data.forEach((address) => {
-      console.log("Show me ", address);
-      const li = document.createElement("li");
-      li.textContent = address.sla;
-      li.className = "list-group-item list-group-item-action mx";
-      li.style.cursor = "pointer";
-      li.addEventListener("click", () => {
-        const input = document.getElementById("autocomplete-address");
-        const idHidden = document.getElementById("address-id");
-        if (input) {
-          input.value = address.sla;
-          idHidden.value = address.pid;
-          if (checkoutSection) {
-            lookAddressDetailsById(address.pid);
-          }
-        }
-        console.log("INPUT", input.value, idHidden.value);
-
-        list.innerHTML = ""; // Clear suggestions
-      });
-      list.appendChild(li);
-    });
-  }
-}
-
-// =========================
-// Attach listener after HTML loads
-// =========================
-function attachAutocomplete() {
-  const autocomplete = document.getElementById("autocomplete-address");
-  const suggestions = document.getElementById("suggestions");
-
-  if (!autocomplete || !suggestions) {
-    console.warn("⚠️ Input with ID 'autocomplete-address' not found!");
-    return;
-  }
-
-  autocomplete.addEventListener("input", function () {
-    const input = this.value.trim();
-    if (input.length >= 3) {
-      searchAddress(input);
-    } else {
-      suggestions.innerHTML = "";
-    }
-  });
-
-  document.addEventListener("click", function (event) {
-    if (!event.target.closest("#autocomplete-address")) {
-      suggestions.innerHTML = "";
-    }
-  });
-}
-
-async function lookAddressDetailsById(addressId) {
-  const street = document.getElementById("street");
-  const apartment = document.getElementById("apartment");
-  const city = document.getElementById("city");
-  const zipcode = document.getElementById("zipcode");
-
-  console.log("Address", addressId);
-  try {
-    await fetch(`/address?address=${addressId}`, {
-      method: "GET",
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        console.log("DATA", data);
-
-        if (data.success) {
-          let addressData = data.address;
-          street.value =
-            addressData["streetNumberFrom"] +
-            ((!addressData["streetNumberTo"] ? "" : " - ") +
-              (addressData["streetNumberTo"] === null
-                ? ""
-                : addressData["streetNumberTo"])) +
-            ` ${addressData["streetName"]} ${addressData["streetType"]} ${addressData["suburb"]}`;
-          apartment.value = `${addressData["typeApt"]} ${addressData["unitNumber"]}`;
-          city.value = addressData.state;
-          zipcode.value = addressData["postcode"];
-        }
-      })
-      .catch((error) => {
-        console.error("Fetch error:", error.response);
-        showToast({
-          title: "Network Error",
-          message: "Could not connect to server.",
-          type: "danger",
-          image: "assets/images/icons/error.png",
-        });
-        // alert('Network error occurred. Check console for details.');
-      });
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-if (checkoutSection) {
-  attachAutocomplete();
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  // const filterForm = document.getElementById("filter-form");
-
+function initFiltersAndSorting() {
   if (filterForm) {
-    // Categories Page
     filterForm.querySelectorAll('input[type="checkbox"]').forEach((input) => {
-      //
-      // console.log('input', input);
       changeSelection(input);
     });
 
@@ -295,19 +117,21 @@ document.addEventListener("DOMContentLoaded", function () {
   // 🧠 Handle logic for "All" type
   const typeCheckboxes = document.querySelectorAll(".type-checkbox");
   const allTypeCheckbox = Array.from(typeCheckboxes).find(
-    (el) => el.dataset.typeId === "4",
+    (el) => el.dataset.typeId === "4"
   );
 
   typeCheckboxes.forEach((cb) => {
     cb.addEventListener("change", () => {
       const anyChecked = Array.from(typeCheckboxes).some(
-        (input) => input.checked && input.dataset.typeId !== "4",
+        (input) => input.checked && input.dataset.typeId !== "4"
       );
 
       allTypeCheckbox.checked = !anyChecked;
     });
   });
+}
 
+function initClickableCards() {
   const cards = document.querySelectorAll(".clickable-card");
 
   cards.forEach((card) => {
@@ -337,10 +161,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (id) window.location.href = `?route=product&id=${id}`;
     });
   });
+}
 
-  verifiedIfCartCountIsNeeded();
-
-  // Profile Account
+function initProfileNavigation() {
   const links = document.querySelectorAll("[data-target]");
   const output = document.getElementById("dynamic-content");
 
@@ -369,7 +192,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const tbody = container.querySelector("#orders-table-body");
     if (!btn || !tbody) return;
 
-    let offset = parseInt(btn.getAttribute("data-offset"), 10) || tbody.children.length;
+    let offset =
+      parseInt(btn.getAttribute("data-offset"), 10) || tbody.children.length;
     const limit = 5;
 
     btn.addEventListener("click", () => {
@@ -378,11 +202,14 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((data) => {
           data.invoices.forEach((order) => {
             const tr = document.createElement("tr");
-            const date = new Date(order.created_at).toLocaleDateString("en-AU", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            });
+            const date = new Date(order.created_at).toLocaleDateString(
+              "en-AU",
+              {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }
+            );
             tr.innerHTML = `
               <td><a href="/orders.show?id=${order.id}" class="text-decoration-none" target="_blank">${order.invoice_number}</a></td>
               <td>${date}</td>
@@ -410,19 +237,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  const backBtn = document.querySelector('.pd-back-button');
+  const backBtn = document.querySelector(".pd-back-button");
   let lastUrl = backBtn
-    ? backBtn.getAttribute('href')
+    ? backBtn.getAttribute("href")
     : window.location.pathname + window.location.hash;
 
   function trackUrl(newUrl, prevUrl) {
     const params = new URLSearchParams({ url: newUrl });
     if (prevUrl) {
-      params.append('prev', prevUrl);
+      params.append("prev", prevUrl);
     }
-    fetch('/nav.track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    fetch("/nav.track", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: params,
     }).catch((err) => console.error(err));
   }
@@ -430,13 +257,13 @@ document.addEventListener("DOMContentLoaded", function () {
   function handleSectionFromHash() {
     const section = window.location.hash
       ? window.location.hash.substring(1)
-      : 'profile';
+      : "profile";
     setActiveLink(section);
     showSection(section);
 
     const newUrl = window.location.pathname + window.location.hash;
     if (backBtn) {
-      backBtn.setAttribute('href', lastUrl || '/home');
+      backBtn.setAttribute("href", lastUrl || "/home");
     }
     trackUrl(newUrl, lastUrl);
     lastUrl = newUrl;
@@ -446,8 +273,6 @@ document.addEventListener("DOMContentLoaded", function () {
     link.addEventListener("click", function (e) {
       e.preventDefault();
       const target = this.dataset.target;
-      setActiveLink(target);
-      showSection(target);
       window.location.hash = target;
     });
   });
@@ -457,4 +282,14 @@ document.addEventListener("DOMContentLoaded", function () {
   handleSectionFromHash();
 
   attachLoadMoreOrders();
+}
+
+// =========================
+// DOM Ready
+// =========================
+document.addEventListener("DOMContentLoaded", function () {
+  initFiltersAndSorting();
+  initClickableCards();
+  verifiedIfCartCountIsNeeded();
+  initProfileNavigation();
 });
