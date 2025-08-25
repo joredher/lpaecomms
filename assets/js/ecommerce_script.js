@@ -410,21 +410,36 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function trackPage(section) {
+  const backBtn = document.querySelector('.pd-back-button');
+  let lastUrl = backBtn
+    ? backBtn.getAttribute('href')
+    : window.location.pathname + window.location.hash;
+
+  function trackUrl(newUrl, prevUrl) {
+    const params = new URLSearchParams({ url: newUrl });
+    if (prevUrl) {
+      params.append('prev', prevUrl);
+    }
     fetch('/nav.track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ url: `/profile#${section}` }),
+      body: params,
     }).catch((err) => console.error(err));
   }
 
   function handleSectionFromHash() {
     const section = window.location.hash
       ? window.location.hash.substring(1)
-      : "profile";
+      : 'profile';
     setActiveLink(section);
     showSection(section);
-    trackPage(section);
+
+    const newUrl = window.location.pathname + window.location.hash;
+    if (backBtn) {
+      backBtn.setAttribute('href', lastUrl || '/home');
+    }
+    trackUrl(newUrl, lastUrl);
+    lastUrl = newUrl;
   }
 
   links.forEach((link) => {

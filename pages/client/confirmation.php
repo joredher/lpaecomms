@@ -372,6 +372,12 @@ $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
             bar.style.width = target + '%';
         });
     })();
+
+    fetch('/nav.track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ url: window.location.pathname })
+    }).catch(err => console.error(err));
 </script>
 
 <style>
