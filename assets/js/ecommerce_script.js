@@ -410,12 +410,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function trackPage(section) {
+    fetch('/nav.track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ url: `/profile#${section}` }),
+    }).catch((err) => console.error(err));
+  }
+
   function handleSectionFromHash() {
     const section = window.location.hash
       ? window.location.hash.substring(1)
       : "profile";
     setActiveLink(section);
     showSection(section);
+    trackPage(section);
   }
 
   links.forEach((link) => {

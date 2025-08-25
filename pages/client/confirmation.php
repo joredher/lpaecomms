@@ -2,7 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-$backUrl = $_SESSION['previous_page'] ?? '/profile#orders';
+$backUrl = $_SESSION['previous_page'] ?? '/profile';
 // expected: $invoice, $items, $totals
 $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 $inv = $invoice ?? [];
