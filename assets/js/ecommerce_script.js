@@ -1,4 +1,8 @@
+// =========================
+// Cart & Filter Utilities
+// =========================
 const filterForm = document.getElementById("filter-form");
+
 function changeSelection(input) {
   input.addEventListener("change", () => {
     filterForm.submit();
@@ -7,9 +11,9 @@ function changeSelection(input) {
 
 function addToCartBtn(event) {
   event.preventDefault();
-  event.stopPropagation(); // Fix: Use event instead of target
+  event.stopPropagation();
 
-  const target = event.currentTarget; // element that triggered event
+  const target = event.currentTarget;
   console.log("Target", target);
 
   const productId = target.getAttribute("data-product-id");
@@ -37,7 +41,6 @@ function addToCartBtn(event) {
           type: "success",
           image: "assets/images/header/u_cart.svg",
         });
-        // alert(`Added ${data.productName} to your cart!`);
       } else {
         showToast({
           title: "Error",
@@ -45,7 +48,6 @@ function addToCartBtn(event) {
           type: "danger",
           image: "assets/images/icons/error.png",
         });
-        // alert('Failed to add the product.');
       }
     })
     .catch((error) => {
@@ -56,7 +58,6 @@ function addToCartBtn(event) {
         type: "danger",
         image: "assets/images/icons/error.png",
       });
-      // alert('Network error occurred. Check console for details.');
     });
 }
 
@@ -69,10 +70,8 @@ function updateCartCount(count) {
 }
 
 /*Taking From Bootstrap*/
-
 function verifiedIfCartCountIsNeeded() {
   const cartCount = document.querySelector("#cart-count");
-  // console.log('LOG', cartCount.textContent)
   if (
     parseInt(cartCount.textContent) === 0 ||
     typeof parseInt(cartCount.textContent) === "undefined"
@@ -86,7 +85,7 @@ function verifiedIfCartCountIsNeeded() {
 }
 
 // =========================
-// API config
+// Address Autocomplete
 // =========================
 const url = "https://addressr.p.rapidapi.com/addresses?q=";
 const headers = {
@@ -94,9 +93,7 @@ const headers = {
   "x-rapidapi-host": "addressr.p.rapidapi.com",
 };
 let checkoutSection = document.getElementById("checkout-section");
-// =========================
-// Search API Call
-// =========================
+
 async function searchAddress(query) {
   const options = {
     method: "GET",
@@ -148,9 +145,7 @@ function enableKeyboardNavigation() {
   }
 }
 
-// =========================
 // Render Address Suggestions
-// =========================
 async function renderSuggestions(data) {
   const list = document.getElementById("suggestions");
   list.innerHTML = "";
@@ -180,9 +175,7 @@ async function renderSuggestions(data) {
   }
 }
 
-// =========================
 // Attach listener after HTML loads
-// =========================
 function attachAutocomplete() {
   const autocomplete = document.getElementById("autocomplete-address");
   const suggestions = document.getElementById("suggestions");
@@ -250,7 +243,6 @@ async function lookAddressDetailsById(addressId) {
           type: "danger",
           image: "assets/images/icons/error.png",
         });
-        // alert('Network error occurred. Check console for details.');
       });
   } catch (error) {
     console.error(error);
@@ -261,14 +253,12 @@ if (checkoutSection) {
   attachAutocomplete();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  // const filterForm = document.getElementById("filter-form");
-
+// =========================
+// Initialization Helpers
+// =========================
+function initFiltersAndSorting() {
   if (filterForm) {
-    // Categories Page
     filterForm.querySelectorAll('input[type="checkbox"]').forEach((input) => {
-      //
-      // console.log('input', input);
       changeSelection(input);
     });
 
@@ -295,19 +285,21 @@ document.addEventListener("DOMContentLoaded", function () {
   // 🧠 Handle logic for "All" type
   const typeCheckboxes = document.querySelectorAll(".type-checkbox");
   const allTypeCheckbox = Array.from(typeCheckboxes).find(
-    (el) => el.dataset.typeId === "4",
+    (el) => el.dataset.typeId === "4"
   );
 
   typeCheckboxes.forEach((cb) => {
     cb.addEventListener("change", () => {
       const anyChecked = Array.from(typeCheckboxes).some(
-        (input) => input.checked && input.dataset.typeId !== "4",
+        (input) => input.checked && input.dataset.typeId !== "4"
       );
 
       allTypeCheckbox.checked = !anyChecked;
     });
   });
+}
 
+function initClickableCards() {
   const cards = document.querySelectorAll(".clickable-card");
 
   cards.forEach((card) => {
@@ -337,10 +329,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (id) window.location.href = `?route=product&id=${id}`;
     });
   });
+}
 
-  verifiedIfCartCountIsNeeded();
-
-  // Profile Account
+function initProfileNavigation() {
   const links = document.querySelectorAll("[data-target]");
   const output = document.getElementById("dynamic-content");
 
@@ -369,7 +360,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const tbody = container.querySelector("#orders-table-body");
     if (!btn || !tbody) return;
 
-    let offset = parseInt(btn.getAttribute("data-offset"), 10) || tbody.children.length;
+    let offset =
+      parseInt(btn.getAttribute("data-offset"), 10) || tbody.children.length;
     const limit = 5;
 
     btn.addEventListener("click", () => {
@@ -378,11 +370,14 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((data) => {
           data.invoices.forEach((order) => {
             const tr = document.createElement("tr");
-            const date = new Date(order.created_at).toLocaleDateString("en-AU", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            });
+            const date = new Date(order.created_at).toLocaleDateString(
+              "en-AU",
+              {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }
+            );
             tr.innerHTML = `
               <td><a href="/orders.show?id=${order.id}" class="text-decoration-none" target="_blank">${order.invoice_number}</a></td>
               <td>${date}</td>
@@ -410,19 +405,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  const backBtn = document.querySelector('.pd-back-button');
+  const backBtn = document.querySelector(".pd-back-button");
   let lastUrl = backBtn
-    ? backBtn.getAttribute('href')
+    ? backBtn.getAttribute("href")
     : window.location.pathname + window.location.hash;
 
   function trackUrl(newUrl, prevUrl) {
     const params = new URLSearchParams({ url: newUrl });
     if (prevUrl) {
-      params.append('prev', prevUrl);
+      params.append("prev", prevUrl);
     }
-    fetch('/nav.track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    fetch("/nav.track", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: params,
     }).catch((err) => console.error(err));
   }
@@ -430,13 +425,13 @@ document.addEventListener("DOMContentLoaded", function () {
   function handleSectionFromHash() {
     const section = window.location.hash
       ? window.location.hash.substring(1)
-      : 'profile';
+      : "profile";
     setActiveLink(section);
     showSection(section);
 
     const newUrl = window.location.pathname + window.location.hash;
     if (backBtn) {
-      backBtn.setAttribute('href', lastUrl || '/home');
+      backBtn.setAttribute("href", lastUrl || "/home");
     }
     trackUrl(newUrl, lastUrl);
     lastUrl = newUrl;
@@ -455,4 +450,14 @@ document.addEventListener("DOMContentLoaded", function () {
   handleSectionFromHash();
 
   attachLoadMoreOrders();
+}
+
+// =========================
+// DOM Ready
+// =========================
+document.addEventListener("DOMContentLoaded", function () {
+  initFiltersAndSorting();
+  initClickableCards();
+  verifiedIfCartCountIsNeeded();
+  initProfileNavigation();
 });
