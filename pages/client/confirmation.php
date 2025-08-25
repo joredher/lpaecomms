@@ -1,4 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$backUrl = $_SESSION['previous_page'] ?? '/profile#orders';
 // expected: $invoice, $items, $totals
 $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 $inv = $invoice ?? [];
@@ -140,7 +144,7 @@ $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
 
         <!-- Top bar -->
         <div class="d-flex align-items-center justify-content-between mb-3 mb-md-4">
-            <a href="/profile#orders" class="btn btn-outline-light btn-sm lpa-back-btn"><span class="me-1">←</span> Back</a>
+            <a href="<?= $backUrl ?>" class="btn btn-outline-light btn-sm lpa-back-btn"><span class="me-1">←</span> Back</a>
             <h1 class="h5 h4-md text-white m-0">Order Confirmation</h1>
             <div class="d-flex align-items-center gap-2">
                 <button id="btnCopyNo" class="btn btn-outline-light btn-sm" type="button"
