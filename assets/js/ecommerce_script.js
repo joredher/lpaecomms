@@ -402,38 +402,35 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function setActiveLink(target) {
+    links.forEach((l) => l.classList.remove("fw-bold", "text-primary"));
+    const link = document.querySelector(`[data-target="${target}"]`);
+    if (link) {
+      link.classList.add("fw-bold", "text-primary");
+    }
+  }
+
+  function handleSectionFromHash() {
+    const section = window.location.hash
+      ? window.location.hash.substring(1)
+      : "profile";
+    setActiveLink(section);
+    showSection(section);
+  }
+
   links.forEach((link) => {
     link.addEventListener("click", function (e) {
       e.preventDefault();
       const target = this.dataset.target;
-
-      // Mark the active button
-      links.forEach((l) => l.classList.remove("fw-bold", "text-primary"));
-      this.classList.add("fw-bold", "text-primary");
-
+      setActiveLink(target);
       showSection(target);
       window.location.hash = target;
     });
   });
 
-  const initialSection = window.location.hash
-    ? window.location.hash.substring(1)
-    : "profile";
-  const activeLink = document.querySelector(
-    `[data-target="${initialSection}"]`
-  );
+  window.addEventListener("hashchange", handleSectionFromHash);
 
-  if (activeLink) {
-    links.forEach((l) => l.classList.remove("fw-bold", "text-primary"));
-    activeLink.classList.add("fw-bold", "text-primary");
-    showSection(initialSection);
-  } else {
-    showSection("profile");
-    const profileLink = document.querySelector('[data-target="profile"]');
-    if (profileLink) {
-      profileLink.classList.add("fw-bold", "text-primary");
-    }
-  }
+  handleSectionFromHash();
 
   attachLoadMoreOrders();
 });
