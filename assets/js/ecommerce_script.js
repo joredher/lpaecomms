@@ -412,16 +412,27 @@ document.addEventListener("DOMContentLoaded", function () {
       this.classList.add("fw-bold", "text-primary");
 
       showSection(target);
+      window.location.hash = target;
     });
   });
 
-  // load the default view
-  showSection("profile");
+  const initialSection = window.location.hash
+    ? window.location.hash.substring(1)
+    : "profile";
+  const activeLink = document.querySelector(
+    `[data-target="${initialSection}"]`
+  );
 
-  if (document.querySelector('[data-target="profile"]')) {
-    document
-      .querySelector('[data-target="profile"]')
-      .classList.add("fw-bold", "text-primary");
+  if (activeLink) {
+    links.forEach((l) => l.classList.remove("fw-bold", "text-primary"));
+    activeLink.classList.add("fw-bold", "text-primary");
+    showSection(initialSection);
+  } else {
+    showSection("profile");
+    const profileLink = document.querySelector('[data-target="profile"]');
+    if (profileLink) {
+      profileLink.classList.add("fw-bold", "text-primary");
+    }
   }
 
   attachLoadMoreOrders();
