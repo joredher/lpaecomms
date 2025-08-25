@@ -53,3 +53,14 @@ $user = $_SESSION['user'];
         </div>
     </div>
 </div>
+
+<script>
+    fetch('/nav.track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            url: window.location.pathname + window.location.hash,
+            prev: <?= json_encode($backUrl) ?>
+        })
+    }).catch(err => console.error(err));
+</script>
