@@ -446,8 +446,6 @@ document.addEventListener("DOMContentLoaded", function () {
     link.addEventListener("click", function (e) {
       e.preventDefault();
       const target = this.dataset.target;
-      setActiveLink(target);
-      showSection(target);
       window.location.hash = target;
     });
   });
