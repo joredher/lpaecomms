@@ -402,27 +402,59 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function setActiveLink(target) {
+    links.forEach((l) => l.classList.remove("fw-bold", "text-primary"));
+    const link = document.querySelector(`[data-target="${target}"]`);
+    if (link) {
+      link.classList.add("fw-bold", "text-primary");
+    }
+  }
+
+  const backBtn = document.querySelector('.pd-back-button');
+  let lastUrl = backBtn
+    ? backBtn.getAttribute('href')
+    : window.location.pathname + window.location.hash;
+
+  function trackUrl(newUrl, prevUrl) {
+    const params = new URLSearchParams({ url: newUrl });
+    if (prevUrl) {
+      params.append('prev', prevUrl);
+    }
+    fetch('/nav.track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params,
+    }).catch((err) => console.error(err));
+  }
+
+  function handleSectionFromHash() {
+    const section = window.location.hash
+      ? window.location.hash.substring(1)
+      : 'profile';
+    setActiveLink(section);
+    showSection(section);
+
+    const newUrl = window.location.pathname + window.location.hash;
+    if (backBtn) {
+      backBtn.setAttribute('href', lastUrl || '/home');
+    }
+    trackUrl(newUrl, lastUrl);
+    lastUrl = newUrl;
+  }
+
   links.forEach((link) => {
     link.addEventListener("click", function (e) {
       e.preventDefault();
       const target = this.dataset.target;
-
-      // Mark the active button
-      links.forEach((l) => l.classList.remove("fw-bold", "text-primary"));
-      this.classList.add("fw-bold", "text-primary");
-
+      setActiveLink(target);
       showSection(target);
+      window.location.hash = target;
     });
   });
 
-  // load the default view
-  showSection("profile");
+  window.addEventListener("hashchange", handleSectionFromHash);
 
-  if (document.querySelector('[data-target="profile"]')) {
-    document
-      .querySelector('[data-target="profile"]')
-      .classList.add("fw-bold", "text-primary");
-  }
+  handleSectionFromHash();
 
   attachLoadMoreOrders();
 });

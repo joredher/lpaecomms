@@ -1,4 +1,8 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$backUrl = $_SESSION['previous_page'] ?? '/profile';
 // expected: $invoice, $items, $totals
 $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 $inv = $invoice ?? [];
@@ -140,7 +144,7 @@ $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
 
         <!-- Top bar -->
         <div class="d-flex align-items-center justify-content-between mb-3 mb-md-4">
-            <a href="/orders" class="btn btn-outline-light btn-sm lpa-back-btn"><span class="me-1">←</span> Back</a>
+            <a href="<?= $backUrl ?>" class="btn btn-outline-light btn-sm lpa-back-btn"><span class="me-1">←</span> Back</a>
             <h1 class="h5 h4-md text-white m-0">Order Confirmation</h1>
             <div class="d-flex align-items-center gap-2">
                 <button id="btnCopyNo" class="btn btn-outline-light btn-sm" type="button"
@@ -288,7 +292,7 @@ $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
                                 <span class="fs-5 fw-bold"><?= $money($totals['total'] ?? 0) ?></span>
                             </div>
                             <a href="/products" class="btn lpa-btn-green w-100 mb-2">Continue shopping</a>
-                            <a href="/orders" class="btn btn-outline-success w-100">View my orders</a>
+                            <a href="/profile#orders" class="btn btn-outline-success w-100">View my orders</a>
 
                             <div class="lpa-mini mt-3">
                                 <div class="d-flex justify-content-between">
@@ -368,6 +372,15 @@ $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
             bar.style.width = target + '%';
         });
     })();
+
+    fetch('/nav.track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            url: window.location.pathname + window.location.hash,
+            prev: <?= json_encode($backUrl) ?>
+        })
+    }).catch(err => console.error(err));
 </script>
 
 <style>

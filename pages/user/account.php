@@ -25,23 +25,23 @@ $user = $_SESSION['user'];
                 <h6 class="text-primary fw-semibold mb-4">Manage My Account</h6>
                 <ul class="list-unstyled">
                     <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-dark fw-medium" data-target="profile">My Profile</a>
+                        <a href="#profile" class="text-decoration-none text-dark fw-medium" data-target="profile">My Profile</a>
                     </li>
                     <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted" data-target="address">Address Book</a>
+                        <a href="#address" class="text-decoration-none text-muted" data-target="address">Address Book</a>
                     </li>
                     <li class="mb-4">
-                        <a href="#" class="text-decoration-none text-muted" data-target="payments">My Payment Options</a>
+                        <a href="#payments" class="text-decoration-none text-muted" data-target="payments">My Payment Options</a>
                     </li>
                     <h6 class="text-primary fw-semibold mt-4 mb-3">My Orders</h6>
                     <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted" data-target="orders">Show Orders</a>
+                        <a href="#orders" class="text-decoration-none text-muted" data-target="orders">Show Orders</a>
                     </li>
                     <li class="mb-2">
-                        <a href="#" class="text-decoration-none text-muted" data-target="returns">My Returns</a>
+                        <a href="#returns" class="text-decoration-none text-muted" data-target="returns">My Returns</a>
                     </li>
                     <li>
-                        <a href="#" class="text-decoration-none text-muted" data-target="cancellations">My Cancellations</a>
+                        <a href="#cancellations" class="text-decoration-none text-muted" data-target="cancellations">My Cancellations</a>
                     </li>
                 </ul>
             </div>
@@ -53,3 +53,14 @@ $user = $_SESSION['user'];
         </div>
     </div>
 </div>
+
+<script>
+    fetch('/nav.track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            url: window.location.pathname + window.location.hash,
+            prev: <?= json_encode($backUrl) ?>
+        })
+    }).catch(err => console.error(err));
+</script>
