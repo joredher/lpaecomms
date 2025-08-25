@@ -114,6 +114,7 @@ $client = array_merge($user, [
     </div>
 
     <div class="d-flex justify-content-end gap-3 mt-4">
+        <a href="../../index.php" class="btn btn-outline-secondary">Cancel</a>
         <button type="submit" class="btn btn-success px-4">Update Password</button>
     </div>
 </form>
