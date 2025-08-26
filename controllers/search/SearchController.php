@@ -5,6 +5,10 @@ class SearchController
 {
     public function products()
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         $query = trim($_GET['q'] ?? '');
         if (strlen($query) < 3) {
             echo json_encode(['html' => '']);
@@ -16,41 +20,43 @@ class SearchController
         $stmt->execute(["%{$query}%"]);
         $products = $stmt->fetchAll();
 
-        $options = [
-            [
-                'keywords' => ['order', 'orders'],
-                'label'    => 'Show Orders',
-                'url'      => '/profile#orders',
-            ],
-            [
-                'keywords' => ['cancellation', 'cancel', 'cancellations'],
-                'label'    => 'My Cancellations',
-                'url'      => '/profile#cancellations',
-            ],
-            [
-                'keywords' => ['return', 'returns'],
-                'label'    => 'My Returns',
-                'url'      => '/profile#returns',
-            ],
-            [
-                'keywords' => ['profile', 'account'],
-                'label'    => 'My Profile',
-                'url'      => '/profile#profile',
-            ],
-            [
-                'keywords' => ['address', 'addresses'],
-                'label'    => 'Address Book',
-                'url'      => '/profile#address',
-            ],
-        ];
-
         $accounts = [];
         $needle = strtolower($query);
-        foreach ($options as $opt) {
-            foreach ($opt['keywords'] as $kw) {
-                if (str_contains($kw, $needle) || str_contains(strtolower($opt['label']), $needle)) {
-                    $accounts[] = ['label' => $opt['label'], 'url' => $opt['url']];
-                    break;
+        if (isset($_SESSION['user'])) {
+            $options = [
+                [
+                    'keywords' => ['order', 'orders'],
+                    'label'    => 'Show Orders',
+                    'url'      => '/profile#orders',
+                ],
+                [
+                    'keywords' => ['cancellation', 'cancel', 'cancellations'],
+                    'label'    => 'My Cancellations',
+                    'url'      => '/profile#cancellations',
+                ],
+                [
+                    'keywords' => ['return', 'returns'],
+                    'label'    => 'My Returns',
+                    'url'      => '/profile#returns',
+                ],
+                [
+                    'keywords' => ['profile', 'account'],
+                    'label'    => 'My Profile',
+                    'url'      => '/profile#profile',
+                ],
+                [
+                    'keywords' => ['address', 'addresses'],
+                    'label'    => 'Address Book',
+                    'url'      => '/profile#address',
+                ],
+            ];
+
+            foreach ($options as $opt) {
+                foreach ($opt['keywords'] as $kw) {
+                    if (str_contains($kw, $needle) || str_contains(strtolower($opt['label']), $needle)) {
+                        $accounts[] = ['label' => $opt['label'], 'url' => $opt['url']];
+                        break;
+                    }
                 }
             }
         }
