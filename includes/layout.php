@@ -56,6 +56,7 @@ $title = $title ?? 'LPA Ecommerce';
 <script type="application/javascript" src="../assets/js/address_autocomplete.js"></script>
 <script type="application/javascript" src="../assets/js/ecommerce_script.js"></script>
 <script type="application/javascript" src="../assets/js/toast.js"></script>
+<script type="application/javascript" src="../assets/js/search.js"></script>
 
 <?php if (isset($_SESSION['flash_message'])): ?>
     <script>

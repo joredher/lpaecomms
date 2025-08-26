@@ -26,6 +26,7 @@ RegisterController::register($route, 'checkout', 'CheckoutController', ['process
 RegisterController::register($route, 'contact', 'ContactController', ['send', 'capture']);
 RegisterController::register($route, 'orders', 'OrderController', ['index', 'show']);
 RegisterController::register($route, 'nav', 'NavigationController', ['track']);
+RegisterController::register($route, 'search', 'SearchController', ['products']);
 
 // --- Helpers
 $ua    = $_SERVER['HTTP_USER_AGENT'] ?? '';
