@@ -1,0 +1,187 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../../includes/pagination.php';
+loadRepo('repositories/ProductRepository.php');
+
+$repo = new ProductRepository();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = [
+        'name'        => trim($_POST['name'] ?? ''),
+        'desc'        => trim($_POST['desc'] ?? ''),
+        'features'    => trim($_POST['features'] ?? ''),
+        'onhand'      => trim($_POST['onhand'] ?? ''),
+        'price'       => trim($_POST['price'] ?? ''),
+        'image'       => trim($_POST['image'] ?? ''),
+        'status'      => trim($_POST['status'] ?? 'A'),
+        'category_id' => trim($_POST['category_id'] ?? 0),
+        'type_id'     => trim($_POST['type_id'] ?? 0),
+        'sku'         => trim($_POST['sku'] ?? ''),
+    ];
+    $id = $_POST['lpa_stock_ID'] ?? null;
+    if ($id) {
+        $repo->updateProduct($id, $data);
+    } else {
+        $repo->createProduct($data);
+    }
+    header('Location: /admin.products');
+    exit;
+}
+
+if (isset($_GET['delete'])) {
+    $repo->delete((int)$_GET['delete'], 'lpa_stock_ID');
+    header('Location: /admin.products');
+    exit;
+}
+
+$pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+$pageSize = 10;
+$offset   = ($pageNum - 1) * $pageSize;
+$total    = $repo->countAll();
+$totalPages = (int)ceil($total / $pageSize);
+$products = $repo->findPaginated($offset, $pageSize);
+
+function statusLabel($code) {
+    return match ($code) {
+        'A' => 'Published',
+        'S' => 'Scheduled',
+        'I' => 'Inactive',
+        default => 'Inactive',
+    };
+}
+
+$title = 'Products';
+ob_start();
+?>
+<div class="container-account">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Products</h1>
+        <button id="add-product" class="btn btn-primary">Add Product</button>
+    </div>
+
+    <div id="productFormContainer" class="bg-white rounded shadow-sm p-4 mb-4 d-none">
+        <form id="product-form" action="/admin.products" method="POST">
+            <input type="hidden" name="lpa_stock_ID" id="product-id">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label">Product Name</label>
+                    <input type="text" class="form-control" name="name" id="product-name">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">SKU</label>
+                    <input type="text" class="form-control" name="sku" id="product-sku">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" class="form-control" name="onhand" id="product-qty">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Price</label>
+                    <input type="text" class="form-control" name="price" id="product-price">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Category ID</label>
+                    <input type="number" class="form-control" name="category_id" id="product-category">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Type ID</label>
+                    <input type="number" class="form-control" name="type_id" id="product-type">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="desc" id="product-desc"></textarea>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Features</label>
+                    <textarea class="form-control" name="features" id="product-features"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Image URL</label>
+                    <input type="text" class="form-control" name="image" id="product-image">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status" id="product-status">
+                        <option value="A">Published</option>
+                        <option value="S">Scheduled</option>
+                        <option value="I">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-3 mt-4">
+                <button type="button" id="cancel-product" class="btn btn-outline-secondary">Cancel</button>
+                <button type="submit" class="btn btn-success px-4">Save Product</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-white rounded shadow-sm p-4">
+        <div class="d-flex justify-content-between mb-3">
+            <input type="text" class="form-control w-25" placeholder="Search Product">
+            <select class="form-select w-25">
+                <option value="">Status</option>
+                <option value="A">Published</option>
+                <option value="S">Scheduled</option>
+                <option value="I">Inactive</option>
+            </select>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>QTY</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($products as $product): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($product['lpa_stock_name']) ?></td>
+                        <td><?= htmlspecialchars($product['lpa_invitem_inv_no']) ?></td>
+                        <td><?= htmlspecialchars($product['lpa_stock_onhand']) ?></td>
+                        <td><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
+                        <td><?= htmlspecialchars(statusLabel($product['lpa_stock_status'])) ?></td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Actions</button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <button type="button" class="dropdown-item edit-product"
+                                                data-id="<?= $product['lpa_stock_ID'] ?>"
+                                                data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"
+                                                data-desc="<?= htmlspecialchars($product['lpa_stock_desc'] ?? '', ENT_QUOTES) ?>"
+                                                data-features="<?= htmlspecialchars($product['lpa_stock_features'] ?? '', ENT_QUOTES) ?>"
+                                                data-qty="<?= htmlspecialchars($product['lpa_stock_onhand'], ENT_QUOTES) ?>"
+                                                data-price="<?= htmlspecialchars($product['lpa_stock_price'], ENT_QUOTES) ?>"
+                                                data-image="<?= htmlspecialchars($product['lpa_stock_image'] ?? '', ENT_QUOTES) ?>"
+                                                data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
+                                                data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
+                                                data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
+                                                data-sku="<?= htmlspecialchars($product['lpa_invitem_inv_no'], ENT_QUOTES) ?>"
+                                        >Edit</button>
+                                    </li>
+                                    <li><a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>" class="dropdown-item" onclick="return confirm('Delete this product?');">Delete</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-3">
+            <?= renderPagination($pageNum, $totalPages, ['route' => 'admin.products']) ?>
+        </div>
+    </div>
+</div>
+<?php
+$pageContent = ob_get_clean();
+include 'includes/admin/layout.php';

@@ -1,9 +1,9 @@
 <?php
-$title = 'Groups';
+$title = 'Orders';
 ob_start();
 ?>
 <div class="container-account">
-    <h1>Groups</h1>
+    <h1>Orders</h1>
 </div>
 <?php
 $pageContent = ob_get_clean();
