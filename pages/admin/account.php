@@ -11,18 +11,43 @@ $modules = [
     ['route' => '/admin.data_migration', 'title' => 'Data Migration'],
 ];
 
-$title = 'Dashboard';
+$title    = 'Dashboard';
+$backUrl  = $_SESSION['previous_page'] ?? '/home';
+$userName = $_SESSION['user']['firstname'] ?? null;
 ?>
 
-<h1 class="mb-4">Dashboard</h1>
-<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-    <?php foreach ($modules as $module): ?>
-        <div class="col">
-            <a class="card h-100 text-decoration-none text-dark" href="<?= htmlspecialchars($module['route']) ?>">
-                <div class="card-body d-flex align-items-center justify-content-center">
-                    <h5 class="card-title mb-0"><?= htmlspecialchars($module['title']) ?></h5>
-                </div>
-            </a>
+<div class="container-account">
+    <div class="d-flex justify-content-between mb-5">
+        <a href="<?= htmlspecialchars($backUrl) ?>" class="pd-back-button d-flex align-items-center text-decoration-none">
+            <img src="/assets/images/icons/back.svg" alt="Back" class="me-2">
+            <span>Back</span>
+        </a>
+        <?php if ($userName): ?>
+            <span class="text-muted fw-bolder">Welcome! <strong class="text-white"><?= htmlspecialchars($userName) ?></strong></span>
+        <?php endif; ?>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="bg-white rounded shadow-sm p-4">
+                <h6 class="text-primary fw-semibold mb-4">Admin Modules</h6>
+                <ul class="list-unstyled">
+                    <?php foreach ($modules as $module): ?>
+                        <li class="mb-2">
+                            <a href="<?= htmlspecialchars($module['route']) ?>" class="text-decoration-none text-dark fw-medium">
+                                <?= htmlspecialchars($module['title']) ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
         </div>
-    <?php endforeach; ?>
+
+        <div class="col-md-9">
+            <div class="bg-white rounded shadow-sm p-4">
+                <h1 class="mb-0">Dashboard</h1>
+                <p class="mt-3 mb-0">Select a module from the menu to begin.</p>
+            </div>
+        </div>
+    </div>
 </div>
