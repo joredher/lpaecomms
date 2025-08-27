@@ -165,7 +165,7 @@ ob_start();
                         <td class="product-price"><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
                         <td><?= htmlspecialchars(statusLabel($product['lpa_stock_status'])) ?></td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-primary text-white me-1 edit-product"
+                            <button type="button" class="btn btn-primary btn-icon text-white me-1 edit-product"
                                     data-id="<?= $product['lpa_stock_ID'] ?>"
                                     data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"
                                     data-desc="<?= htmlspecialchars($product['lpa_stock_desc'] ?? '', ENT_QUOTES) ?>"
@@ -178,7 +178,7 @@ ob_start();
                                     data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
                             >✎</button>
                             <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>"
-                               class="btn btn-sm btn-danger text-white"
+                               class="btn btn-danger btn-icon text-white"
                                onclick="return confirm('Delete this product?');">✖</a>
                         </td>
                     </tr>
