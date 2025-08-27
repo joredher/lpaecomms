@@ -26,7 +26,7 @@ $title = $title ?? 'Admin';
     <?php include __DIR__ . '/header.php'; ?>
     <div class="content">
         <?php if (isset($pageContent)): ?>
-            <?= $pageContent ?>
+            <?php include $pageContent; ?>
         <?php else: ?>
             <?php include __DIR__ . '/../../pages/error/404.php'; ?>
         <?php endif; ?>
