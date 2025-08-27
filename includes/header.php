@@ -24,6 +24,11 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
 
 
 ?>
+<?php if ($isLoggedIn && (int)($user['group'] ?? 0) === 1): ?>
+    <div class="alert alert-info text-center mb-0 py-1" role="alert">
+        You are logged in as an admin.
+    </div>
+<?php endif; ?>
 <header class="header">
     <div class="logo-nav">
         <a href="/home" class="text-decoration-none">
