@@ -11,7 +11,7 @@ require_once 'controllers/auth/AuthController.php';
 require_once 'controllers/checkout/CheckoutController.php';
 require_once 'controllers/contact/ContactController.php';
 require_once 'controllers/orders/OrderController.php';
-require_once 'controllers/admin/UserController.php';
+require_once 'controllers/admin/users/UserController.php';
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/AddressService.php');
 
@@ -29,10 +29,10 @@ RegisterController::register($route, 'orders', 'OrderController', ['index', 'sho
 RegisterController::register($route, 'nav', 'NavigationController', ['track']);
 RegisterController::register($route, 'search', 'SearchController', ['products']);
 
-if ($route === 'admin' || str_starts_with($route, 'admin.')) {
+if ($route === 'admin' || str_starts_with($route, 'admin/')) {
     AuthMiddleware::adminOnly();
 }
-RegisterController::register($route, 'admin', 'UserController', ['create', 'store', 'edit', 'update', 'destroy']);
+RegisterController::register($route, 'admin.users', 'UserController', ['create', 'store', 'edit', 'update', 'destroy']);
 
 // --- Helpers
 $ua    = $_SERVER['HTTP_USER_AGENT'] ?? '';

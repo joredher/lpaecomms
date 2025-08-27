@@ -13,11 +13,27 @@ class RegisterController
      */
     public static function register($route, $prefix, $controllerClass, $actions): void
     {
-        if (str_starts_with($route, "$prefix.")) {
-            $action = str_replace("$prefix.", '', $route);
+        $routePrefix = str_replace('.', '/', $prefix);
+        $dir         = str_replace('.', '/', $prefix);
+
+        if ($route === $routePrefix) {
+            require_once "controllers/$dir/$controllerClass.php";
+
+            $controller = new $controllerClass();
+            if (method_exists($controller, 'index')) {
+                $controller->index();
+            } else {
+                http_response_code(404);
+                echo "Method 'index' not found in $controllerClass.";
+            }
+            exit;
+        }
+
+        if (str_starts_with($route, "$routePrefix/")) {
+            $action = str_replace("$routePrefix/", '', $route);
 
             if (in_array($action, $actions, true)):
-                require_once "controllers/$prefix/$controllerClass.php";
+                require_once "controllers/$dir/$controllerClass.php";
 
                 $controller = new $controllerClass();
                 if (method_exists($controller, $action)) {
