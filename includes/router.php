@@ -11,7 +11,6 @@ require_once 'controllers/auth/AuthController.php';
 require_once 'controllers/checkout/CheckoutController.php';
 require_once 'controllers/contact/ContactController.php';
 require_once 'controllers/orders/OrderController.php';
-require_once 'controllers/admin/UserController.php';
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/AddressService.php');
 
@@ -141,8 +140,9 @@ switch ($route) {
         $controller->index();
         break;
     case 'admin':
-        $controller = new UserController();
-        $controller->index();
+        AuthMiddleware::adminOnly();
+        $pageContent = $path . 'admin/account.php';
+        include 'includes/admin/layout.php';
         break;
     case 'profile':
         AuthMiddleware::authOnly();
