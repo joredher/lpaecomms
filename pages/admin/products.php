@@ -165,26 +165,21 @@ ob_start();
                         <td><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
                         <td><?= htmlspecialchars(statusLabel($product['lpa_stock_status'])) ?></td>
                         <td>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Actions</button>
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <button type="button" class="dropdown-item edit-product"
-                                                data-id="<?= $product['lpa_stock_ID'] ?>"
-                                                data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"
-                                                data-desc="<?= htmlspecialchars($product['lpa_stock_desc'] ?? '', ENT_QUOTES) ?>"
-                                                data-features="<?= htmlspecialchars($product['lpa_stock_features'] ?? '', ENT_QUOTES) ?>"
-                                                data-qty="<?= htmlspecialchars($product['lpa_stock_onhand'], ENT_QUOTES) ?>"
-                                                data-price="<?= htmlspecialchars($product['lpa_stock_price'], ENT_QUOTES) ?>"
-                                                data-image="<?= htmlspecialchars($product['lpa_stock_image'] ?? '', ENT_QUOTES) ?>"
-                                                data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
-                                                data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
-                                                data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
-                                        >Edit</button>
-                                    </li>
-                                    <li><a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>" class="dropdown-item" onclick="return confirm('Delete this product?');">Delete</a></li>
-                                </ul>
-                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary me-1 edit-product"
+                                    data-id="<?= $product['lpa_stock_ID'] ?>"
+                                    data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"
+                                    data-desc="<?= htmlspecialchars($product['lpa_stock_desc'] ?? '', ENT_QUOTES) ?>"
+                                    data-features="<?= htmlspecialchars($product['lpa_stock_features'] ?? '', ENT_QUOTES) ?>"
+                                    data-qty="<?= htmlspecialchars($product['lpa_stock_onhand'], ENT_QUOTES) ?>"
+                                    data-price="<?= htmlspecialchars($product['lpa_stock_price'], ENT_QUOTES) ?>"
+                                    data-image="<?= htmlspecialchars($product['lpa_stock_image'] ?? '', ENT_QUOTES) ?>"
+                                    data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
+                                    data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
+                                    data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
+                            >✎</button>
+                            <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Delete this product?');">✖</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
