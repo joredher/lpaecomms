@@ -63,65 +63,75 @@ ob_start();
         <button id="add-product" class="btn btn-primary">Add Product</button>
     </div>
 
-    <div id="productFormContainer" class="bg-white rounded shadow-sm p-4 mb-4 d-none">
-        <form id="product-form" action="/admin.products" method="POST">
-            <input type="hidden" name="lpa_stock_ID" id="product-id">
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <label class="form-label">Product Name</label>
-                    <input type="text" class="form-control" name="name" id="product-name">
+    <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Quantity</label>
-                    <input type="number" class="form-control" name="onhand" id="product-qty">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Price</label>
-                    <input type="text" class="form-control" name="price" id="product-price">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Category</label>
-                    <select class="form-select" name="category_id" id="product-category">
-                        <option value="">Select Category</option>
-                        <?php foreach ($categories as $category): ?>
-                            <option value="<?= $category['lpa_category_ID'] ?>">
-                                <?= htmlspecialchars($category['lpa_category_name']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Type</label>
-                    <select class="form-select" name="type_id" id="product-type">
-                        <option value="">Select Type</option>
-                    </select>
-                </div>
-                <div class="col-md-12">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control" name="desc" id="product-desc"></textarea>
-                </div>
-                <div class="col-md-12">
-                    <label class="form-label">Features</label>
-                    <textarea class="form-control" name="features" id="product-features"></textarea>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Image URL</label>
-                    <input type="text" class="form-control" name="image" id="product-image">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" name="status" id="product-status">
-                        <option value="A">Published</option>
-                        <option value="S">Scheduled</option>
-                        <option value="I">Inactive</option>
-                    </select>
-                </div>
+                <form id="product-form" action="/admin.products" method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="lpa_stock_ID" id="product-id">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Product Name</label>
+                                <input type="text" class="form-control" name="name" id="product-name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control" name="onhand" id="product-qty">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Price</label>
+                                <input type="text" class="form-control" name="price" id="product-price">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Category</label>
+                                <select class="form-select" name="category_id" id="product-category">
+                                    <option value="">Select Category</option>
+                                    <?php foreach ($categories as $category): ?>
+                                        <option value="<?= $category['lpa_category_ID'] ?>">
+                                            <?= htmlspecialchars($category['lpa_category_name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Type</label>
+                                <select class="form-select" name="type_id" id="product-type">
+                                    <option value="">Select Type</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" name="desc" id="product-desc"></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Features</label>
+                                <textarea class="form-control" name="features" id="product-features"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Image URL</label>
+                                <input type="text" class="form-control" name="image" id="product-image">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" name="status" id="product-status">
+                                    <option value="A">Published</option>
+                                    <option value="S">Scheduled</option>
+                                    <option value="I">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Save Product</button>
+                    </div>
+                </form>
             </div>
-            <div class="d-flex justify-content-end gap-3 mt-4">
-                <button type="button" id="cancel-product" class="btn btn-outline-secondary">Cancel</button>
-                <button type="submit" class="btn btn-success px-4">Save Product</button>
-            </div>
-        </form>
+        </div>
     </div>
 
     <div class="bg-white rounded shadow-sm p-4">
