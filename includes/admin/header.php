@@ -29,7 +29,7 @@ $style = 'text-decoration-none';
     </div>
     <div class="actions">
         <div class="d-flex align-items-center gap-3">
-            <a href="/home" class="text-decoration-none">View Site</a>
+            <a href="/home" class="create-account text-decoration-none">View Site</a>
             <a href="/auth.logout" class="text-decoration-none login-link">Logout</a>
         </div>
     </div>

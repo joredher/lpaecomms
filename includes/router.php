@@ -39,6 +39,9 @@ RegisterController::register('admin.rules', ['index']);
 RegisterController::register('admin.security', ['index']);
 RegisterController::register('admin.support', ['index']);
 RegisterController::register('admin.data_migration', ['index']);
+RegisterController::register('admin.users', ['index']);
+RegisterController::register('admin.orders', ['index']);
+RegisterController::register('admin.products', ['index']);
 
 RegisterController::register($route, 'admin', 'UserController', ['create', 'store', 'edit', 'update', 'destroy']);
 
