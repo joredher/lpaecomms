@@ -55,5 +55,6 @@ $title = $title ?? 'Admin';
 <script type="application/javascript" src="../assets/js/ecommerce_script.js"></script>
 <script type="application/javascript" src="../assets/js/toast.js"></script>
 <script type="application/javascript" src="../assets/js/search.js"></script>
+<script type="application/javascript" src="../assets/js/admin_products.js"></script>
 </body>
 </html>
