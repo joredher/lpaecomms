@@ -159,7 +159,7 @@ ob_start();
                 <tbody>
                 <?php foreach ($products as $product): ?>
                     <tr>
-                        <td class="product-name"><?= htmlspecialchars($product['lpa_stock_name']) ?></td>
+                        <td class="product-title"><?= htmlspecialchars($product['lpa_stock_name']) ?></td>
                         <td class="product-sku"><?= htmlspecialchars($product['lpa_invitem_inv_no']) ?></td>
                         <td><?= htmlspecialchars($product['available']) ?></td>
                         <td class="product-price"><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
