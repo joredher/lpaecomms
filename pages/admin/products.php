@@ -20,7 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'status'      => trim($_POST['status'] ?? 'A'),
         'category_id' => trim($_POST['category_id'] ?? 0),
         'type_id'     => trim($_POST['type_id'] ?? 0),
-        'sku'         => trim($_POST['sku'] ?? ''),
     ];
     $id = $_POST['lpa_stock_ID'] ?? null;
     if ($id) {
@@ -70,10 +69,6 @@ ob_start();
                 <div class="col-md-6">
                     <label class="form-label">Product Name</label>
                     <input type="text" class="form-control" name="name" id="product-name">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">SKU</label>
-                    <input type="text" class="form-control" name="sku" id="product-sku">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Quantity</label>
@@ -165,7 +160,6 @@ ob_start();
                                                 data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
                                                 data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
                                                 data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
-                                                data-sku="<?= htmlspecialchars($product['lpa_invitem_inv_no'], ENT_QUOTES) ?>"
                                         >Edit</button>
                                     </li>
                                     <li><a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>" class="dropdown-item" onclick="return confirm('Delete this product?');">Delete</a></li>
