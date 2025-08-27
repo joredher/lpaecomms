@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../includes/pagination.php';
 loadRepo('repositories/ProductRepository.php');
 
 $repo = new ProductRepository();
+$categories = $repo->getCategories();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = [
@@ -20,7 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'status'      => trim($_POST['status'] ?? 'A'),
         'category_id' => trim($_POST['category_id'] ?? 0),
         'type_id'     => trim($_POST['type_id'] ?? 0),
-        'sku'         => trim($_POST['sku'] ?? ''),
     ];
     $id = $_POST['lpa_stock_ID'] ?? null;
     if ($id) {
@@ -72,10 +72,6 @@ ob_start();
                     <input type="text" class="form-control" name="name" id="product-name">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">SKU</label>
-                    <input type="text" class="form-control" name="sku" id="product-sku">
-                </div>
-                <div class="col-md-6">
                     <label class="form-label">Quantity</label>
                     <input type="number" class="form-control" name="onhand" id="product-qty">
                 </div>
@@ -84,12 +80,21 @@ ob_start();
                     <input type="text" class="form-control" name="price" id="product-price">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Category ID</label>
-                    <input type="number" class="form-control" name="category_id" id="product-category">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" name="category_id" id="product-category">
+                        <option value="">Select Category</option>
+                        <?php foreach ($categories as $category): ?>
+                            <option value="<?= $category['lpa_category_ID'] ?>">
+                                <?= htmlspecialchars($category['lpa_category_name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Type ID</label>
-                    <input type="number" class="form-control" name="type_id" id="product-type">
+                    <label class="form-label">Type</label>
+                    <select class="form-select" name="type_id" id="product-type">
+                        <option value="">Select Type</option>
+                    </select>
                 </div>
                 <div class="col-md-12">
                     <label class="form-label">Description</label>
@@ -165,7 +170,6 @@ ob_start();
                                                 data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
                                                 data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
                                                 data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
-                                                data-sku="<?= htmlspecialchars($product['lpa_invitem_inv_no'], ENT_QUOTES) ?>"
                                         >Edit</button>
                                     </li>
                                     <li><a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>" class="dropdown-item" onclick="return confirm('Delete this product?');">Delete</a></li>

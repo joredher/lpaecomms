@@ -23,7 +23,7 @@ class ProductRepository extends BaseRepository
             'lpa_stock_status'    => $data['status'] ?? 'A',
             'lpa_fk_category_ID'  => $data['category_id'] ?? 0,
             'lpa_fk_type_ID'      => $data['type_id'] ?? 0,
-            'lpa_invitem_inv_no'  => $data['sku'] ?? '',
+            'lpa_invitem_inv_no'  => $this->generateSku(),
         ]);
     }
 
@@ -39,8 +39,16 @@ class ProductRepository extends BaseRepository
             'lpa_stock_status'    => $data['status'] ?? 'A',
             'lpa_fk_category_ID'  => $data['category_id'] ?? 0,
             'lpa_fk_type_ID'      => $data['type_id'] ?? 0,
-            'lpa_invitem_inv_no'  => $data['sku'] ?? '',
         ]);
+    }
+
+    private function generateSku(): string
+    {
+        do {
+            $sku = 'SKU-' . strtoupper(bin2hex(random_bytes(4)));
+        } while ($this->findWhere('lpa_invitem_inv_no', $sku));
+
+        return $sku;
     }
 
     public function countAll(): int
@@ -55,6 +63,27 @@ class ProductRepository extends BaseRepository
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getCategories(): array
+    {
+        $stmt = $this->conn->query(
+            'SELECT lpa_category_ID, lpa_category_name FROM lpa_category ORDER BY lpa_category_name'
+        );
+        return $stmt->fetchAll();
+    }
+
+    public function getTypesByCategory(int $categoryId): array
+    {
+        $stmt = $this->conn->prepare(
+            'SELECT t.lpa_type_ID, t.lpa_type_name
+             FROM lpa_type t
+             JOIN lpa_category_type ct ON t.lpa_type_ID = ct.lpa_type_fk_ID
+             WHERE ct.lpa_category_fk_ID = :categoryId
+             ORDER BY t.lpa_type_name'
+        );
+        $stmt->execute(['categoryId' => $categoryId]);
         return $stmt->fetchAll();
     }
 }
