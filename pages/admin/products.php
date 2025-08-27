@@ -11,12 +11,19 @@ $repo = new ProductRepository();
 $categories = $repo->getCategories();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $qty = isset($_POST['onhand']) ? (int)$_POST['onhand'] : 0;
+    $qty = max(0, min(999, $qty));
+
+    $rawPrice = preg_replace('/[^\d.]/', '', $_POST['price'] ?? '0');
+    $price = (float)$rawPrice;
+    $price = max(0, min(999999, $price));
+
     $data = [
         'name'        => trim($_POST['name'] ?? ''),
         'desc'        => trim($_POST['desc'] ?? ''),
         'features'    => trim($_POST['features'] ?? ''),
-        'onhand'      => trim($_POST['onhand'] ?? ''),
-        'price'       => trim($_POST['price'] ?? ''),
+        'onhand'      => $qty,
+        'price'       => $price,
         'image'       => trim($_POST['image'] ?? ''),
         'status'      => trim($_POST['status'] ?? 'A'),
         'category_id' => trim($_POST['category_id'] ?? 0),
@@ -83,11 +90,11 @@ ob_start();
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Quantity</label>
-                                <input type="number" class="form-control" name="onhand" id="product-qty">
+                                <input type="number" class="form-control" name="onhand" id="product-qty" min="0" max="999">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Price</label>
-                                <input type="text" class="form-control" name="price" id="product-price">
+                                <input type="text" class="form-control" name="price" id="product-price" inputmode="decimal">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Category</label>
@@ -108,7 +115,7 @@ ob_start();
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Description</label>
-                                <textarea class="form-control" name="desc" id="product-desc"></textarea>
+                                <textarea class="form-control" name="desc" id="product-desc" rows="4"></textarea>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Features</label>

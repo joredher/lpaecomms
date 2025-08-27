@@ -6,6 +6,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const idInput = document.getElementById('product-id');
     const categorySelect = document.getElementById('product-category');
     const typeSelect = document.getElementById('product-type');
+    const qtyInput = document.getElementById('product-qty');
+    const priceInput = document.getElementById('product-price');
+
+    function clampQty() {
+        let val = parseInt(qtyInput.value, 10);
+        if (isNaN(val)) val = 0;
+        val = Math.min(Math.max(val, 0), 999);
+        qtyInput.value = val;
+    }
+
+    function formatPrice() {
+        let val = parseFloat(priceInput.value.replace(/[^\d.]/g, ''));
+        if (isNaN(val)) val = 0;
+        val = Math.min(Math.max(val, 0), 999999);
+        priceInput.value = new Intl.NumberFormat('en-AU', {
+            style: 'currency',
+            currency: 'AUD'
+        }).format(val);
+    }
+
+    if (qtyInput) qtyInput.addEventListener('blur', clampQty);
+    if (priceInput) priceInput.addEventListener('blur', formatPrice);
 
     async function loadTypes(selectedType = '') {
         typeSelect.innerHTML = '<option value="">Select Type</option>';
@@ -59,7 +81,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('product-desc').value = btn.dataset.desc || '';
             document.getElementById('product-features').value = btn.dataset.features || '';
             document.getElementById('product-qty').value = btn.dataset.qty || '';
-            document.getElementById('product-price').value = btn.dataset.price || '';
+            priceInput.value = btn.dataset.price || '';
+            formatPrice();
             document.getElementById('product-image').value = btn.dataset.image || '';
             document.getElementById('product-status').value = btn.dataset.status || 'A';
             categorySelect.value = btn.dataset.category || '';
@@ -67,4 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
             productModal.show();
         });
     });
+
+    if (form) {
+        form.addEventListener('submit', () => {
+            clampQty();
+            let val = parseFloat(priceInput.value.replace(/[^\d.]/g, ''));
+            if (isNaN(val)) val = 0;
+            val = Math.min(Math.max(val, 0), 999999);
+            priceInput.value = val;
+        });
+    }
 });
