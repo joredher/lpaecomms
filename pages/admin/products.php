@@ -136,7 +136,7 @@ ob_start();
 
     <div class="bg-white rounded shadow-sm p-4">
         <div class="d-flex justify-content-between mb-3">
-            <input type="text" id="product-search" class="form-control w-25" placeholder="Search Product">
+            <input type="text" id="product-search" class="form-control w-25" placeholder="Search by name, SKU or price">
             <select class="form-select w-25">
                 <option value="">Status</option>
                 <option value="A">Published</option>
@@ -176,10 +176,10 @@ ob_start();
                                     data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
                                     data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
                                     data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
-                            >✎</button>
+                            ><i class="bi bi-pencil"></i></button>
                             <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>"
                                class="btn btn-sm btn-danger text-white"
-                               onclick="return confirm('Delete this product?');">✖</a>
+                               onclick="return confirm('Delete this product?');"><i class="bi bi-trash"></i></a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
