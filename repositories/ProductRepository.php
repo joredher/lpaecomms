@@ -23,7 +23,7 @@ class ProductRepository extends BaseRepository
             'lpa_stock_status'    => $data['status'] ?? 'A',
             'lpa_fk_category_ID'  => $data['category_id'] ?? 0,
             'lpa_fk_type_ID'      => $data['type_id'] ?? 0,
-            'lpa_invitem_inv_no'  => $data['sku'] ?? '',
+            'lpa_invitem_inv_no'  => $this->generateSku(),
         ]);
     }
 
@@ -39,8 +39,16 @@ class ProductRepository extends BaseRepository
             'lpa_stock_status'    => $data['status'] ?? 'A',
             'lpa_fk_category_ID'  => $data['category_id'] ?? 0,
             'lpa_fk_type_ID'      => $data['type_id'] ?? 0,
-            'lpa_invitem_inv_no'  => $data['sku'] ?? '',
         ]);
+    }
+
+    private function generateSku(): string
+    {
+        do {
+            $sku = 'SKU-' . strtoupper(bin2hex(random_bytes(4)));
+        } while ($this->findWhere('lpa_invitem_inv_no', $sku));
+
+        return $sku;
     }
 
     public function countAll(): int

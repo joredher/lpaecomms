@@ -34,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('product-status').value = btn.dataset.status || 'A';
             document.getElementById('product-category').value = btn.dataset.category || '';
             document.getElementById('product-type').value = btn.dataset.type || '';
-            document.getElementById('product-sku').value = btn.dataset.sku || '';
         });
     });
 });
