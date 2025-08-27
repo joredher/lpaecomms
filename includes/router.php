@@ -32,6 +32,15 @@ RegisterController::register($route, 'search', 'SearchController', ['products'])
 if ($route === 'admin' || str_starts_with($route, 'admin.')) {
     AuthMiddleware::adminOnly();
 }
+RegisterController::register('admin.company_profile', ['index']);
+RegisterController::register('admin.reports', ['index']);
+RegisterController::register('admin.apps', ['index']);
+RegisterController::register('admin.groups', ['index']);
+RegisterController::register('admin.rules', ['index']);
+RegisterController::register('admin.security', ['index']);
+RegisterController::register('admin.support', ['index']);
+RegisterController::register('admin.data_migration', ['index']);
+
 RegisterController::register($route, 'admin', 'UserController', ['create', 'store', 'edit', 'update', 'destroy']);
 
 // --- Helpers
