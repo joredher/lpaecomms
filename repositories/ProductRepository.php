@@ -65,5 +65,26 @@ class ProductRepository extends BaseRepository
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public function getCategories(): array
+    {
+        $stmt = $this->conn->query(
+            'SELECT lpa_category_ID, lpa_category_name FROM lpa_category ORDER BY lpa_category_name'
+        );
+        return $stmt->fetchAll();
+    }
+
+    public function getTypesByCategory(int $categoryId): array
+    {
+        $stmt = $this->conn->prepare(
+            'SELECT t.lpa_type_ID, t.lpa_type_name
+             FROM lpa_type t
+             JOIN lpa_category_type ct ON t.lpa_type_ID = ct.lpa_type_fk_ID
+             WHERE ct.lpa_category_fk_ID = :categoryId
+             ORDER BY t.lpa_type_name'
+        );
+        $stmt->execute(['categoryId' => $categoryId]);
+        return $stmt->fetchAll();
+    }
 }
 
