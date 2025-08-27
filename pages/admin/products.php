@@ -59,8 +59,11 @@ ob_start();
 ?>
 <div class="container-account">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Products</h1>
-        <button id="add-product" class="btn btn-primary">Add Product</button>
+        <h1 class="h3 mb-0">Products</h1>
+        <button id="add-product" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+            <i class="bi bi-plus-lg"></i>
+            <span>Add Product</span>
+        </button>
     </div>
 
     <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
