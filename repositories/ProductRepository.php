@@ -42,4 +42,20 @@ class ProductRepository extends BaseRepository
             'lpa_invitem_inv_no'  => $data['sku'] ?? '',
         ]);
     }
+
+    public function countAll(): int
+    {
+        $stmt = $this->conn->query("SELECT COUNT(*) FROM {$this->table}");
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function findPaginated(int $offset, int $limit): array
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} ORDER BY lpa_stock_ID DESC LIMIT :offset, :limit");
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }
+

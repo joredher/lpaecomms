@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../../includes/pagination.php';
 loadRepo('repositories/ProductRepository.php');
 
 $repo = new ProductRepository();
@@ -37,7 +38,12 @@ if (isset($_GET['delete'])) {
     exit;
 }
 
-$products = $repo->findAll();
+$pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+$pageSize = 10;
+$offset   = ($pageNum - 1) * $pageSize;
+$total    = $repo->countAll();
+$totalPages = (int)ceil($total / $pageSize);
+$products = $repo->findPaginated($offset, $pageSize);
 
 function statusLabel($code) {
     return match ($code) {
@@ -170,6 +176,9 @@ ob_start();
                 <?php endforeach; ?>
                 </tbody>
             </table>
+        </div>
+        <div class="mt-3">
+            <?= renderPagination($pageNum, $totalPages, ['route' => 'admin.products']) ?>
         </div>
     </div>
 </div>
