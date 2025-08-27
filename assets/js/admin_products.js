@@ -38,6 +38,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const searchInput = document.getElementById('product-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const term = searchInput.value.toLowerCase();
+            document.querySelectorAll('#products-table tbody tr').forEach(row => {
+                const name = row.querySelector('.product-name').textContent.toLowerCase();
+                const sku = row.querySelector('.product-sku').textContent.toLowerCase();
+                const price = row.querySelector('.product-price').textContent.toLowerCase();
+                row.style.display =
+                    name.includes(term) || sku.includes(term) || price.includes(term) ? '' : 'none';
+            });
+        });
+    }
+
     document.querySelectorAll('.edit-product').forEach(btn => {
         btn.addEventListener('click', () => {
             idInput.value = btn.dataset.id;

@@ -59,7 +59,18 @@ class ProductRepository extends BaseRepository
 
     public function findPaginated(int $offset, int $limit): array
     {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} ORDER BY lpa_stock_ID DESC LIMIT :offset, :limit");
+        $sql = "SELECT s.*, s.lpa_stock_onhand - COALESCE(p.purchased, 0) AS available
+                FROM {$this->table} s
+                LEFT JOIN (
+                    SELECT ii.lpa_fk_stock_ID, SUM(ii.lpa_invitem_qty) AS purchased
+                    FROM lpa_invoice_items ii
+                    JOIN lpa_invoices i ON i.lpa_invoices_ID = ii.lpa_fk_invoices_ID
+                    AND i.lpa_inv_status = 'A'
+                    GROUP BY ii.lpa_fk_stock_ID
+                ) p ON p.lpa_fk_stock_ID = s.lpa_stock_ID
+                ORDER BY s.lpa_stock_ID DESC
+                LIMIT :offset, :limit";
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();

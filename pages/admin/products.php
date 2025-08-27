@@ -136,7 +136,7 @@ ob_start();
 
     <div class="bg-white rounded shadow-sm p-4">
         <div class="d-flex justify-content-between mb-3">
-            <input type="text" class="form-control w-25" placeholder="Search Product">
+            <input type="text" id="product-search" class="form-control w-25" placeholder="Search Product">
             <select class="form-select w-25">
                 <option value="">Status</option>
                 <option value="A">Published</option>
@@ -145,12 +145,12 @@ ob_start();
             </select>
         </div>
         <div class="table-responsive">
-            <table class="table align-middle">
+            <table id="products-table" class="table align-middle">
                 <thead>
                 <tr>
                     <th>Product</th>
                     <th>SKU</th>
-                    <th>QTY</th>
+                    <th>Stock</th>
                     <th>Price</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -159,13 +159,13 @@ ob_start();
                 <tbody>
                 <?php foreach ($products as $product): ?>
                     <tr>
-                        <td><?= htmlspecialchars($product['lpa_stock_name']) ?></td>
-                        <td><?= htmlspecialchars($product['lpa_invitem_inv_no']) ?></td>
-                        <td><?= htmlspecialchars($product['lpa_stock_onhand']) ?></td>
-                        <td><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
+                        <td class="product-name"><?= htmlspecialchars($product['lpa_stock_name']) ?></td>
+                        <td class="product-sku"><?= htmlspecialchars($product['lpa_invitem_inv_no']) ?></td>
+                        <td><?= htmlspecialchars($product['available']) ?></td>
+                        <td class="product-price"><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
                         <td><?= htmlspecialchars(statusLabel($product['lpa_stock_status'])) ?></td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-outline-primary me-1 edit-product"
+                            <button type="button" class="btn btn-sm btn-primary text-white me-1 edit-product"
                                     data-id="<?= $product['lpa_stock_ID'] ?>"
                                     data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"
                                     data-desc="<?= htmlspecialchars($product['lpa_stock_desc'] ?? '', ENT_QUOTES) ?>"
@@ -178,7 +178,7 @@ ob_start();
                                     data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
                             >✎</button>
                             <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>"
-                               class="btn btn-sm btn-outline-danger"
+                               class="btn btn-sm btn-danger text-white"
                                onclick="return confirm('Delete this product?');">✖</a>
                         </td>
                     </tr>
