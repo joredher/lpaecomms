@@ -18,4 +18,13 @@ class AuthMiddleware
             exit;
         }
     }
+
+    public static function adminOnly(): void
+    {
+        $isAdmin = isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'admin';
+        if (!$isAdmin) {
+            header('Location: /');
+            exit;
+        }
+    }
 }
