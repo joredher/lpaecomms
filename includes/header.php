@@ -69,6 +69,14 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
                     <?= $user['firstname'] ?>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                    <?php if ((int)($user['group'] ?? 0) === 1): ?>
+                        <li>
+                            <a class="dropdown-item" href="/admin">
+                                <i class="bi bi-speedometer2 me-2"></i> Admin Dashboard
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                    <?php endif; ?>
                     <li>
                         <a class="dropdown-item" href="/profile">
                             <i class="bi bi-person-circle me-2"></i> My Account
