@@ -1,18 +1,40 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const formContainer = document.getElementById('productFormContainer');
+    const productModalEl = document.getElementById('productModal');
+    const productModal = new bootstrap.Modal(productModalEl);
     const addBtn = document.getElementById('add-product');
-    const cancelBtn = document.getElementById('cancel-product');
     const form = document.getElementById('product-form');
     const idInput = document.getElementById('product-id');
+    const currentImageInput = document.getElementById('current-image');
     const categorySelect = document.getElementById('product-category');
     const typeSelect = document.getElementById('product-type');
+    const qtyInput = document.getElementById('product-qty');
+    const priceInput = document.getElementById('product-price');
 
-    async function loadTypes(categoryId, selectedType = '') {
+    function clampQty() {
+        let val = parseInt(qtyInput.value, 10);
+        if (isNaN(val)) val = 0;
+        val = Math.min(Math.max(val, 0), 999);
+        qtyInput.value = val;
+    }
+
+    function formatPrice() {
+        let val = parseFloat(priceInput.value.replace(/[^\d.]/g, ''));
+        if (isNaN(val)) val = 0;
+        val = Math.min(Math.max(val, 0), 999999);
+        priceInput.value = new Intl.NumberFormat('en-AU', {
+            style: 'currency',
+            currency: 'AUD'
+        }).format(val);
+    }
+
+    if (qtyInput) qtyInput.addEventListener('blur', clampQty);
+    if (priceInput) priceInput.addEventListener('blur', formatPrice);
+
+    async function loadTypes(selectedType = '') {
         typeSelect.innerHTML = '<option value="">Select Type</option>';
-        if (!categoryId) return;
 
         try {
-            const res = await fetch(`/admin.types?category_id=${categoryId}`);
+            const res = await fetch(`/admin.types`);
             const data = await res.json();
             data.forEach(type => {
                 const opt = document.createElement('option');
@@ -26,43 +48,59 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (categorySelect) {
-        categorySelect.addEventListener('change', () => {
-            loadTypes(categorySelect.value);
-        });
-    }
+    productModalEl.addEventListener('hidden.bs.modal', () => {
+        form.reset();
+        idInput.value = '';
+        currentImageInput.value = '';
+        typeSelect.innerHTML = '<option value="">Select Type</option>';
+    });
 
     if (addBtn) {
         addBtn.addEventListener('click', () => {
-            form.reset();
-            idInput.value = '';
-            typeSelect.innerHTML = '<option value="">Select Type</option>';
-            formContainer.classList.remove('d-none');
+            loadTypes();
+            currentImageInput.value = '';
+            productModal.show();
         });
     }
 
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            form.reset();
-            idInput.value = '';
-            typeSelect.innerHTML = '<option value="">Select Type</option>';
-            formContainer.classList.add('d-none');
+    const searchInput = document.getElementById('product-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const term = searchInput.value.toLowerCase();
+            document.querySelectorAll('#products-table tbody tr').forEach(row => {
+                const name = row.querySelector('.product-title').textContent.toLowerCase();
+                const sku = row.querySelector('.product-sku').textContent.toLowerCase();
+                const price = row.querySelector('.product-price').textContent.toLowerCase();
+                row.style.display =
+                    name.includes(term) || sku.includes(term) || price.includes(term) ? '' : 'none';
+            });
         });
     }
 
     document.querySelectorAll('.edit-product').forEach(btn => {
         btn.addEventListener('click', () => {
-            formContainer.classList.remove('d-none');
             idInput.value = btn.dataset.id;
             document.getElementById('product-name').value = btn.dataset.name || '';
             document.getElementById('product-desc').value = btn.dataset.desc || '';
             document.getElementById('product-features').value = btn.dataset.features || '';
             document.getElementById('product-qty').value = btn.dataset.qty || '';
-            document.getElementById('product-price').value = btn.dataset.price || '';
-            document.getElementById('product-image').value = btn.dataset.image || '';
+            priceInput.value = btn.dataset.price || '';
+            formatPrice();
+            currentImageInput.value = btn.dataset.image || '';
             document.getElementById('product-status').value = btn.dataset.status || 'A';
             categorySelect.value = btn.dataset.category || '';
-            loadTypes(btn.dataset.category, btn.dataset.type);
+            loadTypes(btn.dataset.type);
+            productModal.show();
         });
     });
+
+    if (form) {
+        form.addEventListener('submit', () => {
+            clampQty();
+            let val = parseFloat(priceInput.value.replace(/[^\d.]/g, ''));
+            if (isNaN(val)) val = 0;
+            val = Math.min(Math.max(val, 0), 999999);
+            priceInput.value = val;
+        });
+    }
 });

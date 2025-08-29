@@ -59,7 +59,18 @@ class ProductRepository extends BaseRepository
 
     public function findPaginated(int $offset, int $limit): array
     {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} ORDER BY lpa_stock_ID DESC LIMIT :offset, :limit");
+        $sql = "SELECT s.*, s.lpa_stock_onhand - COALESCE(p.purchased, 0) AS available
+                FROM {$this->table} s
+                LEFT JOIN (
+                    SELECT ii.lpa_fk_stock_ID, SUM(ii.lpa_invitem_qty) AS purchased
+                    FROM lpa_invoice_items ii
+                    JOIN lpa_invoices i ON i.lpa_invoices_ID = ii.lpa_fk_invoices_ID
+                    AND i.lpa_inv_status = 'A'
+                    GROUP BY ii.lpa_fk_stock_ID
+                ) p ON p.lpa_fk_stock_ID = s.lpa_stock_ID
+                ORDER BY s.lpa_stock_ID DESC
+                LIMIT :offset, :limit";
+        $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
@@ -74,16 +85,11 @@ class ProductRepository extends BaseRepository
         return $stmt->fetchAll();
     }
 
-    public function getTypesByCategory(int $categoryId): array
+    public function getTypes(): array
     {
-        $stmt = $this->conn->prepare(
-            'SELECT t.lpa_type_ID, t.lpa_type_name
-             FROM lpa_type t
-             JOIN lpa_category_type ct ON t.lpa_type_ID = ct.lpa_type_fk_ID
-             WHERE ct.lpa_category_fk_ID = :categoryId
-             ORDER BY t.lpa_type_name'
+        $stmt = $this->conn->query(
+            'SELECT lpa_type_ID, lpa_type_name FROM lpa_type ORDER BY lpa_type_name'
         );
-        $stmt->execute(['categoryId' => $categoryId]);
         return $stmt->fetchAll();
     }
 }

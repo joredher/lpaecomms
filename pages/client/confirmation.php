@@ -2,6 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+require_once 'includes/config.php';
 $backUrl = $_SESSION['previous_page'] ?? '/profile';
 // expected: $invoice, $items, $totals
 $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
@@ -223,7 +224,7 @@ $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
                                     <?php
                                     $name = $h($it['name'] ?? 'Item');
                                     $sku = $h($it['sku'] ?? '');
-                                    $image = $h('assets/images/test-images/' . ($it['image'] ?: 'hdd1.jpg'));
+                                    $image = $h($it['image'] ?: PRODUCT_PLACEHOLDER_URL);
                                     $qty = (int)($it['quantity'] ?? 0);
                                     $unit = $money($it['unit_price'] ?? 0);
                                     $tot = $money($it['total_price'] ?? 0);
@@ -233,7 +234,7 @@ $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
                                             <div class="d-flex align-items-center gap-3">
                                                 <div class="lpa-thumb rounded">
                                                     <img src="<?= $image ?>"
-                                                         onerror="this.src='/assets/images/placeholder.png'"
+                                                         onerror="this.src='<?= PRODUCT_PLACEHOLDER_URL ?>'"
                                                          alt="<?= $name ?>">
                                                 </div>
                                                 <div>
