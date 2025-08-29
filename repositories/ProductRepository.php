@@ -20,7 +20,7 @@ class ProductRepository extends BaseRepository
             'lpa_stock_onhand'    => $data['onhand'] ?? null,
             'lpa_stock_price'     => $data['price'] ?? 0,
             'lpa_stock_image'     => $data['image'] ?? null,
-            'lpa_stock_status'    => $data['status'] ?? 'A',
+            'lpa_stock_status'    => $data['status'] ?? 'P',
             'lpa_fk_category_ID'  => $data['category_id'] ?? 0,
             'lpa_fk_type_ID'      => $data['type_id'] ?? 0,
             'lpa_invitem_inv_no'  => $this->generateSku(),
@@ -36,7 +36,7 @@ class ProductRepository extends BaseRepository
             'lpa_stock_onhand'    => $data['onhand'] ?? null,
             'lpa_stock_price'     => $data['price'] ?? 0,
             'lpa_stock_image'     => $data['image'] ?? null,
-            'lpa_stock_status'    => $data['status'] ?? 'A',
+            'lpa_stock_status'    => $data['status'] ?? 'P',
             'lpa_fk_category_ID'  => $data['category_id'] ?? 0,
             'lpa_fk_type_ID'      => $data['type_id'] ?? 0,
         ]);

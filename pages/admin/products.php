@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'onhand'      => $qty,
         'price'       => $price,
         'image'       => $imageName,
-        'status'      => trim($_POST['status'] ?? 'A'),
+        'status'      => trim($_POST['status'] ?? 'P'),
         'category_id' => trim($_POST['category_id'] ?? 0),
         'type_id'     => trim($_POST['type_id'] ?? 0),
     ];
@@ -66,10 +66,10 @@ $products = $repo->findPaginated($offset, $pageSize);
 
 function statusLabel($code) {
     return match ($code) {
-        'A' => 'Published',
-        'S' => 'Scheduled',
-        'I' => 'Inactive',
-        default => 'Inactive',
+        'P', 'A' => 'Published',
+        'S'       => 'Scheduled',
+        'U', 'I'  => 'Unpublished',
+        default   => 'Unpublished',
     };
 }
 
@@ -141,9 +141,9 @@ ob_start();
                             <div class="col-md-6">
                                 <label class="form-label">Status</label>
                                 <select class="form-select" name="status" id="product-status">
-                                    <option value="A">Published</option>
+                                    <option value="P">Published</option>
                                     <option value="S">Scheduled</option>
-                                    <option value="I">Inactive</option>
+                                    <option value="U">Unpublished</option>
                                 </select>
                             </div>
                         </div>
@@ -162,9 +162,9 @@ ob_start();
             <input type="text" id="product-search" class="form-control w-25" placeholder="Search by name, SKU or price">
             <select class="form-select w-25">
                 <option value="">Status</option>
-                <option value="A">Published</option>
+                <option value="P">Published</option>
                 <option value="S">Scheduled</option>
-                <option value="I">Inactive</option>
+                <option value="U">Unpublished</option>
             </select>
         </div>
         <div class="table-responsive">

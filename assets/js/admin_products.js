@@ -87,7 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
             priceInput.value = btn.dataset.price || '';
             formatPrice();
             currentImageInput.value = btn.dataset.image || '';
-            document.getElementById('product-status').value = btn.dataset.status || 'A';
+            const st = btn.dataset.status;
+            document.getElementById('product-status').value =
+                st === 'A' ? 'P' : st === 'I' ? 'U' : (st || 'P');
             categorySelect.value = btn.dataset.category || '';
             loadTypes(btn.dataset.type);
             productModal.show();
