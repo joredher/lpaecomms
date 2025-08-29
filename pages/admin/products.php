@@ -115,11 +115,11 @@ ob_start();
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Description</label>
-                                <textarea class="form-control" name="desc" id="product-desc" rows="4"></textarea>
+                                <textarea class="form-control" name="desc" id="product-desc" rows="5" cols="100"></textarea>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Features</label>
-                                <textarea class="form-control" name="features" id="product-features"></textarea>
+                                <textarea class="form-control" name="features" id="product-features" rows="5" cols="100"></textarea>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Image URL</label>
