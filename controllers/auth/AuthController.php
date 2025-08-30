@@ -38,7 +38,7 @@ class AuthController
 
             error_log('Password Validation: Passed!');
             //$_SESSION['pending_user_id'] = false;
-            if (!$user['validation_token'] || $interval->days >= 7) {
+            if (AuthMiddleware::userOnly() && (!$user['validation_token'] || ($interval->days >= 7))) {
                 error_log('Token Process with code: Passed!');
 
                 // Generate a new token

@@ -23,7 +23,7 @@ $productQuery = "SELECT s.*, c.lpa_category_name, t.lpa_type_name
                  JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
                  JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
 $params     = [];
-$conditions = [];
+$conditions = ["(s.lpa_stock_status = 'P' OR (s.lpa_stock_status = 'S' AND s.lpa_stock_publish_at <= NOW()))"];
 
 $categoryFilter = $_GET['category'] ?? [];
 if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
@@ -76,7 +76,7 @@ function renderProducts(array $products): string {
     foreach ($products as $product): ?>
         <div class="col mb-4">
             <div class="product-card clickable-card ripple-container" data-id="<?= $product['lpa_stock_ID'] ?>">
-                <img src="assets/images/test-images/<?= htmlspecialchars($product['lpa_stock_image']) ?>" alt="<?= htmlspecialchars($product['lpa_stock_name']) ?>" loading="lazy">
+                <img src="<?= htmlspecialchars(getProductImageUrl($product['lpa_stock_image'] ?? '')) ?>" alt="<?= htmlspecialchars($product['lpa_stock_name']) ?>" loading="lazy">
 
                 <div class="product-card-description">
                     <h3 class="text-truncate"><?= htmlspecialchars($product['lpa_stock_name']) ?></h3>

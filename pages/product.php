@@ -51,7 +51,7 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
     <div class="details-product row g-0 row-cols-3 m-auto">
         <div>
             <div class="details-product-child"></div>
-            <img class="image-1-icon" alt="Product Image" src="assets/images/test-images/<?= htmlspecialchars($product['lpa_stock_image']) ?>">
+            <img class="image-1-icon" alt="Product Image" src="<?= htmlspecialchars(getProductImageUrl($product['lpa_stock_image'] ?? '')) ?>">
         </div>
         <div>
             <div class="product-name">
@@ -95,7 +95,7 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
                 <?php foreach ($related as $item): ?>
                     <div class="col-md-4">
                         <div class="product-card clickable-card clickable-card-detail ripple-container" data-id="<?= $item['lpa_stock_ID'] ?>">
-                            <img src="assets/images/test-images/<?= htmlspecialchars($item['lpa_stock_image']) ?>" alt="<?= htmlspecialchars($item['lpa_stock_name']) ?>">
+                            <img src="<?= htmlspecialchars(getProductImageUrl($item['lpa_stock_image'] ?? '')) ?>" alt="<?= htmlspecialchars($item['lpa_stock_name']) ?>">
 
                             <div class="product-card-description">
                                 <h3 class="text-truncate"><?= htmlspecialchars($item['lpa_stock_name']) ?></h3>

@@ -72,10 +72,10 @@ function updateCartCount(count) {
 /*Taking From Bootstrap*/
 function verifiedIfCartCountIsNeeded() {
   const cartCount = document.querySelector("#cart-count");
-  if (
-    parseInt(cartCount.textContent) === 0 ||
-    typeof parseInt(cartCount.textContent) === "undefined"
-  ) {
+  if (!cartCount) return;
+
+  const count = parseInt(cartCount.textContent, 10) || 0;
+  if (count === 0) {
     cartCount.classList.remove("d-block");
     cartCount.classList.add("d-none");
   } else {

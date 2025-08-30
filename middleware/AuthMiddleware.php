@@ -27,4 +27,10 @@ class AuthMiddleware
             exit;
         }
     }
+
+    public static function userOnly(): bool
+    {
+        return $_SESSION['user']['group'] === 2;
+    }
+
 }
