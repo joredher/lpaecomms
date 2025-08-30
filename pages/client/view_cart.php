@@ -42,8 +42,8 @@ $total = $_SESSION['total'] ?? 0;
                             ?>
                             <tr>
                                 <td class="text-start d-flex align-items-center">
-                                    <img src="<?= ($item['image']) ?>"
-                                         alt="<?= ($item['name']) ?>"
+                                    <img src="<?= htmlspecialchars($item['image']) ?>"
+                                         alt="<?= htmlspecialchars($item['name']) ?>"
                                          style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;"
                                          class="me-3"
                                          onerror="this.src='<?= PRODUCT_PLACEHOLDER_URL ?>';">

@@ -224,7 +224,7 @@ $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
                                     <?php
                                     $name = $h($it['name'] ?? 'Item');
                                     $sku = $h($it['sku'] ?? '');
-                                    $image = $h($it['image'] ?: PRODUCT_PLACEHOLDER_URL);
+                                    $image = $h(getProductImageUrl($it['image'] ?? ''));
                                     $qty = (int)($it['quantity'] ?? 0);
                                     $unit = $money($it['unit_price'] ?? 0);
                                     $tot = $money($it['total_price'] ?? 0);

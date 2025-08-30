@@ -55,7 +55,7 @@ class CartController
                 $_SESSION['cart'][$productId] = [
                     'name' => $product['lpa_stock_name'],
                     'price' => $product['lpa_stock_price'],
-                    'image' => !empty($product['lpa_stock_image']) ? PRODUCT_IMAGE_URL . htmlspecialchars($product['lpa_stock_image']) : PRODUCT_PLACEHOLDER_URL,
+                    'image' => getProductImageUrl($product['lpa_stock_image'] ?? ''),
                     'stock' => $available,
                     'quantity' => 1,
                 ];
