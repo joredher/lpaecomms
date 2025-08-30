@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../../bootstrap.php';
 loadRepo('repositories/UserRepository.php');
+require_once __DIR__ . '/../../helpers/mail.php';
 
 $repo = new UserRepository();
 $groups = $repo->getGroups();
@@ -37,8 +38,59 @@ if (isset($_GET['delete'])) {
     exit;
 }
 
+if (isset($_GET['activate'])) {
+    $id = (int)$_GET['activate'];
+    $user = $repo->findById($id);
+    if ($user) {
+        $repo->setStatus($id, 'A');
+
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+1 day'));
+        $repo->saveVerificationToken($id, $token, $expiresAt);
+
+        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
+        $verificationUrl = "$baseUrl/verify?token=$token";
+
+        sendVerificationEmail([
+            'to' => $user['lpa_user_email'],
+            'username' => $user['lpa_user_username'],
+            'firstname' => $user['lpa_user_firstname'],
+            'verificationUrl' => $verificationUrl
+        ]);
+    }
+    header('Location: /admin.users?status=activated');
+    exit;
+}
+
+if (isset($_GET['deactivate'])) {
+    $id = (int)$_GET['deactivate'];
+    $user = $repo->findById($id);
+    if ($user) {
+        $repo->setStatus($id, 'I');
+        sendAccountDeactivationEmail([
+            'email' => $user['lpa_user_email'],
+            'username' => $user['lpa_user_username']
+        ]);
+    }
+    header('Location: /admin.users?status=deactivated');
+    exit;
+}
+
 if (isset($_GET['status'])) {
-    $toastMessage = $_GET['status'] === 'updated' ? 'User updated' : 'User created';
+    switch ($_GET['status']) {
+        case 'updated':
+            $toastMessage = 'User updated';
+            break;
+        case 'created':
+            $toastMessage = 'User created';
+            break;
+        case 'activated':
+            $toastMessage = 'User activated';
+            break;
+        case 'deactivated':
+            $toastMessage = 'User deactivated';
+            break;
+    }
 }
 
 $searchTerm   = trim($_GET['search'] ?? '');

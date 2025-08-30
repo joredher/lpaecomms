@@ -37,15 +37,28 @@ function sendEmail($to, $subject, $htmlBody): bool
 
 function sendVerificationEmail(array $data): bool {
     $html = file_get_contents(__DIR__ . '/../pages/templates/emails/verify_email_template.html');
+    $name = htmlspecialchars($data['firstname'] ?? $data['username'] ?? '');
     $html = str_replace(
         ['{{firstname}}', '{{verification_link}}'],
-        [htmlspecialchars($data['firstname']), $data['verificationUrl']],
+        [$name, $data['verificationUrl']],
         $html
     );
 
-    $subject = "Verify Your Email Address, {$data['firstname']}!";
-    return sendEmail($data['to'], $subject, $html);
+    $subject = "Verify Your Email Address, {$name}!";
+    return sendEmail($data['email'] ?? $data['to'], $subject, $html);
 
+}
+
+function sendAccountDeactivationEmail(array $data): bool {
+    $html = file_get_contents(__DIR__ . '/../pages/templates/emails/account_deactivation_template.html');
+    $html = str_replace(
+        ['{{username}}'],
+        [htmlspecialchars($data['username'])],
+        $html
+    );
+
+    $subject = "Your Account Has Been Deactivated";
+    return sendEmail($data['email'], $subject, $html);
 }
 
 function sendValidationCodeEmail (array $data): bool
