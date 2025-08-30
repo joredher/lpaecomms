@@ -11,7 +11,6 @@ require_once 'controllers/auth/AuthController.php';
 require_once 'controllers/checkout/CheckoutController.php';
 require_once 'controllers/contact/ContactController.php';
 require_once 'controllers/orders/OrderController.php';
-require_once 'controllers/admin/UserController.php';
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/AddressService.php');
 
@@ -32,7 +31,20 @@ RegisterController::register($route, 'search', 'SearchController', ['products'])
 if ($route === 'admin' || str_starts_with($route, 'admin.')) {
     AuthMiddleware::adminOnly();
 }
+RegisterController::register('admin.company_profile', ['index']);
+RegisterController::register('admin.reports', ['index']);
+RegisterController::register('admin.apps', ['index']);
+RegisterController::register('admin.groups', ['index']);
+RegisterController::register('admin.rules', ['index']);
+RegisterController::register('admin.security', ['index']);
+RegisterController::register('admin.support', ['index']);
+RegisterController::register('admin.data_migration', ['index']);
+RegisterController::register('admin.users', ['index']);
+RegisterController::register('admin.orders', ['index']);
+RegisterController::register('admin.products', ['index']);
+
 RegisterController::register($route, 'admin', 'UserController', ['create', 'store', 'edit', 'update', 'destroy']);
+RegisterController::register($route, 'admin', 'ProductController', ['types']);
 
 // --- Helpers
 $ua    = $_SERVER['HTTP_USER_AGENT'] ?? '';
@@ -132,8 +144,9 @@ switch ($route) {
         $controller->index();
         break;
     case 'admin':
-        $controller = new UserController();
-        $controller->index();
+        AuthMiddleware::adminOnly();
+        $pageContent = $path . 'admin/account.php';
+        include 'includes/admin/layout.php';
         break;
     case 'profile':
         AuthMiddleware::authOnly();

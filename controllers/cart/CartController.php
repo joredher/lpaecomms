@@ -55,7 +55,7 @@ class CartController
                 $_SESSION['cart'][$productId] = [
                     'name' => $product['lpa_stock_name'],
                     'price' => $product['lpa_stock_price'],
-                    'image' => 'assets/images/test-images/' . htmlspecialchars($product['lpa_stock_image']),
+                    'image' => getProductImageUrl($product['lpa_stock_image'] ?? ''),
                     'stock' => $available,
                     'quantity' => 1,
                 ];

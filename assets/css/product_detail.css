@@ -37,11 +37,9 @@
 
 
 .product-name {
-    position: relative;
     margin-top: 40px;
-    left: 49.96%;
-    font-size: 22px;
-    line-height: 31px;
+    font-size: 16px;
+    line-height: 1.5;
     font-weight: 800;
     display: flex;
 }

@@ -13,7 +13,8 @@ class UserController
 
     public function index(): void
     {
-        // Display a listing of users.
+        $pageContent = 'pages/admin/dashboard.php';
+        include 'includes/admin/layout.php';
     }
 
     public function create(): void
