@@ -68,8 +68,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function attachStatusHandlers() {
+        document.querySelectorAll('.activate-user, .deactivate-user').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const url = btn.getAttribute('href');
+                const name = btn.dataset.name || 'this user';
+                const action = btn.classList.contains('activate-user') ? 'activate' : 'deactivate';
+                if (!confirmModal) {
+                    if (confirm(`Are you sure to ${action} ${name}?`)) {
+                        window.location.href = url;
+                    }
+                    return;
+                }
+                confirmMessage.textContent = `Are you sure to ${action} ${name}?`;
+                confirmOk.onclick = () => { window.location.href = url; };
+                confirmModal.show();
+            });
+        });
+    }
+
     attachEditHandlers();
     attachDeleteHandlers();
+    attachStatusHandlers();
 
     async function loadPage(page) {
         try {
@@ -82,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             paginationContainer.innerHTML = data.pagination;
             attachEditHandlers();
             attachDeleteHandlers();
+            attachStatusHandlers();
         } catch (e) {
             console.error('Failed to load page', e);
         }

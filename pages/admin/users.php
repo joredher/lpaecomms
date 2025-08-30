@@ -72,8 +72,21 @@ function renderRows(array $users): string {
                     <i class="bi bi-pencil"></i>
                 </button>
                 <a href="/admin.users?delete=<?= $user['lpa_users_ID'] ?>"
-                   class="btn btn-sm btn-danger text-white delete-user"
+                   class="btn btn-sm btn-danger text-white me-1 delete-user"
                    data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"><i class="bi bi-trash"></i></a>
+                <?php if ($user['lpa_user_status'] === 'I'): ?>
+                    <a href="/admin.users?activate=<?= $user['lpa_users_ID'] ?>"
+                       class="btn btn-sm btn-success text-white activate-user"
+                       data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>">
+                        <i class="bi bi-person-check"></i>
+                    </a>
+                <?php else: ?>
+                    <a href="/admin.users?deactivate=<?= $user['lpa_users_ID'] ?>"
+                       class="btn btn-sm btn-warning text-white deactivate-user"
+                       data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>">
+                        <i class="bi bi-person-x"></i>
+                    </a>
+                <?php endif; ?>
             </td>
         </tr>
         <?php
