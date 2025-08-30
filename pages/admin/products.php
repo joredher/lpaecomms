@@ -8,6 +8,7 @@ loadRepo('repositories/ProductRepository.php');
 
 $repo = new ProductRepository();
 $categories = $repo->getCategories();
+$toastMessage = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $qty = isset($_POST['onhand']) ? (int)$_POST['onhand'] : 0;
@@ -44,10 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['lpa_stock_ID'] ?? null;
     if ($id) {
         $repo->updateProduct($id, $data);
+        header('Location: /admin.products?status=updated');
     } else {
         $repo->createProduct($data);
+        header('Location: /admin.products?status=created');
     }
-    header('Location: /admin.products');
     exit;
 }
 
@@ -55,6 +57,10 @@ if (isset($_GET['delete'])) {
     $repo->delete((int)$_GET['delete'], 'lpa_stock_ID');
     header('Location: /admin.products');
     exit;
+}
+
+if (isset($_GET['status'])) {
+    $toastMessage = $_GET['status'] === 'updated' ? 'Product updated' : 'Product created';
 }
 
 $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
@@ -70,12 +76,12 @@ function renderRows(array $products): string {
     ob_start();
     foreach ($products as $product) {
         ?>
-        <tr>
+        <tr data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>">
             <td class="product-title"><?= htmlspecialchars($product['lpa_stock_name']) ?></td>
             <td class="product-sku"><?= htmlspecialchars($product['lpa_invitem_inv_no']) ?></td>
             <td><?= htmlspecialchars($product['available']) ?></td>
             <td class="product-price"><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
-            <td><?= htmlspecialchars(statusLabel($product['lpa_stock_status'])) ?></td>
+            <td class="product-status"><?= htmlspecialchars(statusLabel($product['lpa_stock_status'])) ?></td>
             <td>
                 <button type="button" class="btn btn-sm btn-primary text-white me-1 edit-product"
                         data-id="<?= $product['lpa_stock_ID'] ?>"
@@ -222,7 +228,7 @@ ob_start();
     <div class="bg-white rounded shadow-sm p-4">
         <div class="d-flex justify-content-between mb-3">
             <input type="text" id="product-search" class="form-control w-25" placeholder="Search by name, SKU or price">
-            <select class="form-select w-25">
+            <select class="form-select w-25" id="status-filter">
                 <option value="">Status</option>
                 <option value="P">Published</option>
                 <option value="S">Scheduled</option>
@@ -250,6 +256,13 @@ ob_start();
             <?= $paginationHtml ?>
         </div>
     </div>
+<?php if (!empty($toastMessage)): ?>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        showToast({ message: <?= json_encode($toastMessage) ?>, type: 'success' });
+    });
+</script>
+<?php endif; ?>
 </div>
 <?php
 $pageContent = ob_get_clean();

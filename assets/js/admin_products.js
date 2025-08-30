@@ -78,18 +78,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const searchInput = document.getElementById('product-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            const term = searchInput.value.toLowerCase();
-            document.querySelectorAll('#products-table tbody tr').forEach(row => {
-                const name = row.querySelector('.product-title').textContent.toLowerCase();
-                const sku = row.querySelector('.product-sku').textContent.toLowerCase();
-                const price = row.querySelector('.product-price').textContent.toLowerCase();
-                row.style.display =
-                    name.includes(term) || sku.includes(term) || price.includes(term) ? '' : 'none';
-            });
+    const statusFilter = document.getElementById('status-filter');
+
+    function normalizeStatus(st) {
+        if (st === 'A') return 'P';
+        if (st === 'I') return 'U';
+        return st;
+    }
+
+    function filterRows() {
+        const term = searchInput ? searchInput.value.toLowerCase() : '';
+        const statusVal = statusFilter ? statusFilter.value : '';
+        document.querySelectorAll('#products-table tbody tr').forEach(row => {
+            const name = row.querySelector('.product-title').textContent.toLowerCase();
+            const sku = row.querySelector('.product-sku').textContent.toLowerCase();
+            const price = row.querySelector('.product-price').textContent.toLowerCase();
+            const rowStatus = normalizeStatus(row.dataset.status || '');
+            const matchesSearch = name.includes(term) || sku.includes(term) || price.includes(term);
+            const matchesStatus = !statusVal || rowStatus === statusVal;
+            row.style.display = matchesSearch && matchesStatus ? '' : 'none';
         });
     }
+
+    if (searchInput) searchInput.addEventListener('input', filterRows);
+    if (statusFilter) statusFilter.addEventListener('change', filterRows);
 
     function attachEditHandlers() {
         document.querySelectorAll('.edit-product').forEach(btn => {
@@ -125,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = data.rows;
             paginationContainer.innerHTML = data.pagination;
             attachEditHandlers();
+            filterRows();
         } catch (e) {
             console.error('Failed to load page', e);
         }
