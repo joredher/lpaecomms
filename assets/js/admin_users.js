@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmModal = confirmModalEl ? new bootstrap.Modal(confirmModalEl) : null;
     const confirmMessage = document.getElementById('confirmMessage');
     const confirmOk = document.getElementById('confirmOk');
+    const confirmTitle = confirmModalEl ? confirmModalEl.querySelector('.modal-title') : null;
     const usernameInput = document.getElementById('user-username');
     const emailInput = document.getElementById('user-email');
     const firstnameInput = document.getElementById('user-firstname');
@@ -150,7 +151,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 confirmMessage.textContent = `Are you sure to delete ${name}?`;
-                confirmOk.onclick = () => { window.location.href = url; };
+                if (confirmTitle) confirmTitle.textContent = 'Confirm Delete';
+                if (confirmOk) {
+                    confirmOk.textContent = 'Delete';
+                    confirmOk.className = 'btn btn-danger';
+                    confirmOk.onclick = () => { window.location.href = url; };
+                }
                 confirmModal.show();
             });
         });
@@ -169,8 +175,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return;
                 }
+                const title = action === 'activate' ? 'Confirm Activation' : 'Confirm Deactivation';
+                const btnText = action === 'activate' ? 'Activate' : 'Deactivate';
+                const btnClass = action === 'activate' ? 'btn btn-success' : 'btn btn-warning';
                 confirmMessage.textContent = `Are you sure to ${action} ${name}?`;
-                confirmOk.onclick = () => { window.location.href = url; };
+                if (confirmTitle) confirmTitle.textContent = title;
+                if (confirmOk) {
+                    confirmOk.textContent = btnText;
+                    confirmOk.className = btnClass;
+                    confirmOk.onclick = () => { window.location.href = url; };
+                }
                 confirmModal.show();
             });
         });

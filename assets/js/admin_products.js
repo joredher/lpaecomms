@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmModal = confirmModalEl ? new bootstrap.Modal(confirmModalEl) : null;
     const confirmMessage = document.getElementById('confirmMessage');
     const confirmOk = document.getElementById('confirmOk');
+    const confirmTitle = confirmModalEl ? confirmModalEl.querySelector('.modal-title') : null;
 
     function clampQty() {
         let val = parseInt(qtyInput.value, 10);
@@ -131,7 +132,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 confirmMessage.textContent = `Are you sure to delete ${name}?`;
-                confirmOk.onclick = () => { window.location.href = url; };
+                if (confirmTitle) confirmTitle.textContent = 'Confirm Delete';
+                if (confirmOk) {
+                    confirmOk.textContent = 'Delete';
+                    confirmOk.className = 'btn btn-danger';
+                    confirmOk.onclick = () => { window.location.href = url; };
+                }
                 confirmModal.show();
             });
         });

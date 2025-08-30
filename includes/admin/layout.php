@@ -53,13 +53,13 @@ $title = $title ?? 'Admin';
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
+                <h5 class="modal-title" id="confirmTitle">Confirm Action</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="confirmMessage">Are you sure to delete this item?</div>
+            <div class="modal-body" id="confirmMessage">Are you sure?</div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmOk">Delete</button>
+                <button type="button" class="btn btn-primary" id="confirmOk">OK</button>
             </div>
         </div>
     </div>
