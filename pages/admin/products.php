@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $imageName = $currentImage;
 
     if (!empty($_FILES['image']['name']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        if (!is_dir(PRODUCT_IMAGE_PATH)) {
-            mkdir(PRODUCT_IMAGE_PATH, 0777, true);
+        if (!is_dir(PRODUCT_IMAGE_PATH) && !mkdir($concurrentDirectory = PRODUCT_IMAGE_PATH, 0777, true) && !is_dir($concurrentDirectory)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
         }
         $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
         $imageName = uniqid('prod_', true) . ($ext ? ".{$ext}" : '');
