@@ -60,13 +60,33 @@ class ProductRepository extends BaseRepository
         return (int)$stmt->fetchColumn();
     }
 
-    public function countAll(string $search = ''): int
+    public function countAll(string $search = '', string $status = ''): int
     {
-        $sql = "SELECT COUNT(*) FROM {$this->table}";
+        $sql = "SELECT COUNT(*) FROM {$this->table} s";
+        $conditions = [];
         $params = [];
         if ($search !== '') {
-            $sql .= " WHERE lpa_stock_name LIKE :term OR lpa_invitem_inv_no LIKE :term OR lpa_stock_price LIKE :term";
+            $conditions[] = "(s.lpa_stock_name LIKE :term OR s.lpa_invitem_inv_no LIKE :term OR s.lpa_stock_price LIKE :term)";
             $params[':term'] = "%{$search}%";
+        }
+        if ($status !== '') {
+            switch ($status) {
+                case 'P':
+                    $conditions[] = "(s.lpa_stock_status IN ('P','A') OR (s.lpa_stock_status='S' AND s.lpa_stock_publish_at <= NOW()))";
+                    break;
+                case 'U':
+                    $conditions[] = "s.lpa_stock_status IN ('U','I')";
+                    break;
+                case 'S':
+                    $conditions[] = "s.lpa_stock_status = 'S' AND (s.lpa_stock_publish_at IS NULL OR s.lpa_stock_publish_at > NOW())";
+                    break;
+                default:
+                    $conditions[] = "s.lpa_stock_status = :status";
+                    $params[':status'] = $status;
+            }
+        }
+        if ($conditions) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
         }
         $stmt = $this->conn->prepare($sql);
         foreach ($params as $key => $val) {
@@ -76,14 +96,31 @@ class ProductRepository extends BaseRepository
         return (int)$stmt->fetchColumn();
     }
 
-    public function findPaginated(int $offset, int $limit, string $search = ''): array
+    public function findPaginated(int $offset, int $limit, string $search = '', string $status = ''): array
     {
-        $where = '';
+        $conditions = [];
         $params = [':offset' => $offset, ':limit' => $limit];
         if ($search !== '') {
-            $where = "WHERE s.lpa_stock_name LIKE :term OR s.lpa_invitem_inv_no LIKE :term OR s.lpa_stock_price LIKE :term";
+            $conditions[] = "(s.lpa_stock_name LIKE :term OR s.lpa_invitem_inv_no LIKE :term OR s.lpa_stock_price LIKE :term)";
             $params[':term'] = "%{$search}%";
         }
+        if ($status !== '') {
+            switch ($status) {
+                case 'P':
+                    $conditions[] = "(s.lpa_stock_status IN ('P','A') OR (s.lpa_stock_status='S' AND s.lpa_stock_publish_at <= NOW()))";
+                    break;
+                case 'U':
+                    $conditions[] = "s.lpa_stock_status IN ('U','I')";
+                    break;
+                case 'S':
+                    $conditions[] = "s.lpa_stock_status = 'S' AND (s.lpa_stock_publish_at IS NULL OR s.lpa_stock_publish_at > NOW())";
+                    break;
+                default:
+                    $conditions[] = "s.lpa_stock_status = :status";
+                    $params[':status'] = $status;
+            }
+        }
+        $where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
         $sql = "SELECT s.*, s.lpa_stock_onhand - COALESCE(p.purchased, 0) AS available
                 FROM {$this->table} s
                 LEFT JOIN (

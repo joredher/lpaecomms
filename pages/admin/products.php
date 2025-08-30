@@ -63,13 +63,14 @@ if (isset($_GET['status'])) {
     $toastMessage = $_GET['status'] === 'updated' ? 'Product updated' : 'Product created';
 }
 
-$searchTerm = trim($_GET['search'] ?? '');
+$searchTerm   = trim($_GET['search'] ?? '');
+$statusFilter = trim($_GET['status'] ?? '');
 $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
 $pageSize = 10;
 $offset   = ($pageNum - 1) * $pageSize;
-$total    = $repo->countAll($searchTerm);
+$total    = $repo->countAll($searchTerm, $statusFilter);
 $totalPages = (int)ceil($total / $pageSize);
-$products = $repo->findPaginated($offset, $pageSize, $searchTerm);
+$products = $repo->findPaginated($offset, $pageSize, $searchTerm, $statusFilter);
 
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
@@ -233,9 +234,9 @@ ob_start();
             <input type="text" id="product-search" class="form-control w-25" placeholder="Search by name, SKU or price">
             <select class="form-select w-25" id="status-filter">
                 <option value="">Status</option>
-                <option value="P">Published</option>
-                <option value="S">Scheduled</option>
-                <option value="U">Unpublished</option>
+                <option value="P"<?= $statusFilter === 'P' ? ' selected' : '' ?>>Published</option>
+                <option value="S"<?= $statusFilter === 'S' ? ' selected' : '' ?>>Scheduled</option>
+                <option value="U"<?= $statusFilter === 'U' ? ' selected' : '' ?>>Unpublished</option>
             </select>
         </div>
         <div class="table-responsive">

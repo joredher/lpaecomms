@@ -79,26 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const searchInput = document.getElementById('product-search');
     const statusFilter = document.getElementById('status-filter');
-
-    function normalizeStatus(st) {
-        if (st === 'A') return 'P';
-        if (st === 'I') return 'U';
-        return st;
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => loadPage(1));
     }
-
-    function filterByStatus() {
-        const statusVal = statusFilter ? statusFilter.value : '';
-        document.querySelectorAll('#products-table tbody tr').forEach(row => {
-            if (row.classList.contains('no-results')) {
-                row.style.display = '';
-                return;
-            }
-            const rowStatus = normalizeStatus(row.dataset.status || '');
-            row.style.display = !statusVal || rowStatus === statusVal ? '' : 'none';
-        });
-    }
-
-    if (statusFilter) statusFilter.addEventListener('change', filterByStatus);
 
     function attachEditHandlers() {
         document.querySelectorAll('.edit-product').forEach(btn => {
@@ -128,14 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadPage(page) {
         try {
             const term = searchInput ? searchInput.value.trim() : '';
-            const res = await fetch(`/admin.products?page_num=${page}&search=${encodeURIComponent(term)}`, {
+            const statusVal = statusFilter ? statusFilter.value : '';
+            const res = await fetch(`/admin.products?page_num=${page}&search=${encodeURIComponent(term)}&status=${statusVal}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             const data = await res.json();
             tbody.innerHTML = data.rows;
             paginationContainer.innerHTML = data.pagination;
             attachEditHandlers();
-            filterByStatus();
         } catch (e) {
             console.error('Failed to load page', e);
         }
@@ -169,6 +152,4 @@ document.addEventListener('DOMContentLoaded', () => {
             if (statusSelect.value !== 'S') publishInput.value = '';
         });
     }
-
-    filterByStatus();
 });
