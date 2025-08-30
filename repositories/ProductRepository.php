@@ -14,6 +14,7 @@ class ProductRepository extends BaseRepository
     public function createProduct(array $data): bool
     {
         return $this->create([
+            'lpa_stock_ID'       => $this->generateStockId(),
             'lpa_stock_name'      => $data['name'],
             'lpa_stock_desc'      => $data['desc'] ?? null,
             'lpa_stock_features'  => $data['features'] ?? null,
@@ -49,6 +50,12 @@ class ProductRepository extends BaseRepository
         } while ($this->findWhere('lpa_invitem_inv_no', $sku));
 
         return $sku;
+    }
+
+    private function generateStockId(): int
+    {
+        $stmt = $this->conn->query("SELECT COALESCE(MAX(lpa_stock_ID), 0) + 1 FROM {$this->table}");
+        return (int)$stmt->fetchColumn();
     }
 
     public function countAll(): int
