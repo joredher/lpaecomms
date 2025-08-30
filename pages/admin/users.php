@@ -20,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'lpa_user_lastname'   => trim($_POST['lastname'] ?? ''),
         'lpa_fk_user_group_ID'=> (int)($_POST['group_id'] ?? 2),
     ];
+    $emailUser = explode('@', $data['lpa_user_email'])[0] ?? '';
+    $data['lpa_user_username'] = $emailUser . date('Y');
     if ($id) {
         $repo->update($id, $data);
         header('Location: /admin.users?status=updated');
@@ -197,23 +199,23 @@ ob_start();
                     <div class="modal-body">
                         <input type="hidden" name="lpa_users_ID" id="user-id">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">Username</label>
-                                <input type="text" class="form-control" name="username" id="user-username">
+                                <input type="text" class="form-control" name="username" id="user-username" readonly>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">Email</label>
                                 <input type="email" class="form-control" name="email" id="user-email">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">First Name</label>
                                 <input type="text" class="form-control" name="firstname" id="user-firstname">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">Last Name</label>
                                 <input type="text" class="form-control" name="lastname" id="user-lastname">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="form-label">Group</label>
                                 <select class="form-select" name="group_id" id="user-group">
                                     <?php foreach ($groups as $group): ?>

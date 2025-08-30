@@ -15,6 +15,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmModal = confirmModalEl ? new bootstrap.Modal(confirmModalEl) : null;
     const confirmMessage = document.getElementById('confirmMessage');
     const confirmOk = document.getElementById('confirmOk');
+    const usernameInput = document.getElementById('user-username');
+    const emailInput = document.getElementById('user-email');
+
+    if (usernameInput) {
+        usernameInput.readOnly = true;
+    }
+    if (emailInput && usernameInput) {
+        emailInput.addEventListener('input', () => {
+            const localPart = emailInput.value.split('@')[0] || '';
+            const year = new Date().getFullYear();
+            usernameInput.value = localPart ? `${localPart}${year}` : '';
+        });
+    }
 
     if (userModalEl) {
         userModalEl.addEventListener('hidden.bs.modal', () => {
