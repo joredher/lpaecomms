@@ -85,7 +85,7 @@ function renderRows(array $products): string {
             <td class="product-price"><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
             <td class="product-status"><?= htmlspecialchars(statusLabel($product['lpa_stock_status'])) ?></td>
             <td>
-                <button type="button" class="btn btn-sm btn-primary text-white me-1 edit-product"
+                <button type="button" class="btn btn-sm btn-primary text-white me-1 edit-product" data-bs-toggle="tooltip" title="Edit"
                         data-id="<?= $product['lpa_stock_ID'] ?>"
                         data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"
                         data-desc="<?= htmlspecialchars($product['lpa_stock_desc'] ?? '', ENT_QUOTES) ?>"
@@ -96,12 +96,8 @@ function renderRows(array $products): string {
                         data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
                         data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
                         data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
-                        data-publish-at="<?= htmlspecialchars($product['lpa_stock_publish_at'] ?? '', ENT_QUOTES) ?>">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>"
-                   class="btn btn-sm btn-danger text-white delete-product"
-                   data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"><i class="bi bi-trash"></i></a>
+                        data-publish-at="<?= htmlspecialchars($product['lpa_stock_publish_at'] ?? '', ENT_QUOTES) ?>"><i class="bi bi-pencil"></i></button>
+                <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>" class="btn btn-sm btn-danger text-white delete-product" data-bs-toggle="tooltip" title="Delete" data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"><i class="bi bi-trash"></i></a>
             </td>
         </tr>
         <?php

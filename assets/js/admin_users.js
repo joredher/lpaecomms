@@ -175,10 +175,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+    function initTooltips() {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+    }
 
     attachEditHandlers();
     attachDeleteHandlers();
     attachStatusHandlers();
+    initTooltips();
 
     async function loadPage(page) {
         try {
@@ -192,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             attachEditHandlers();
             attachDeleteHandlers();
             attachStatusHandlers();
+            initTooltips();
         } catch (e) {
             console.error('Failed to load page', e);
         }
