@@ -28,7 +28,13 @@ function renderRows(array $orders): string
             <td><a href="/orders.show?id=<?= htmlspecialchars($order['id']) ?>" target="_blank"><?= htmlspecialchars($order['invoice_number']) ?></a></td>
             <td><?= htmlspecialchars($order['client_name']) ?></td>
             <td><?= htmlspecialchars(date('d M Y', strtotime($order['created_at']))) ?></td>
-            <td><?= htmlspecialchars(statusLabel($order['status'])) ?></td>
+            <td>
+                <select class="form-select form-select-sm order-status" data-order-id="<?= htmlspecialchars($order['id']) ?>">
+                    <option value="A"<?= $order['status'] === 'A' ? ' selected' : '' ?>>Active</option>
+                    <option value="P"<?= $order['status'] === 'P' ? ' selected' : '' ?>>Pending</option>
+                    <option value="C"<?= $order['status'] === 'C' ? ' selected' : '' ?>>Cancelled</option>
+                </select>
+            </td>
             <td>AUD <?= number_format((float)$order['total_amount'], 2) ?></td>
         </tr>
     <?php }
@@ -57,16 +63,6 @@ if ($isAjax) {
     header('Content-Type: application/json');
     echo json_encode(['rows' => $rowsHtml, 'pagination' => $paginationHtml]);
     exit;
-}
-
-function statusLabel($code)
-{
-    return match ($code) {
-        'A' => 'Active',
-        'P' => 'Pending',
-        'C' => 'Cancelled',
-        default => 'Unknown',
-    };
 }
 
 $title = 'Orders';
