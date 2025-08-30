@@ -22,6 +22,7 @@ class ProductRepository extends BaseRepository
             'lpa_stock_price'     => $data['price'] ?? 0,
             'lpa_stock_image'     => $data['image'] ?? null,
             'lpa_stock_status'    => $data['status'] ?? 'P',
+            'lpa_stock_publish_at'=> $data['publish_at'] ?? null,
             'lpa_fk_category_ID'  => $data['category_id'] ?? 0,
             'lpa_fk_type_ID'      => $data['type_id'] ?? 0,
             'lpa_invitem_inv_no'  => $this->generateSku(),
@@ -38,6 +39,7 @@ class ProductRepository extends BaseRepository
             'lpa_stock_price'     => $data['price'] ?? 0,
             'lpa_stock_image'     => $data['image'] ?? null,
             'lpa_stock_status'    => $data['status'] ?? 'P',
+            'lpa_stock_publish_at'=> $data['publish_at'] ?? null,
             'lpa_fk_category_ID'  => $data['category_id'] ?? 0,
             'lpa_fk_type_ID'      => $data['type_id'] ?? 0,
         ]);
@@ -81,7 +83,13 @@ class ProductRepository extends BaseRepository
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+        foreach ($rows as &$row) {
+            if ($row['lpa_stock_status'] === 'S' && !empty($row['lpa_stock_publish_at']) && strtotime($row['lpa_stock_publish_at']) <= time()) {
+                $row['lpa_stock_status'] = 'P';
+            }
+        }
+        return $rows;
     }
 
     public function getCategories(): array

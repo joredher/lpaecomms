@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const typeSelect = document.getElementById('product-type');
     const qtyInput = document.getElementById('product-qty');
     const priceInput = document.getElementById('product-price');
+    const statusSelect = document.getElementById('product-status');
+    const publishGroup = document.getElementById('publish-at-group');
+    const publishInput = document.getElementById('product-publish-at');
 
     function clampQty() {
         let val = parseInt(qtyInput.value, 10);
@@ -29,6 +32,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (qtyInput) qtyInput.addEventListener('blur', clampQty);
     if (priceInput) priceInput.addEventListener('blur', formatPrice);
+    function togglePublishAt() {
+        if (!statusSelect) return;
+        publishGroup.style.display = statusSelect.value === 'S' ? '' : 'none';
+        if (statusSelect.value !== 'S') publishInput.value = '';
+    }
+    if (statusSelect) statusSelect.addEventListener('change', togglePublishAt);
 
     async function loadTypes(selectedType = '') {
         typeSelect.innerHTML = '<option value="">Select Type</option>';
@@ -53,12 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
         idInput.value = '';
         currentImageInput.value = '';
         typeSelect.innerHTML = '<option value="">Select Type</option>';
+        publishInput.value = '';
+        publishGroup.style.display = 'none';
     });
 
     if (addBtn) {
         addBtn.addEventListener('click', () => {
             loadTypes();
             currentImageInput.value = '';
+            togglePublishAt();
             productModal.show();
         });
     }
@@ -90,6 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const st = btn.dataset.status;
             document.getElementById('product-status').value =
                 st === 'A' ? 'P' : st === 'I' ? 'U' : (st || 'P');
+            publishInput.value = (btn.dataset.publishAt || '').replace(' ', 'T').slice(0,16);
+            togglePublishAt();
             categorySelect.value = btn.dataset.category || '';
             loadTypes(btn.dataset.type);
             productModal.show();
@@ -103,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isNaN(val)) val = 0;
             val = Math.min(Math.max(val, 0), 999999);
             priceInput.value = val;
+            if (statusSelect.value !== 'S') publishInput.value = '';
         });
     }
 });

@@ -38,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'price'       => $price,
         'image'       => $imageName,
         'status'      => trim($_POST['status'] ?? 'P'),
+        'publish_at'  => !empty($_POST['publish_at']) ? date('Y-m-d H:i:s', strtotime($_POST['publish_at'])) : null,
         'category_id' => trim($_POST['category_id'] ?? 0),
         'type_id'     => trim($_POST['type_id'] ?? 0),
     ];
@@ -146,6 +147,10 @@ ob_start();
                                     <option value="U">Unpublished</option>
                                 </select>
                             </div>
+                            <div class="col-md-6" id="publish-at-group" style="display:none;">
+                                <label class="form-label">Publish At</label>
+                                <input type="datetime-local" class="form-control" name="publish_at" id="product-publish-at">
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -199,6 +204,7 @@ ob_start();
                                     data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
                                     data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
                                     data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
+                                    data-publish-at="<?= htmlspecialchars($product['lpa_stock_publish_at'] ?? '', ENT_QUOTES) ?>"
                             ><i class="bi bi-pencil"></i></button>
                             <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>"
                                class="btn btn-sm btn-danger text-white"
