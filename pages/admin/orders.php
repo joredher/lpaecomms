@@ -1,10 +1,147 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once __DIR__ . '/../../bootstrap.php';
+
+$searchTerm   = trim($_GET['search'] ?? '');
+$statusFilter = trim($_GET['status'] ?? '');
+$pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+$pageSize = 10;
+$offset   = ($pageNum - 1) * $pageSize;
+
+$conn = Database::getConnection();
+$conditions = [];
+$params = [];
+
+if ($searchTerm !== '') {
+    $conditions[] = '(lpa_inv_no LIKE :term OR lpa_inv_client_name LIKE :term)';
+    $params[':term'] = "%{$searchTerm}%";
+}
+if ($statusFilter !== '') {
+    $conditions[] = 'lpa_inv_status = :status';
+    $params[':status'] = $statusFilter;
+}
+
+$countSql = 'SELECT COUNT(*) FROM lpa_invoices';
+if ($conditions) {
+    $countSql .= ' WHERE ' . implode(' AND ', $conditions);
+}
+$stmt = $conn->prepare($countSql);
+foreach ($params as $key => $val) {
+    $stmt->bindValue($key, $val, PDO::PARAM_STR);
+}
+$stmt->execute();
+$total = (int)$stmt->fetchColumn();
+$totalPages = (int)ceil($total / $pageSize);
+
+$dataSql = 'SELECT lpa_invoices_ID AS id, lpa_inv_no AS invoice_number, lpa_inv_client_name AS client_name, lpa_inv_date AS created_at, lpa_inv_status AS status, lpa_inv_amount AS total_amount FROM lpa_invoices';
+if ($conditions) {
+    $dataSql .= ' WHERE ' . implode(' AND ', $conditions);
+}
+$dataSql .= ' ORDER BY lpa_invoices_ID DESC LIMIT :offset, :limit';
+
+$stmt = $conn->prepare($dataSql);
+foreach ($params as $key => $val) {
+    $stmt->bindValue($key, $val, PDO::PARAM_STR);
+}
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->bindValue(':limit', $pageSize, PDO::PARAM_INT);
+$stmt->execute();
+$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+function statusLabel($code)
+{
+    return match ($code) {
+        'A' => 'Active',
+        'P' => 'Pending',
+        'C' => 'Cancelled',
+        default => 'Unknown',
+    };
+}
+
+function renderRows(array $orders): string
+{
+    ob_start();
+    foreach ($orders as $order) { ?>
+        <tr>
+            <td><a href="/orders.show?id=<?= htmlspecialchars($order['id']) ?>" target="_blank"><?= htmlspecialchars($order['invoice_number']) ?></a></td>
+            <td><?= htmlspecialchars($order['client_name']) ?></td>
+            <td><?= htmlspecialchars(date('d M Y', strtotime($order['created_at']))) ?></td>
+            <td><?= htmlspecialchars(statusLabel($order['status'])) ?></td>
+            <td>AUD <?= number_format((float)$order['total_amount'], 2) ?></td>
+        </tr>
+    <?php }
+    return ob_get_clean();
+}
+
+function renderAdminPagination(int $current, int $totalPages): string
+{
+    if ($totalPages <= 1) return '';
+    ob_start();
+    echo '<nav><ul class="pagination pagination-sm" id="pagination">';
+    for ($i = 1; $i <= $totalPages; $i++) {
+        $active = $i === $current ? ' active' : '';
+        echo "<li class='page-item$active'><a href='#' class='page-link' data-page='$i'>$i</a></li>";
+    }
+    echo '</ul></nav>';
+    return ob_get_clean();
+}
+
+$rowsHtml = $orders
+    ? renderRows($orders)
+    : '<tr class="no-results"><td colspan="5" class="text-center py-4">No orders found.</td></tr>';
+$paginationHtml = $totalPages > 1 ? renderAdminPagination($pageNum, $totalPages) : '';
+
+if ($isAjax) {
+    header('Content-Type: application/json');
+    echo json_encode(['rows' => $rowsHtml, 'pagination' => $paginationHtml]);
+    exit;
+}
+
 $title = 'Orders';
+$adminJs = '../assets/js/admin_orders.js';
 ob_start();
 ?>
 <div class="container-account">
-    <h1>Orders</h1>
+    <h1 class="h3 mb-4">Orders</h1>
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-3">
+                <input type="text" id="order-search" class="form-control w-25" placeholder="Search by number or client" value="<?= htmlspecialchars($searchTerm) ?>">
+                <select class="form-select w-25" id="status-filter">
+                    <option value="">Status</option>
+                    <option value="A"<?= $statusFilter === 'A' ? ' selected' : '' ?>>Active</option>
+                    <option value="P"<?= $statusFilter === 'P' ? ' selected' : '' ?>>Pending</option>
+                    <option value="C"<?= $statusFilter === 'C' ? ' selected' : '' ?>>Cancelled</option>
+                </select>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>Invoice</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                    </tr>
+                    </thead>
+                    <tbody id="order-rows">
+                    <?= $rowsHtml ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3" id="pagination-container">
+                <?= $paginationHtml ?>
+            </div>
+        </div>
+    </div>
 </div>
 <?php
 $pageContent = ob_get_clean();
 include 'includes/admin/layout.php';
+
