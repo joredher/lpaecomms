@@ -4,7 +4,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../bootstrap.php';
-require_once __DIR__ . '/../../includes/pagination.php';
 loadRepo('repositories/ProductRepository.php');
 
 $repo = new ProductRepository();
@@ -64,6 +63,64 @@ $offset   = ($pageNum - 1) * $pageSize;
 $total    = $repo->countAll();
 $totalPages = (int)ceil($total / $pageSize);
 $products = $repo->findPaginated($offset, $pageSize);
+
+$isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+function renderRows(array $products): string {
+    ob_start();
+    foreach ($products as $product) {
+        ?>
+        <tr>
+            <td class="product-title"><?= htmlspecialchars($product['lpa_stock_name']) ?></td>
+            <td class="product-sku"><?= htmlspecialchars($product['lpa_invitem_inv_no']) ?></td>
+            <td><?= htmlspecialchars($product['available']) ?></td>
+            <td class="product-price"><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
+            <td><?= htmlspecialchars(statusLabel($product['lpa_stock_status'])) ?></td>
+            <td>
+                <button type="button" class="btn btn-sm btn-primary text-white me-1 edit-product"
+                        data-id="<?= $product['lpa_stock_ID'] ?>"
+                        data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"
+                        data-desc="<?= htmlspecialchars($product['lpa_stock_desc'] ?? '', ENT_QUOTES) ?>"
+                        data-features="<?= htmlspecialchars($product['lpa_stock_features'] ?? '', ENT_QUOTES) ?>"
+                        data-qty="<?= htmlspecialchars($product['lpa_stock_onhand'], ENT_QUOTES) ?>"
+                        data-price="<?= htmlspecialchars($product['lpa_stock_price'], ENT_QUOTES) ?>"
+                        data-image="<?= htmlspecialchars($product['lpa_stock_image'] ?? '', ENT_QUOTES) ?>"
+                        data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
+                        data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
+                        data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
+                        data-publish-at="<?= htmlspecialchars($product['lpa_stock_publish_at'] ?? '', ENT_QUOTES) ?>">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>"
+                   class="btn btn-sm btn-danger text-white"
+                   onclick="return confirm('Delete this product?');"><i class="bi bi-trash"></i></a>
+            </td>
+        </tr>
+        <?php
+    }
+    return ob_get_clean();
+}
+
+function renderAdminPagination(int $current, int $totalPages): string {
+    if ($totalPages <= 1) return '';
+    ob_start();
+    echo '<nav><ul class="pagination pagination-sm" id="pagination">';
+    for ($i = 1; $i <= $totalPages; $i++) {
+        $active = $i === $current ? ' active' : '';
+        echo "<li class='page-item$active'><a href='#' class='page-link' data-page='$i'>$i</a></li>";
+    }
+    echo '</ul></nav>';
+    return ob_get_clean();
+}
+
+$rowsHtml = renderRows($products);
+$paginationHtml = renderAdminPagination($pageNum, $totalPages);
+
+if ($isAjax) {
+    header('Content-Type: application/json');
+    echo json_encode(['rows' => $rowsHtml, 'pagination' => $paginationHtml]);
+    exit;
+}
 
 function statusLabel($code) {
     return match ($code) {
@@ -184,39 +241,13 @@ ob_start();
                     <th>Actions</th>
                 </tr>
                 </thead>
-                <tbody>
-                <?php foreach ($products as $product): ?>
-                    <tr>
-                        <td class="product-title"><?= htmlspecialchars($product['lpa_stock_name']) ?></td>
-                        <td class="product-sku"><?= htmlspecialchars($product['lpa_invitem_inv_no']) ?></td>
-                        <td><?= htmlspecialchars($product['available']) ?></td>
-                        <td class="product-price"><?= htmlspecialchars($product['lpa_stock_price']) ?></td>
-                        <td><?= htmlspecialchars(statusLabel($product['lpa_stock_status'])) ?></td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-primary text-white me-1 edit-product"
-                                    data-id="<?= $product['lpa_stock_ID'] ?>"
-                                    data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"
-                                    data-desc="<?= htmlspecialchars($product['lpa_stock_desc'] ?? '', ENT_QUOTES) ?>"
-                                    data-features="<?= htmlspecialchars($product['lpa_stock_features'] ?? '', ENT_QUOTES) ?>"
-                                    data-qty="<?= htmlspecialchars($product['lpa_stock_onhand'], ENT_QUOTES) ?>"
-                                    data-price="<?= htmlspecialchars($product['lpa_stock_price'], ENT_QUOTES) ?>"
-                                    data-image="<?= htmlspecialchars($product['lpa_stock_image'] ?? '', ENT_QUOTES) ?>"
-                                    data-status="<?= htmlspecialchars($product['lpa_stock_status'], ENT_QUOTES) ?>"
-                                    data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
-                                    data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
-                                    data-publish-at="<?= htmlspecialchars($product['lpa_stock_publish_at'] ?? '', ENT_QUOTES) ?>"
-                            ><i class="bi bi-pencil"></i></button>
-                            <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>"
-                               class="btn btn-sm btn-danger text-white"
-                               onclick="return confirm('Delete this product?');"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
+                <tbody id="product-rows">
+                <?= $rowsHtml ?>
                 </tbody>
             </table>
         </div>
-        <div class="mt-3">
-            <?= renderPagination($pageNum, $totalPages, ['route' => 'admin.products']) ?>
+        <div class="mt-3" id="pagination-container">
+            <?= $paginationHtml ?>
         </div>
     </div>
 </div>

@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusSelect = document.getElementById('product-status');
     const publishGroup = document.getElementById('publish-at-group');
     const publishInput = document.getElementById('product-publish-at');
+    const paginationContainer = document.getElementById('pagination-container');
+    const tbody = document.getElementById('product-rows');
 
     function clampQty() {
         let val = parseInt(qtyInput.value, 10);
@@ -89,26 +91,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    document.querySelectorAll('.edit-product').forEach(btn => {
-        btn.addEventListener('click', () => {
-            idInput.value = btn.dataset.id;
-            document.getElementById('product-name').value = btn.dataset.name || '';
-            document.getElementById('product-desc').value = btn.dataset.desc || '';
-            document.getElementById('product-features').value = btn.dataset.features || '';
-            document.getElementById('product-qty').value = btn.dataset.qty || '';
-            priceInput.value = btn.dataset.price || '';
-            formatPrice();
-            currentImageInput.value = btn.dataset.image || '';
-            const st = btn.dataset.status;
-            document.getElementById('product-status').value =
-                st === 'A' ? 'P' : st === 'I' ? 'U' : (st || 'P');
-            publishInput.value = (btn.dataset.publishAt || '').replace(' ', 'T').slice(0,16);
-            togglePublishAt();
-            categorySelect.value = btn.dataset.category || '';
-            loadTypes(btn.dataset.type);
-            productModal.show();
+    function attachEditHandlers() {
+        document.querySelectorAll('.edit-product').forEach(btn => {
+            btn.addEventListener('click', () => {
+                idInput.value = btn.dataset.id;
+                document.getElementById('product-name').value = btn.dataset.name || '';
+                document.getElementById('product-desc').value = btn.dataset.desc || '';
+                document.getElementById('product-features').value = btn.dataset.features || '';
+                document.getElementById('product-qty').value = btn.dataset.qty || '';
+                priceInput.value = btn.dataset.price || '';
+                formatPrice();
+                currentImageInput.value = btn.dataset.image || '';
+                const st = btn.dataset.status;
+                document.getElementById('product-status').value =
+                    st === 'A' ? 'P' : st === 'I' ? 'U' : (st || 'P');
+                publishInput.value = (btn.dataset.publishAt || '').replace(' ', 'T').slice(0,16);
+                togglePublishAt();
+                categorySelect.value = btn.dataset.category || '';
+                loadTypes(btn.dataset.type);
+                productModal.show();
+            });
         });
-    });
+    }
+
+    attachEditHandlers();
+
+    async function loadPage(page) {
+        try {
+            const res = await fetch(`/admin.products?page_num=${page}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            tbody.innerHTML = data.rows;
+            paginationContainer.innerHTML = data.pagination;
+            attachEditHandlers();
+        } catch (e) {
+            console.error('Failed to load page', e);
+        }
+    }
+
+    if (paginationContainer) {
+        paginationContainer.addEventListener('click', (e) => {
+            const link = e.target.closest('a.page-link');
+            if (!link) return;
+            e.preventDefault();
+            const page = link.dataset.page;
+            loadPage(page);
+        });
+    }
 
     if (form) {
         form.addEventListener('submit', () => {
