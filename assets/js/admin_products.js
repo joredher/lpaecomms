@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const publishInput = document.getElementById('product-publish-at');
     const paginationContainer = document.getElementById('pagination-container');
     const tbody = document.getElementById('product-rows');
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+    const modalTitle = productModalEl ? productModalEl.querySelector('.modal-title') : null;
 
     function clampQty() {
         let val = parseInt(qtyInput.value, 10);
@@ -66,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
         typeSelect.innerHTML = '<option value="">Select Type</option>';
         publishInput.value = '';
         publishGroup.style.display = 'none';
+        if (submitBtn) submitBtn.textContent = 'Save Product';
+        if (modalTitle) modalTitle.textContent = 'Add Product';
     });
 
     if (addBtn) {
@@ -73,6 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
             loadTypes();
             currentImageInput.value = '';
             togglePublishAt();
+            if (submitBtn) submitBtn.textContent = 'Save Product';
+            if (modalTitle) modalTitle.textContent = 'Add Product';
             productModal.show();
         });
     }
@@ -101,6 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 togglePublishAt();
                 categorySelect.value = btn.dataset.category || '';
                 loadTypes(btn.dataset.type);
+                if (submitBtn) submitBtn.textContent = 'Update Product';
+                if (modalTitle) modalTitle.textContent = 'Edit Product';
                 productModal.show();
             });
         });

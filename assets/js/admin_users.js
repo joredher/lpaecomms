@@ -9,16 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const idInput = document.getElementById('user-id');
     const paginationContainer = document.getElementById('pagination-container');
     const tbody = document.getElementById('user-rows');
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+    const modalTitle = userModalEl ? userModalEl.querySelector('.modal-title') : null;
 
     if (userModalEl) {
         userModalEl.addEventListener('hidden.bs.modal', () => {
             form.reset();
             idInput.value = '';
+            if (submitBtn) submitBtn.textContent = 'Save User';
+            if (modalTitle) modalTitle.textContent = 'Add User';
         });
     }
 
     if (addBtn && userModal) {
         addBtn.addEventListener('click', () => {
+            if (submitBtn) submitBtn.textContent = 'Save User';
+            if (modalTitle) modalTitle.textContent = 'Add User';
             userModal.show();
         });
     }
@@ -33,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('user-lastname').value = btn.dataset.lastname || '';
                 document.getElementById('user-group').value = btn.dataset.group || '';
                 document.getElementById('user-status').value = btn.dataset.status || 'A';
+                if (submitBtn) submitBtn.textContent = 'Update User';
+                if (modalTitle) modalTitle.textContent = 'Edit User';
                 if (userModal) userModal.show();
             });
         });
