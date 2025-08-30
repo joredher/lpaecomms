@@ -4,16 +4,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.getElementById('order-rows');
     const paginationContainer = document.getElementById('pagination-container');
 
+    function attachActionHandlers() {
+        document.querySelectorAll('[data-order-action="cancel"]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (!confirm('Cancel this order?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    }
+
+    function initTooltips() {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+    }
+
     async function loadPage(page) {
         try {
             const term = searchInput ? searchInput.value.trim() : '';
             const statusVal = statusFilter ? statusFilter.value : '';
-            const res = await fetch(`/admin.orders?page_num=${page}&search=${encodeURIComponent(term)}&status=${statusVal}`, {
+            const url = `/admin.orders?page_num=${page}&search=${encodeURIComponent(term)}&status=${encodeURIComponent(statusVal)}`;
+            const res = await fetch(url, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             const data = await res.json();
             if (tbody) tbody.innerHTML = data.rows;
             if (paginationContainer) paginationContainer.innerHTML = data.pagination;
+            attachActionHandlers();
+            initTooltips();
         } catch (e) {
             console.error('Failed to load orders', e);
         }
@@ -39,5 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchTimer = setTimeout(() => loadPage(1), 300);
         });
     }
-});
 
+    attachActionHandlers();
+    initTooltips();
+});
