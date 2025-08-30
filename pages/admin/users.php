@@ -18,16 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'lpa_user_firstname'  => trim($_POST['firstname'] ?? ''),
         'lpa_user_lastname'   => trim($_POST['lastname'] ?? ''),
         'lpa_fk_user_group_ID'=> (int)($_POST['group_id'] ?? 2),
-        'lpa_user_status'     => trim($_POST['status'] ?? 'A'),
     ];
-    $password = trim($_POST['password'] ?? '');
-    if ($password !== '') {
-        $data['lpa_user_password'] = password_hash($password, PASSWORD_DEFAULT);
-    }
     if ($id) {
         $repo->update($id, $data);
         header('Location: /admin.users?status=updated');
     } else {
+        $data['lpa_user_password'] = password_hash('stage123.', PASSWORD_DEFAULT);
+        $data['lpa_user_status'] = 'I';
         $repo->create($data);
         header('Location: /admin.users?status=created');
     }

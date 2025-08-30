@@ -210,4 +210,13 @@ class UserRepository extends BaseRepository
         return $stmt->fetchAll();
     }
 
+    /**
+     * Update a user's status.
+     */
+    public function setStatus(int $id, string $status): bool
+    {
+        $stmt = $this->conn->prepare("UPDATE {$this->table} SET lpa_user_status = :status WHERE lpa_users_ID = :id");
+        return $stmt->execute([':status' => $status, ':id' => $id]);
+    }
+
 }
