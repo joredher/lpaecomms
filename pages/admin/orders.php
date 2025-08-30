@@ -36,6 +36,9 @@ function renderRows(array $orders): string
                 </select>
             </td>
             <td>AUD <?= number_format((float)$order['total_amount'], 2) ?></td>
+            <td>
+                <a href="/orders.show?id=<?= htmlspecialchars($order['id']) ?>" class="btn btn-sm btn-outline-primary" target="_blank">View</a>
+            </td>
         </tr>
     <?php }
     return ob_get_clean();
@@ -56,7 +59,7 @@ function renderAdminPagination(int $current, int $totalPages): string
 
 $rowsHtml = $orders
     ? renderRows($orders)
-    : '<tr class="no-results"><td colspan="5" class="text-center py-4">No orders found.</td></tr>';
+    : '<tr class="no-results"><td colspan="6" class="text-center py-4">No orders found.</td></tr>';
 $paginationHtml = $totalPages > 1 ? renderAdminPagination($pageNum, $totalPages) : '';
 
 if ($isAjax) {
@@ -91,6 +94,7 @@ ob_start();
                         <th>Date</th>
                         <th>Status</th>
                         <th>Total</th>
+                        <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody id="order-rows">
