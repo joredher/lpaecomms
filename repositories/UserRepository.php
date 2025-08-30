@@ -29,6 +29,24 @@ class UserRepository extends BaseRepository
     }
 
     /**
+     * Check if an email already exists. Optionally exclude a given user ID.
+     */
+    public function emailExists(string $email, ?int $excludeId = null): bool
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE lpa_user_email = :email";
+        $params = [':email' => $email];
+
+        if ($excludeId) {
+            $sql .= " AND lpa_users_ID != :id";
+            $params[':id'] = $excludeId;
+        }
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /**
      * Find user by ID (override for cleaner name)
      */
     public function findById($id)

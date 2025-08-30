@@ -11,6 +11,15 @@ $repo = new UserRepository();
 $groups = $repo->getGroups();
 $toastMessage = '';
 
+if (isset($_GET['check_email'])) {
+    $email = trim($_GET['check_email']);
+    $excludeId = isset($_GET['id']) ? (int)$_GET['id'] : null;
+    $exists = $repo->emailExists($email, $excludeId);
+    header('Content-Type: application/json');
+    echo json_encode(['exists' => $exists]);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['lpa_users_ID'] ?? null;
     $data = [
@@ -22,6 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
     $emailUser = explode('@', $data['lpa_user_email'])[0] ?? '';
     $data['lpa_user_username'] = $emailUser . date('Y');
+    if (preg_match('/\d/', $data['lpa_user_firstname']) || preg_match('/\d/', $data['lpa_user_lastname'])) {
+        header('Location: /admin.users?status=invalid_name');
+        exit;
+    }
+    if ($repo->emailExists($data['lpa_user_email'], $id ? (int)$id : null)) {
+        header('Location: /admin.users?status=email_exists');
+        exit;
+    }
     if ($id) {
         $repo->update($id, $data);
         header('Location: /admin.users?status=updated');
@@ -91,6 +108,12 @@ if (isset($_GET['status'])) {
             break;
         case 'deactivated':
             $toastMessage = 'User deactivated';
+            break;
+        case 'email_exists':
+            $toastMessage = 'Email already exists';
+            break;
+        case 'invalid_name':
+            $toastMessage = 'Names cannot contain numbers';
             break;
     }
 }
@@ -206,14 +229,17 @@ ob_start();
                             <div class="col-md-12">
                                 <label class="form-label">Email</label>
                                 <input type="email" class="form-control" name="email" id="user-email">
+                                <div class="invalid-feedback" id="email-error"></div>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">First Name</label>
                                 <input type="text" class="form-control" name="firstname" id="user-firstname">
+                                <div class="invalid-feedback" id="firstname-error"></div>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Last Name</label>
                                 <input type="text" class="form-control" name="lastname" id="user-lastname">
+                                <div class="invalid-feedback" id="lastname-error"></div>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Group</label>

@@ -17,23 +17,95 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmOk = document.getElementById('confirmOk');
     const usernameInput = document.getElementById('user-username');
     const emailInput = document.getElementById('user-email');
+    const firstnameInput = document.getElementById('user-firstname');
+    const lastnameInput = document.getElementById('user-lastname');
+    const emailError = document.getElementById('email-error');
+    const firstnameError = document.getElementById('firstname-error');
+    const lastnameError = document.getElementById('lastname-error');
 
     if (usernameInput) {
         usernameInput.readOnly = true;
     }
+    function updateSubmitState() {
+        if (!submitBtn) return;
+        submitBtn.disabled = document.querySelectorAll('.is-invalid').length > 0;
+    }
+
+    async function checkEmail() {
+        if (!emailInput) return;
+        const email = emailInput.value.trim();
+        if (!email) {
+            emailInput.classList.remove('is-invalid');
+            if (emailError) emailError.textContent = '';
+            updateSubmitState();
+            return;
+        }
+        try {
+            const idVal = idInput.value || '';
+            const res = await fetch(`/admin.users?check_email=${encodeURIComponent(email)}&id=${idVal}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            if (data.exists) {
+                emailInput.classList.add('is-invalid');
+                if (emailError) emailError.textContent = 'Email already exists';
+            } else {
+                emailInput.classList.remove('is-invalid');
+                if (emailError) emailError.textContent = '';
+            }
+        } catch (e) {
+            console.error('Failed to validate email', e);
+        }
+        updateSubmitState();
+    }
+
+    function validateName(input, errorEl) {
+        if (!input) return;
+        const val = input.value;
+        if (/\d/.test(val)) {
+            input.classList.add('is-invalid');
+            if (errorEl) errorEl.textContent = 'Numbers are not allowed';
+        } else {
+            input.classList.remove('is-invalid');
+            if (errorEl) errorEl.textContent = '';
+        }
+        updateSubmitState();
+    }
+
     if (emailInput && usernameInput) {
+        let emailTimer;
         emailInput.addEventListener('input', () => {
             const localPart = emailInput.value.split('@')[0] || '';
             const year = new Date().getFullYear();
             usernameInput.value = localPart ? `${localPart}${year}` : '';
+            clearTimeout(emailTimer);
+            emailTimer = setTimeout(checkEmail, 300);
         });
+        emailInput.addEventListener('blur', checkEmail);
+    }
+
+    if (firstnameInput) {
+        firstnameInput.addEventListener('input', () => validateName(firstnameInput, firstnameError));
+    }
+
+    if (lastnameInput) {
+        lastnameInput.addEventListener('input', () => validateName(lastnameInput, lastnameError));
     }
 
     if (userModalEl) {
         userModalEl.addEventListener('hidden.bs.modal', () => {
             form.reset();
             idInput.value = '';
-            if (submitBtn) submitBtn.textContent = 'Save User';
+            [emailInput, firstnameInput, lastnameInput].forEach(inp => {
+                if (inp) inp.classList.remove('is-invalid');
+            });
+            [emailError, firstnameError, lastnameError].forEach(el => {
+                if (el) el.textContent = '';
+            });
+            if (submitBtn) {
+                submitBtn.textContent = 'Save User';
+                submitBtn.disabled = false;
+            }
             if (modalTitle) modalTitle.textContent = 'Add User';
         });
     }
@@ -57,6 +129,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('user-group').value = btn.dataset.group || '';
                 if (submitBtn) submitBtn.textContent = 'Update User';
                 if (modalTitle) modalTitle.textContent = 'Edit User';
+                checkEmail();
+                validateName(firstnameInput, firstnameError);
+                validateName(lastnameInput, lastnameError);
                 if (userModal) userModal.show();
             });
         });
