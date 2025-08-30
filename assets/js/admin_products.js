@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const publishInput = document.getElementById('product-publish-at');
     const paginationContainer = document.getElementById('pagination-container');
     const tbody = document.getElementById('product-rows');
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+    const modalTitle = productModalEl ? productModalEl.querySelector('.modal-title') : null;
+    const confirmModalEl = document.getElementById('confirmModal');
+    const confirmModal = confirmModalEl ? new bootstrap.Modal(confirmModalEl) : null;
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmOk = document.getElementById('confirmOk');
+    const confirmTitle = confirmModalEl ? confirmModalEl.querySelector('.modal-title') : null;
 
     function clampQty() {
         let val = parseInt(qtyInput.value, 10);
@@ -66,6 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
         typeSelect.innerHTML = '<option value="">Select Type</option>';
         publishInput.value = '';
         publishGroup.style.display = 'none';
+        if (submitBtn) submitBtn.textContent = 'Save Product';
+        if (modalTitle) modalTitle.textContent = 'Add Product';
     });
 
     if (addBtn) {
@@ -73,6 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
             loadTypes();
             currentImageInput.value = '';
             togglePublishAt();
+            if (submitBtn) submitBtn.textContent = 'Save Product';
+            if (modalTitle) modalTitle.textContent = 'Add Product';
             productModal.show();
         });
     }
@@ -101,12 +112,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 togglePublishAt();
                 categorySelect.value = btn.dataset.category || '';
                 loadTypes(btn.dataset.type);
+                if (submitBtn) submitBtn.textContent = 'Update Product';
+                if (modalTitle) modalTitle.textContent = 'Edit Product';
                 productModal.show();
             });
         });
     }
 
+    function attachDeleteHandlers() {
+        document.querySelectorAll('.delete-product').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const url = btn.getAttribute('href');
+                const name = btn.dataset.name || 'this product';
+                if (!confirmModal) {
+                    if (confirm(`Are you sure to delete ${name}?`)) {
+                        window.location.href = url;
+                    }
+                    return;
+                }
+                confirmMessage.textContent = `Are you sure to delete ${name}?`;
+                if (confirmTitle) confirmTitle.textContent = 'Confirm Delete';
+                if (confirmOk) {
+                    confirmOk.textContent = 'Delete';
+                    confirmOk.className = 'btn btn-danger';
+                    confirmOk.onclick = () => { window.location.href = url; };
+                }
+                confirmModal.show();
+            });
+        });
+    }
+    function initTooltips() {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+    }
+
     attachEditHandlers();
+    attachDeleteHandlers();
+    initTooltips();
 
     async function loadPage(page) {
         try {
@@ -119,6 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = data.rows;
             paginationContainer.innerHTML = data.pagination;
             attachEditHandlers();
+            attachDeleteHandlers();
+            initTooltips();
         } catch (e) {
             console.error('Failed to load page', e);
         }
