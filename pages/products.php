@@ -23,7 +23,7 @@ $productQuery = "SELECT s.*, c.lpa_category_name, t.lpa_type_name
                  JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
                  JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
 $params     = [];
-$conditions = [];
+$conditions = ["s.lpa_stock_status = 'P'"];
 
 $categoryFilter = $_GET['category'] ?? [];
 if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
