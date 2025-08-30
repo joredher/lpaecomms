@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusFilter = document.getElementById('status-filter');
     const tbody = document.getElementById('order-rows');
     const paginationContainer = document.getElementById('pagination-container');
+    const exportBtn = document.getElementById('export-orders');
     let currentPage = 1;
 
     function attachActionHandlers() {
@@ -52,6 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const term = searchInput ? searchInput.value.trim() : '';
             const statusVal = statusFilter ? statusFilter.value : '';
             const url = `/admin.orders?page_num=${page}&search=${encodeURIComponent(term)}&status=${encodeURIComponent(statusVal)}`;
+            if (exportBtn) {
+                exportBtn.href = `/admin.exportOrders?search=${encodeURIComponent(term)}&status=${encodeURIComponent(statusVal)}`;
+            }
             const res = await fetch(url, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });

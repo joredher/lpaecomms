@@ -73,7 +73,10 @@ $adminJs = '../assets/js/admin_orders.js';
 ob_start();
 ?>
 <div class="container-account">
-    <h1 class="h3 mb-4">Orders</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0">Orders</h1>
+        <a href="/admin.exportOrders?search=<?= urlencode($searchTerm) ?>&status=<?= urlencode($statusFilter) ?>" class="btn btn-sm btn-outline-secondary" id="export-orders">Export</a>
+    </div>
     <div class="card">
         <div class="card-body">
             <div class="d-flex justify-content-between mb-3">

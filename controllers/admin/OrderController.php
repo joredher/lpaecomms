@@ -29,4 +29,31 @@ class OrderController
             echo json_encode(['success' => false, 'message' => 'Update failed']);
         }
     }
+
+    public function exportOrders(): void
+    {
+        $searchTerm   = trim($_GET['search'] ?? '');
+        $statusFilter = trim($_GET['status'] ?? '');
+
+        $repo = new InvoiceRepository();
+        $total  = $repo->countAll($searchTerm, $statusFilter);
+        $orders = $repo->findPaginated(0, $total, $searchTerm, $statusFilter);
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="orders.csv"');
+
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['Invoice', 'Client', 'Date', 'Total', 'Status']);
+        foreach ($orders as $order) {
+            fputcsv($out, [
+                $order['invoice_number'],
+                $order['client_name'],
+                date('Y-m-d', strtotime($order['created_at'])),
+                $order['total_amount'],
+                $order['status']
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
 }
