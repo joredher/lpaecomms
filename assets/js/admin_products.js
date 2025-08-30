@@ -86,22 +86,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return st;
     }
 
-    function filterRows() {
-        const term = searchInput ? searchInput.value.toLowerCase() : '';
+    function filterByStatus() {
         const statusVal = statusFilter ? statusFilter.value : '';
         document.querySelectorAll('#products-table tbody tr').forEach(row => {
-            const name = row.querySelector('.product-title').textContent.toLowerCase();
-            const sku = row.querySelector('.product-sku').textContent.toLowerCase();
-            const price = row.querySelector('.product-price').textContent.toLowerCase();
+            if (row.classList.contains('no-results')) {
+                row.style.display = '';
+                return;
+            }
             const rowStatus = normalizeStatus(row.dataset.status || '');
-            const matchesSearch = name.includes(term) || sku.includes(term) || price.includes(term);
-            const matchesStatus = !statusVal || rowStatus === statusVal;
-            row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+            row.style.display = !statusVal || rowStatus === statusVal ? '' : 'none';
         });
     }
 
-    if (searchInput) searchInput.addEventListener('input', filterRows);
-    if (statusFilter) statusFilter.addEventListener('change', filterRows);
+    if (statusFilter) statusFilter.addEventListener('change', filterByStatus);
 
     function attachEditHandlers() {
         document.querySelectorAll('.edit-product').forEach(btn => {
@@ -130,14 +127,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadPage(page) {
         try {
-            const res = await fetch(`/admin.products?page_num=${page}`, {
+            const term = searchInput ? searchInput.value.trim() : '';
+            const res = await fetch(`/admin.products?page_num=${page}&search=${encodeURIComponent(term)}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             const data = await res.json();
             tbody.innerHTML = data.rows;
             paginationContainer.innerHTML = data.pagination;
             attachEditHandlers();
-            filterRows();
+            filterByStatus();
         } catch (e) {
             console.error('Failed to load page', e);
         }
@@ -153,6 +151,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let searchTimer;
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => loadPage(1), 300);
+        });
+    }
+
     if (form) {
         form.addEventListener('submit', () => {
             clampQty();
@@ -163,4 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (statusSelect.value !== 'S') publishInput.value = '';
         });
     }
+
+    filterByStatus();
 });

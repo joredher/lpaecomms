@@ -63,12 +63,13 @@ if (isset($_GET['status'])) {
     $toastMessage = $_GET['status'] === 'updated' ? 'Product updated' : 'Product created';
 }
 
+$searchTerm = trim($_GET['search'] ?? '');
 $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
 $pageSize = 10;
 $offset   = ($pageNum - 1) * $pageSize;
-$total    = $repo->countAll();
+$total    = $repo->countAll($searchTerm);
 $totalPages = (int)ceil($total / $pageSize);
-$products = $repo->findPaginated($offset, $pageSize);
+$products = $repo->findPaginated($offset, $pageSize, $searchTerm);
 
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
@@ -119,8 +120,10 @@ function renderAdminPagination(int $current, int $totalPages): string {
     return ob_get_clean();
 }
 
-$rowsHtml = renderRows($products);
-$paginationHtml = renderAdminPagination($pageNum, $totalPages);
+$rowsHtml = $products
+    ? renderRows($products)
+    : '<tr class="no-results"><td colspan="6" class="text-center py-4">No products found.</td></tr>';
+$paginationHtml = $totalPages > 1 ? renderAdminPagination($pageNum, $totalPages) : '';
 
 if ($isAjax) {
     header('Content-Type: application/json');

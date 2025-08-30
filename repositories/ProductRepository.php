@@ -60,14 +60,30 @@ class ProductRepository extends BaseRepository
         return (int)$stmt->fetchColumn();
     }
 
-    public function countAll(): int
+    public function countAll(string $search = ''): int
     {
-        $stmt = $this->conn->query("SELECT COUNT(*) FROM {$this->table}");
+        $sql = "SELECT COUNT(*) FROM {$this->table}";
+        $params = [];
+        if ($search !== '') {
+            $sql .= " WHERE lpa_stock_name LIKE :term OR lpa_invitem_inv_no LIKE :term OR lpa_stock_price LIKE :term";
+            $params[':term'] = "%{$search}%";
+        }
+        $stmt = $this->conn->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val, PDO::PARAM_STR);
+        }
+        $stmt->execute();
         return (int)$stmt->fetchColumn();
     }
 
-    public function findPaginated(int $offset, int $limit): array
+    public function findPaginated(int $offset, int $limit, string $search = ''): array
     {
+        $where = '';
+        $params = [':offset' => $offset, ':limit' => $limit];
+        if ($search !== '') {
+            $where = "WHERE s.lpa_stock_name LIKE :term OR s.lpa_invitem_inv_no LIKE :term OR s.lpa_stock_price LIKE :term";
+            $params[':term'] = "%{$search}%";
+        }
         $sql = "SELECT s.*, s.lpa_stock_onhand - COALESCE(p.purchased, 0) AS available
                 FROM {$this->table} s
                 LEFT JOIN (
@@ -77,11 +93,13 @@ class ProductRepository extends BaseRepository
                     AND i.lpa_inv_status = 'A'
                     GROUP BY ii.lpa_fk_stock_ID
                 ) p ON p.lpa_fk_stock_ID = s.lpa_stock_ID
+                {$where}
                 ORDER BY s.lpa_stock_ID DESC
                 LIMIT :offset, :limit";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
         $stmt->execute();
         $rows = $stmt->fetchAll();
         foreach ($rows as &$row) {
