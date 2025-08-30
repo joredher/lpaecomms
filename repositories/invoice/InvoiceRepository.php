@@ -180,9 +180,9 @@ class InvoiceRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getInvoiceWithItems(int $invoiceId, int $userId): ?array
+    public function getInvoiceWithItems(int $invoiceId, ?int $userId = null): ?array
     {
-        // 1) Invoice (scoped)
+        // 1) Invoice (optional user scoping)
         $q1 = /** @lang text */
             "SELECT i.lpa_invoices_ID      AS id,
                i.lpa_inv_no           AS invoice_number,
@@ -197,14 +197,17 @@ class InvoiceRepository extends BaseRepository
                c.lpa_client_phone AS client_phone
         FROM lpa_invoices i
         JOIN lpa_clients c ON c.lpa_clients_ID = i.lpa_fk_clients_ID
-        WHERE i.lpa_invoices_ID = :invoice_id
-          AND c.lpa_clients_fk_user_id = :user_id
-        LIMIT 1";
+        WHERE i.lpa_invoices_ID = :invoice_id";
+
+        $params = [':invoice_id' => $invoiceId];
+        if ($userId !== null) {
+            $q1     .= " AND c.lpa_clients_fk_user_id = :user_id";
+            $params[':user_id'] = $userId;
+        }
+        $q1 .= " LIMIT 1";
+
         $stmt = $this->conn->prepare($q1);
-        $stmt->execute([
-            ':invoice_id' => $invoiceId,
-            ':user_id'    => $userId
-        ]);
+        $stmt->execute($params);
         $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$invoice) return null;
 

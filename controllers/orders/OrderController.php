@@ -51,8 +51,9 @@ class OrderController
             return;
         }
 
-        $user = $_SESSION['user'];
-        $data = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $user['id']);
+        $user   = $_SESSION['user'];
+        $userId = (isset($user['group']) && (int)$user['group'] === 1) ? null : $user['id'];
+        $data   = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $userId);
         if (!$data) {
             header('Location: /orders');
             return;
