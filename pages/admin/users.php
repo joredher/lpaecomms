@@ -76,8 +76,8 @@ function renderRows(array $users): string {
                     <i class="bi bi-pencil"></i>
                 </button>
                 <a href="/admin.users?delete=<?= $user['lpa_users_ID'] ?>"
-                   class="btn btn-sm btn-danger text-white"
-                   onclick="return confirm('Delete this user?');"><i class="bi bi-trash"></i></a>
+                   class="btn btn-sm btn-danger text-white delete-user"
+                   data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"><i class="bi bi-trash"></i></a>
             </td>
         </tr>
         <?php

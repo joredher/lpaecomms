@@ -100,8 +100,8 @@ function renderRows(array $products): string {
                     <i class="bi bi-pencil"></i>
                 </button>
                 <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>"
-                   class="btn btn-sm btn-danger text-white"
-                   onclick="return confirm('Delete this product?');"><i class="bi bi-trash"></i></a>
+                   class="btn btn-sm btn-danger text-white delete-product"
+                   data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"><i class="bi bi-trash"></i></a>
             </td>
         </tr>
         <?php

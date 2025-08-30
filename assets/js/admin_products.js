@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.getElementById('product-rows');
     const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
     const modalTitle = productModalEl ? productModalEl.querySelector('.modal-title') : null;
+    const confirmModalEl = document.getElementById('confirmModal');
+    const confirmModal = confirmModalEl ? new bootstrap.Modal(confirmModalEl) : null;
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmOk = document.getElementById('confirmOk');
 
     function clampQty() {
         let val = parseInt(qtyInput.value, 10);
@@ -114,7 +118,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function attachDeleteHandlers() {
+        document.querySelectorAll('.delete-product').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const url = btn.getAttribute('href');
+                const name = btn.dataset.name || 'this product';
+                if (!confirmModal) {
+                    if (confirm(`Are you sure to delete ${name}?`)) {
+                        window.location.href = url;
+                    }
+                    return;
+                }
+                confirmMessage.textContent = `Are you sure to delete ${name}?`;
+                confirmOk.onclick = () => { window.location.href = url; };
+                confirmModal.show();
+            });
+        });
+    }
+
     attachEditHandlers();
+    attachDeleteHandlers();
 
     async function loadPage(page) {
         try {
@@ -127,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = data.rows;
             paginationContainer.innerHTML = data.pagination;
             attachEditHandlers();
+            attachDeleteHandlers();
         } catch (e) {
             console.error('Failed to load page', e);
         }
