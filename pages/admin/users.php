@@ -42,13 +42,12 @@ if (isset($_GET['status'])) {
 }
 
 $searchTerm   = trim($_GET['search'] ?? '');
-$statusFilter = trim($_GET['status'] ?? '');
 $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
 $pageSize = 10;
 $offset   = ($pageNum - 1) * $pageSize;
-$total    = $repo->countAll($searchTerm, $statusFilter);
+$total    = $repo->countAll($searchTerm);
 $totalPages = (int)ceil($total / $pageSize);
-$users = $repo->findPaginated($offset, $pageSize, $searchTerm, $statusFilter);
+$users = $repo->findPaginated($offset, $pageSize, $searchTerm);
 
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
@@ -150,10 +149,6 @@ ob_start();
                                 <input type="text" class="form-control" name="lastname" id="user-lastname">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Password</label>
-                                <input type="password" class="form-control" name="password" id="user-password">
-                            </div>
-                            <div class="col-md-6">
                                 <label class="form-label">Group</label>
                                 <select class="form-select" name="group_id" id="user-group">
                                     <?php foreach ($groups as $group): ?>
@@ -161,13 +156,6 @@ ob_start();
                                             <?= htmlspecialchars($group['name']) ?>
                                         </option>
                                     <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Status</label>
-                                <select class="form-select" name="status" id="user-status">
-                                    <option value="A">Active</option>
-                                    <option value="I">Inactive</option>
                                 </select>
                             </div>
                         </div>
@@ -184,11 +172,6 @@ ob_start();
     <div class="bg-white rounded shadow-sm p-4">
         <div class="d-flex justify-content-between mb-3">
             <input type="text" id="user-search" class="form-control w-25" placeholder="Search by name or email">
-            <select class="form-select w-25" id="status-filter">
-                <option value="">Status</option>
-                <option value="A"<?= $statusFilter === 'A' ? ' selected' : '' ?>>Active</option>
-                <option value="I"<?= $statusFilter === 'I' ? ' selected' : '' ?>>Inactive</option>
-            </select>
         </div>
         <div class="table-responsive">
             <table class="table align-middle">

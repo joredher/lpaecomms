@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('user-firstname').value = btn.dataset.firstname || '';
                 document.getElementById('user-lastname').value = btn.dataset.lastname || '';
                 document.getElementById('user-group').value = btn.dataset.group || '';
-                document.getElementById('user-status').value = btn.dataset.status || 'A';
                 if (submitBtn) submitBtn.textContent = 'Update User';
                 if (modalTitle) modalTitle.textContent = 'Edit User';
                 if (userModal) userModal.show();
@@ -75,8 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadPage(page) {
         try {
             const term = searchInput ? searchInput.value.trim() : '';
-            const statusVal = statusFilter ? statusFilter.value : '';
-            const res = await fetch(`/admin.users?page_num=${page}&search=${encodeURIComponent(term)}&status=${statusVal}`, {
+            const res = await fetch(`/admin.users?page_num=${page}&search=${encodeURIComponent(term)}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             const data = await res.json();
@@ -100,11 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const searchInput = document.getElementById('user-search');
-    const statusFilter = document.getElementById('status-filter');
-
-    if (statusFilter) {
-        statusFilter.addEventListener('change', () => loadPage(1));
-    }
 
     let searchTimer;
     if (searchInput) {
