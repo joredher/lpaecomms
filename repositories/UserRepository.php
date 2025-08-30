@@ -136,6 +136,78 @@ class UserRepository extends BaseRepository
             'token' => $token
         ]);
     }
+    /**
+     * Count users for pagination with optional search and status filters
+     */
+    public function countAll(string $search = '', string $status = ''): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->table} u";
+        $conditions = [];
+        $params = [];
 
+        if ($search !== '') {
+            $conditions[] = "(u.lpa_user_username LIKE :term OR u.lpa_user_email LIKE :term OR u.lpa_user_firstname LIKE :term OR u.lpa_user_lastname LIKE :term)";
+            $params[':term'] = "%{$search}%";
+        }
+
+        if ($status !== '') {
+            $conditions[] = "u.lpa_user_status = :status";
+            $params[':status'] = $status;
+        }
+
+        if ($conditions) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+
+        $stmt = $this->conn->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val, PDO::PARAM_STR);
+        }
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
+
+    /**
+     * Fetch users with pagination, search, and status filters
+     */
+    public function findPaginated(int $offset, int $limit, string $search = '', string $status = ''): array
+    {
+        $conditions = [];
+        $params = [':offset' => $offset, ':limit' => $limit];
+
+        if ($search !== '') {
+            $conditions[] = "(u.lpa_user_username LIKE :term OR u.lpa_user_email LIKE :term OR u.lpa_user_firstname LIKE :term OR u.lpa_user_lastname LIKE :term)";
+            $params[':term'] = "%{$search}%";
+        }
+
+        if ($status !== '') {
+            $conditions[] = "u.lpa_user_status = :status";
+            $params[':status'] = $status;
+        }
+
+        $where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';
+        $sql = "SELECT u.*, g.name AS group_name
+                FROM {$this->table} u
+                JOIN lpa_user_group g ON g.lpa_user_group_ID = u.lpa_fk_user_group_ID
+                {$where}
+                ORDER BY u.lpa_users_ID DESC
+                LIMIT :offset, :limit";
+
+        $stmt = $this->conn->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Retrieve available user groups
+     */
+    public function getGroups(): array
+    {
+        $stmt = $this->conn->query('SELECT lpa_user_group_ID, name FROM lpa_user_group ORDER BY name');
+        return $stmt->fetchAll();
+    }
 
 }

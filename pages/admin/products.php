@@ -142,6 +142,7 @@ function statusLabel($code) {
 }
 
 $title = 'Products';
+$adminJs = '../assets/js/admin_products.js';
 ob_start();
 ?>
 <div class="container-account">
