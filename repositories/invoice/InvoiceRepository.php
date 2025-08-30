@@ -112,6 +112,74 @@ class InvoiceRepository extends BaseRepository
         return (int)$stmt->fetchColumn();
     }
 
+    public function countAll(string $term = '', string $status = ''): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->table} i JOIN lpa_clients c ON c.lpa_clients_ID = i.lpa_fk_clients_ID";
+        $conditions = [];
+        $params = [];
+
+        if ($term !== '') {
+            $conditions[] = "(i.lpa_inv_no LIKE :term OR i.lpa_inv_client_name LIKE :term OR CONCAT(c.lpa_clients_firstname, ' ', c.lpa_clients_lastname) LIKE :term)";
+            $params[':term'] = "%{$term}%";
+        }
+
+        if ($status !== '') {
+            $conditions[] = "i.lpa_inv_status = :status";
+            $params[':status'] = $status;
+        }
+
+        if ($conditions) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+
+        $stmt = $this->conn->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val, PDO::PARAM_STR);
+        }
+        $stmt->execute();
+
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function findPaginated(int $offset, int $limit, string $term = '', string $status = ''): array
+    {
+        $sql = "SELECT i.lpa_invoices_ID AS id,
+                       i.lpa_inv_no AS invoice_number,
+                       COALESCE(i.lpa_inv_client_name, CONCAT(c.lpa_clients_firstname, ' ', c.lpa_clients_lastname)) AS client_name,
+                       i.lpa_inv_date AS created_at,
+                       i.lpa_inv_status AS status,
+                       i.lpa_inv_amount AS total_amount
+                FROM {$this->table} i
+                JOIN lpa_clients c ON c.lpa_clients_ID = i.lpa_fk_clients_ID";
+
+        $conditions = [];
+        $params = [':offset' => $offset, ':limit' => $limit];
+
+        if ($term !== '') {
+            $conditions[] = "(i.lpa_inv_no LIKE :term OR i.lpa_inv_client_name LIKE :term OR CONCAT(c.lpa_clients_firstname, ' ', c.lpa_clients_lastname) LIKE :term)";
+            $params[':term'] = "%{$term}%";
+        }
+
+        if ($status !== '') {
+            $conditions[] = "i.lpa_inv_status = :status";
+            $params[':status'] = $status;
+        }
+
+        if ($conditions) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+
+        $sql .= ' ORDER BY i.lpa_invoices_ID DESC LIMIT :offset, :limit';
+
+        $stmt = $this->conn->prepare($sql);
+        foreach ($params as $key => $val) {
+            $stmt->bindValue($key, $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getInvoiceWithItems(int $invoiceId, int $userId): ?array
     {
         // 1) Invoice (scoped)

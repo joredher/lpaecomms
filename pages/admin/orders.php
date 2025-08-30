@@ -4,6 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../bootstrap.php';
+loadRepo('repositories/invoice/InvoiceRepository.php');
+
+$repo = new InvoiceRepository();
 
 $searchTerm   = trim($_GET['search'] ?? '');
 $statusFilter = trim($_GET['status'] ?? '');
@@ -11,57 +14,11 @@ $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_G
 $pageSize = 10;
 $offset   = ($pageNum - 1) * $pageSize;
 
-$conn = Database::getConnection();
-$conditions = [];
-$params = [];
-
-if ($searchTerm !== '') {
-    $conditions[] = '(lpa_inv_no LIKE :term OR lpa_inv_client_name LIKE :term)';
-    $params[':term'] = "%{$searchTerm}%";
-}
-if ($statusFilter !== '') {
-    $conditions[] = 'lpa_inv_status = :status';
-    $params[':status'] = $statusFilter;
-}
-
-$countSql = 'SELECT COUNT(*) FROM lpa_invoices';
-if ($conditions) {
-    $countSql .= ' WHERE ' . implode(' AND ', $conditions);
-}
-$stmt = $conn->prepare($countSql);
-foreach ($params as $key => $val) {
-    $stmt->bindValue($key, $val, PDO::PARAM_STR);
-}
-$stmt->execute();
-$total = (int)$stmt->fetchColumn();
+$total      = $repo->countAll($searchTerm, $statusFilter);
 $totalPages = (int)ceil($total / $pageSize);
-
-$dataSql = 'SELECT lpa_invoices_ID AS id, lpa_inv_no AS invoice_number, lpa_inv_client_name AS client_name, lpa_inv_date AS created_at, lpa_inv_status AS status, lpa_inv_amount AS total_amount FROM lpa_invoices';
-if ($conditions) {
-    $dataSql .= ' WHERE ' . implode(' AND ', $conditions);
-}
-$dataSql .= ' ORDER BY lpa_invoices_ID DESC LIMIT :offset, :limit';
-
-$stmt = $conn->prepare($dataSql);
-foreach ($params as $key => $val) {
-    $stmt->bindValue($key, $val, PDO::PARAM_STR);
-}
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-$stmt->bindValue(':limit', $pageSize, PDO::PARAM_INT);
-$stmt->execute();
-$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$orders     = $repo->findPaginated($offset, $pageSize, $searchTerm, $statusFilter);
 
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-
-function statusLabel($code)
-{
-    return match ($code) {
-        'A' => 'Active',
-        'P' => 'Pending',
-        'C' => 'Cancelled',
-        default => 'Unknown',
-    };
-}
 
 function renderRows(array $orders): string
 {
@@ -100,6 +57,16 @@ if ($isAjax) {
     header('Content-Type: application/json');
     echo json_encode(['rows' => $rowsHtml, 'pagination' => $paginationHtml]);
     exit;
+}
+
+function statusLabel($code)
+{
+    return match ($code) {
+        'A' => 'Active',
+        'P' => 'Pending',
+        'C' => 'Cancelled',
+        default => 'Unknown',
+    };
 }
 
 $title = 'Orders';
