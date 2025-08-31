@@ -220,6 +220,16 @@ class UserRepository extends BaseRepository
     }
 
     /**
+     * Count users created since the provided date.
+     */
+    public function countUsersSince(string $date): int
+    {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM {$this->table} WHERE token_created_at >= :date");
+        $stmt->execute([':date' => $date]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    /**
      * Retrieve available user groups
      */
     public function getGroups(): array
