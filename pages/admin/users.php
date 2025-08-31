@@ -31,6 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
     $emailUser = explode('@', $data['lpa_user_email'])[0] ?? '';
     $data['lpa_user_username'] = $emailUser . date('Y');
+    if ($data['lpa_user_email'] === '' || !filter_var($data['lpa_user_email'], FILTER_VALIDATE_EMAIL) ||
+        $data['lpa_user_firstname'] === '' || $data['lpa_user_lastname'] === '' ||
+        $data['lpa_fk_user_group_ID'] === 0) {
+        header('Location: /admin.users?status=missing_fields');
+        exit;
+    }
     if (preg_match('/\d/', $data['lpa_user_firstname']) || preg_match('/\d/', $data['lpa_user_lastname'])) {
         header('Location: /admin.users?status=invalid_name');
         exit;
@@ -114,6 +120,9 @@ if (isset($_GET['status'])) {
             break;
         case 'invalid_name':
             $toastMessage = 'Names cannot contain numbers';
+            break;
+        case 'missing_fields':
+            $toastMessage = 'Please fill in all required fields correctly';
             break;
     }
 }
