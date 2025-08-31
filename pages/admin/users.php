@@ -128,30 +128,40 @@ $users = $repo->findPaginated($offset, $pageSize, $searchTerm);
 
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
-function renderRows(array $users): string {
+function renderRows(array $users, int $currentId): string {
     ob_start();
     foreach ($users as $user) {
+        $isSelf = (int)$user['lpa_users_ID'] === $currentId;
         ?>
         <tr data-status="<?= htmlspecialchars($user['lpa_user_status'], ENT_QUOTES) ?>">
             <td class="user-username"><?= htmlspecialchars($user['lpa_user_username']) ?></td>
             <td class="user-email"><?= htmlspecialchars($user['lpa_user_email']) ?></td>
             <td><?= htmlspecialchars($user['group_name']) ?></td>
             <td class="user-status"><?= htmlspecialchars(statusLabel($user['lpa_user_status'])) ?></td>
+            <td class="text-center">
+                <?php if ($isSelf): ?>
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                <?php endif; ?>
+            </td>
             <td>
-                <button type="button" class="btn btn-sm btn-primary text-white me-1 edit-user icon-btn" data-bs-toggle="tooltip" title="Edit"
-                        data-id="<?= $user['lpa_users_ID'] ?>"
-                        data-username="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"
-                        data-email="<?= htmlspecialchars($user['lpa_user_email'], ENT_QUOTES) ?>"
-                        data-firstname="<?= htmlspecialchars($user['lpa_user_firstname'], ENT_QUOTES) ?>"
-                        data-lastname="<?= htmlspecialchars($user['lpa_user_lastname'], ENT_QUOTES) ?>"
-                        data-group="<?= htmlspecialchars($user['lpa_fk_user_group_ID'], ENT_QUOTES) ?>"
-                        data-status="<?= htmlspecialchars($user['lpa_user_status'], ENT_QUOTES) ?>">
-                    <i class="bi bi-pencil"></i></button>
-                <a href="/admin.users?delete=<?= $user['lpa_users_ID'] ?>" class="btn btn-sm btn-danger text-white me-1 delete-user icon-btn" data-bs-toggle="tooltip" title="Delete" data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"><i class="bi bi-trash"></i></a>
-                <?php if ($user['lpa_user_status'] === 'I'): ?>
-                    <a href="/admin.users?activate=<?= $user['lpa_users_ID'] ?>" class="btn btn-sm btn-success text-white me-1 activate-user icon-btn" data-bs-toggle="tooltip" title="Activate" data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"><i class="bi bi-person-check"></i></a>
+                <?php if ($isSelf): ?>
+                    <a href="/profile" class="btn btn-sm btn-primary text-white me-1 icon-btn" data-bs-toggle="tooltip" title="My Account"><i class="bi bi-person"></i></a>
                 <?php else: ?>
-                    <a href="/admin.users?deactivate=<?= $user['lpa_users_ID'] ?>" class="btn btn-sm btn-warning text-white me-1 deactivate-user icon-btn" data-bs-toggle="tooltip" title="Deactivate" data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"><i class="bi bi-person-x"></i></a>
+                    <button type="button" class="btn btn-sm btn-primary text-white me-1 edit-user icon-btn" data-bs-toggle="tooltip" title="Edit"
+                            data-id="<?= $user['lpa_users_ID'] ?>"
+                            data-username="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"
+                            data-email="<?= htmlspecialchars($user['lpa_user_email'], ENT_QUOTES) ?>"
+                            data-firstname="<?= htmlspecialchars($user['lpa_user_firstname'], ENT_QUOTES) ?>"
+                            data-lastname="<?= htmlspecialchars($user['lpa_user_lastname'], ENT_QUOTES) ?>"
+                            data-group="<?= htmlspecialchars($user['lpa_fk_user_group_ID'], ENT_QUOTES) ?>"
+                            data-status="<?= htmlspecialchars($user['lpa_user_status'], ENT_QUOTES) ?>">
+                        <i class="bi bi-pencil"></i></button>
+                    <a href="/admin.users?delete=<?= $user['lpa_users_ID'] ?>" class="btn btn-sm btn-danger text-white me-1 delete-user icon-btn" data-bs-toggle="tooltip" title="Delete" data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"><i class="bi bi-trash"></i></a>
+                    <?php if ($user['lpa_user_status'] === 'I'): ?>
+                        <a href="/admin.users?activate=<?= $user['lpa_users_ID'] ?>" class="btn btn-sm btn-success text-white me-1 activate-user icon-btn" data-bs-toggle="tooltip" title="Activate" data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"><i class="bi bi-person-check"></i></a>
+                    <?php else: ?>
+                        <a href="/admin.users?deactivate=<?= $user['lpa_users_ID'] ?>" class="btn btn-sm btn-warning text-white me-1 deactivate-user icon-btn" data-bs-toggle="tooltip" title="Deactivate" data-name="<?= htmlspecialchars($user['lpa_user_username'], ENT_QUOTES) ?>"><i class="bi bi-person-x"></i></a>
+                    <?php endif; ?>
                 <?php endif; ?>
             </td>
         </tr>
@@ -173,8 +183,8 @@ function renderAdminPagination(int $current, int $totalPages): string {
 }
 
 $rowsHtml = $users
-    ? renderRows($users)
-    : '<tr class="no-results"><td colspan="5" class="text-center py-4">No users found.</td></tr>';
+    ? renderRows($users, (int)($_SESSION['user']['id'] ?? 0))
+    : '<tr class="no-results"><td colspan="6" class="text-center py-4">No users found.</td></tr>';
 $paginationHtml = $totalPages > 1 ? renderAdminPagination($pageNum, $totalPages) : '';
 
 if ($isAjax) {
@@ -263,6 +273,7 @@ ob_start();
                     <th>Email</th>
                     <th>Group</th>
                     <th>Status</th>
+                    <th>Logged In</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
