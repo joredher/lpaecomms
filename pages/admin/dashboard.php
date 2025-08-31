@@ -42,69 +42,77 @@ $adminJs = '../assets/js/admin_dashboard.js';
 
 ob_start();
 ?>
-<h1 class="mb-4">Store Dashboard</h1>
-<div class="row g-4">
-    <div class="col-12 col-lg-8">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Products Sold Over Time</h5>
-                <canvas id="salesChart" height="150"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-lg-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Orders (Last 7 Days)</h5>
-                <div class="progress" style="height:6px;">
-                    <div class="progress-bar bg-primary" role="progressbar" style="width: <?= $totalWeek ? ($completedCount/$totalWeek*100) : 0 ?>%"></div>
-                    <div class="progress-bar bg-light" role="progressbar" style="width: <?= $totalWeek ? ($pendingCount/$totalWeek*100) : 0 ?>%"></div>
-                </div>
-                <div class="d-flex justify-content-around mt-3">
-                    <span class="d-flex align-items-center" title="Completed">
-                        <span class="bg-primary rounded-circle me-2" style="width:10px;height:10px;"></span>
-                        <?= $completedCount ?>
-                    </span>
-                    <span class="d-flex align-items-center" title="Pending">
-                        <span class="bg-light border rounded-circle me-2" style="width:10px;height:10px;"></span>
-                        <?= $pendingCount ?>
-                    </span>
+<div class="container-account">
+    <h1 class="mb-4">Store Dashboard</h1>
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-8">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Products Sold Over Time</h5>
+                    <canvas id="salesChart" height="180"></canvas>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-12 col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body d-flex flex-column justify-content-center">
-                <h5 class="card-title">New Users (7 days)</h5>
-                <p class="display-6 mb-0"><?= $newUsersCount ?></p>
+        <div class="col-12 col-lg-4">
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Orders (Last 7 Days)</h5>
+                            <div class="progress" style="height:6px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: <?= $totalWeek ? ($completedCount/$totalWeek*100) : 0 ?>%"></div>
+                                <div class="progress-bar bg-light" role="progressbar" style="width: <?= $totalWeek ? ($pendingCount/$totalWeek*100) : 0 ?>%"></div>
+                            </div>
+                            <div class="d-flex justify-content-around mt-3">
+                                <span class="d-flex align-items-center" title="Completed">
+                                    <span class="bg-primary rounded-circle me-2" style="width:10px;height:10px;"></span>
+                                    <?= $completedCount ?>
+                                </span>
+                                <span class="d-flex align-items-center" title="Pending">
+                                    <span class="bg-light border rounded-circle me-2" style="width:10px;height:10px;"></span>
+                                    <?= $pendingCount ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card text-center h-100">
+                        <div class="card-body d-flex flex-column justify-content-center">
+                            <h5 class="card-title">New Users (7 days)</h5>
+                            <p class="display-6 mb-0"><?= $newUsersCount ?></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-12 col-md-8">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Coupon Usage</h5>
-                <canvas id="couponChart" height="150"></canvas>
+    <div class="row g-4">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Top Coupons</h5>
+                    <canvas id="couponChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Paid vs Unpaid Orders</h5>
+                    <canvas id="paymentChart" height="180"></canvas>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-12 col-md-6">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Paid vs Unpaid Orders</h5>
-                <canvas id="paymentChart" height="150"></canvas>
-            </div>
-        </div>
-    </div>
-    <script>
-        window.dashboardData = {
-            sales: <?= json_encode($salesRows) ?>,
-            orderStatus: {completed: <?= $completedCount ?>, pending: <?= $pendingCount ?>},
-            payments: <?= json_encode($paidCounts) ?>
-        };
-    </script>
 </div>
+<script>
+    window.dashboardData = {
+        sales: <?= json_encode($salesRows) ?>,
+        orderStatus: {completed: <?= $completedCount ?>, pending: <?= $pendingCount ?>},
+        payments: <?= json_encode($paidCounts) ?>
+    };
+</script>
 <?php
 $pageContent = ob_get_clean();
 include 'includes/admin/layout.php';
