@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../bootstrap.php';
 
 loadRepo('repositories/invoice/InvoiceRepository.php');
 
-class OrderController
+class AdminOrderController
 {
     public function updateStatus(): void
     {

@@ -45,7 +45,7 @@ RegisterController::register('admin.products', ['index']);
 
 RegisterController::register($route, 'admin', 'UserController', ['create', 'store', 'edit', 'update', 'destroy']);
 RegisterController::register($route, 'admin', 'ProductController', ['types']);
-RegisterController::register($route, 'admin', 'OrderController', ['updateStatus', 'exportOrders']);
+RegisterController::register($route, 'admin', 'AdminOrderController', ['updateStatus', 'exportOrders']);
 
 // --- Helpers
 $ua    = $_SERVER['HTTP_USER_AGENT'] ?? '';
