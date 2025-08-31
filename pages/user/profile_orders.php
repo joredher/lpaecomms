@@ -43,7 +43,7 @@ $h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
             <?php foreach ($invoices as $order): ?>
                 <tr>
                     <td>
-                        <a href="/orders.show?id=<?= $h($order['id']) ?>" class="text-decoration-none" target="_blank">
+                        <a href="/orders.show?slug=<?= $h($order['slug']) ?>" class="text-decoration-none" target="_blank">
                             <?= $h($order['invoice_number']) ?>
                         </a>
                     </td>

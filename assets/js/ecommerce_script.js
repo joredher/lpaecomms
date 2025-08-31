@@ -211,7 +211,7 @@ function initProfileNavigation() {
               }
             );
             tr.innerHTML = `
-              <td><a href="/orders.show?id=${order.id}" class="text-decoration-none" target="_blank">${order.invoice_number}</a></td>
+              <td><a href="/orders.show?slug=${order.slug}" class="text-decoration-none" target="_blank">${order.invoice_number}</a></td>
               <td>${date}</td>
               <td>${order.status}</td>
               <td>AUD ${parseFloat(order.total_amount).toFixed(2)}</td>

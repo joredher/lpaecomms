@@ -14,13 +14,15 @@ class InvoiceRepository extends BaseRepository
      */
     public function createInvoice(array $data): int|false
     {
+        $invNo = $this->generateInvoiceNumber();
         $success = $this->create([
-            'lpa_inv_no' => $this->generateInvoiceNumber(),
-            'lpa_inv_date'      => date('Y-m-d H:i:s'),
-            'lpa_inv_amount'     => $data['total'],
+            'lpa_inv_no'          => $invNo,
+            'lpa_inv_slug'        => $this->slugify($invNo),
+            'lpa_inv_date'        => date('Y-m-d H:i:s'),
+            'lpa_inv_amount'      => $data['total'],
             'lpa_inv_client_name' => $data['client_name'],
-            'lpa_inv_status'    => $data['status'],
-            'lpa_fk_clients_ID' => $data['client_id'],
+            'lpa_inv_status'      => $data['status'],
+            'lpa_fk_clients_ID'   => $data['client_id'],
             'lpa_inv_client_address' => $data['address'],
         ]);
 
@@ -72,11 +74,32 @@ class InvoiceRepository extends BaseRepository
         return "CTI-INV-" . date("YmdHis");
     }
 
+    private function slugify(string $text): string
+    {
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
+        return $slug !== '' ? $slug : uniqid('inv-');
+    }
+
+    private function ensureSlug(int $invoiceId, string $invoiceNo): string
+    {
+        $stmt = $this->conn->prepare(/** @lang text */ "SELECT lpa_inv_slug FROM {$this->table} WHERE lpa_invoices_ID = :id");
+        $stmt->execute([':id' => $invoiceId]);
+        $slug = $stmt->fetchColumn();
+        if ($slug) {
+            return $slug;
+        }
+        $slug = $this->slugify($invoiceNo);
+        $upd = $this->conn->prepare(/** @lang text */ "UPDATE {$this->table} SET lpa_inv_slug = :slug WHERE lpa_invoices_ID = :id");
+        $upd->execute([':slug' => $slug, ':id' => $invoiceId]);
+        return $slug;
+    }
+
     public function getInvoicesByUser(int $userId, ?int $offset = null, ?int $limit = null): array
     {
         $q = /** @lang text */
             "SELECT i.lpa_invoices_ID AS id,
                    i.lpa_inv_no       AS invoice_number,
+                   i.lpa_inv_slug     AS slug,
                    i.lpa_inv_date     AS created_at,
                    i.lpa_inv_status   AS status,
                    i.lpa_inv_amount   AS total_amount
@@ -97,7 +120,11 @@ class InvoiceRepository extends BaseRepository
         }
         $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$row) {
+            $row['slug'] = $this->ensureSlug((int)$row['id'], $row['invoice_number']);
+        }
+        return $rows;
     }
 
     public function countInvoicesByUser(int $userId): int
@@ -145,6 +172,7 @@ class InvoiceRepository extends BaseRepository
     {
         $sql = "SELECT i.lpa_invoices_ID AS id,
                        i.lpa_inv_no AS invoice_number,
+                       i.lpa_inv_slug AS slug,
                        COALESCE(i.lpa_inv_client_name, CONCAT(c.lpa_clients_firstname, ' ', c.lpa_clients_lastname)) AS client_name,
                        i.lpa_inv_date AS created_at,
                        i.lpa_inv_status AS status,
@@ -177,7 +205,11 @@ class InvoiceRepository extends BaseRepository
         }
         $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$row) {
+            $row['slug'] = $this->ensureSlug((int)$row['id'], $row['invoice_number']);
+        }
+        return $rows;
     }
 
     public function getInvoiceWithItems(int $invoiceId, ?int $userId = null): ?array
@@ -186,6 +218,7 @@ class InvoiceRepository extends BaseRepository
         $q1 = /** @lang text */
             "SELECT i.lpa_invoices_ID      AS id,
                i.lpa_inv_no           AS invoice_number,
+               i.lpa_inv_slug         AS slug,
                i.lpa_inv_date         AS created_at,
                i.lpa_inv_status       AS status,
                i.lpa_inv_amount       AS total_amount,
@@ -210,6 +243,7 @@ class InvoiceRepository extends BaseRepository
         $stmt->execute($params);
         $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$invoice) return null;
+        $invoice['slug'] = $this->ensureSlug((int)$invoice['id'], $invoice['invoice_number']);
 
         // 2) Items
         $q2 = /** @lang text */
@@ -239,5 +273,25 @@ class InvoiceRepository extends BaseRepository
             'items'   => $items,
             'totals'  => $totals
         ];
+    }
+
+    public function findBySlug(string $slug): ?array
+    {
+        $stmt = $this->conn->prepare(/** @lang text */
+            "SELECT * FROM {$this->table} WHERE lpa_inv_slug = :slug LIMIT 1"
+        );
+        $stmt->execute([':slug' => $slug]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    public function getInvoiceWithItemsBySlug(string $slug, ?int $userId = null): ?array
+    {
+        $invoiceRow = $this->findBySlug($slug);
+        if (!$invoiceRow) {
+            return null;
+        }
+        $data = $this->getInvoiceWithItems((int)$invoiceRow['lpa_invoices_ID'], $userId);
+        return $data;
     }
 }

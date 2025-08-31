@@ -25,7 +25,7 @@ function renderRows(array $orders): string
     ob_start();
     foreach ($orders as $order) { ?>
         <tr>
-            <td><a href="/orders.show?id=<?= htmlspecialchars($order['id']) ?>" target="_blank"><?= htmlspecialchars($order['invoice_number']) ?></a></td>
+            <td><a href="/orders.show?slug=<?= htmlspecialchars($order['slug']) ?>" target="_blank"><?= htmlspecialchars($order['invoice_number']) ?></a></td>
             <td><?= htmlspecialchars($order['client_name']) ?></td>
             <td><?= htmlspecialchars(date('d M Y', strtotime($order['created_at']))) ?></td>
             <td>
@@ -37,7 +37,7 @@ function renderRows(array $orders): string
             </td>
             <td>AUD <?= number_format((float)$order['total_amount'], 2) ?></td>
             <td>
-                <a href="/orders.show?id=<?= htmlspecialchars($order['id']) ?>" class="btn btn-sm btn-outline-primary" target="_blank">View</a>
+                <a href="/orders.show?slug=<?= htmlspecialchars($order['slug']) ?>" class="btn btn-sm btn-outline-primary" target="_blank">View</a>
             </td>
         </tr>
     <?php }
