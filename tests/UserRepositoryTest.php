@@ -17,7 +17,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testCreateUserWithMissingNames(): void
     {
-        $email = 'missing@example.com';
+        $email = uniqid('missing_') . '@example.com';
         $this->repo->createUser([
             'email' => $email,
             'password' => 'secret',
@@ -33,7 +33,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testCreateUserWithCustomGroup(): void
     {
-        $email = 'admin@example.com';
+        $email = uniqid('admin_') . '@example.com';
         $this->repo->createUser([
             'email' => $email,
             'password' => 'secret',
@@ -50,7 +50,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testDuplicateEmailThrowsException(): void
     {
-        $email = 'dup@example.com';
+        $email = uniqid('dup_') . '@example.com';
         $this->repo->createUser([
             'email' => $email,
             'password' => 'secret',
@@ -70,7 +70,7 @@ final class UserRepositoryTest extends RepositoryTestCase
 
     public function testCreateClientAndSendEmail(): void
     {
-        $email = 'client_email@example.com';
+        $email = uniqid('client_') . '@example.com';
         $this->repo->createUser([
             'email' => $email,
             'password' => 'secret',
