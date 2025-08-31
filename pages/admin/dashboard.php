@@ -49,7 +49,9 @@ ob_start();
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Products Sold Over Time</h5>
-                    <canvas id="salesChart" height="180"></canvas>
+                    <div class="position-relative" style="height:180px;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -92,7 +94,9 @@ ob_start();
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Top Coupons</h5>
-                    <canvas id="couponChart" height="180"></canvas>
+                    <div class="position-relative" style="height:180px;">
+                        <canvas id="couponChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -100,7 +104,9 @@ ob_start();
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Paid vs Unpaid Orders</h5>
-                    <canvas id="paymentChart" height="180"></canvas>
+                    <div class="position-relative" style="height:180px;">
+                        <canvas id="paymentChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
