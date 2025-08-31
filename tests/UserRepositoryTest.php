@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 loadRepo('repositories/UserRepository.php');
+loadRepo('helpers/mail.php');
 require_once __DIR__ . '/RepositoryTestCase.php';
 
 final class UserRepositoryTest extends RepositoryTestCase
@@ -65,5 +66,29 @@ final class UserRepositoryTest extends RepositoryTestCase
             'password' => 'secret',
             'username' => 'dup_user2',
         ]);
+    }
+
+    public function testCreateClientAndSendEmail(): void
+    {
+        $email = 'client_email@example.com';
+        $this->repo->createUser([
+            'email' => $email,
+            'password' => 'secret',
+            'username' => 'client_email',
+            'firstname' => 'Client',
+            'lastname' => 'Email',
+            'group_id' => 2,
+        ]);
+
+        $user = $this->repo->findByEmail($email);
+        $this->assertEquals(2, $user['lpa_fk_user_group_ID']);
+
+        $sent = sendVerificationEmail([
+            'email' => $email,
+            'firstname' => 'Client',
+            'verificationUrl' => 'http://example.com/verify',
+        ]);
+
+        $this->assertIsBool($sent);
     }
 }
