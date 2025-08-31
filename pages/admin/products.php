@@ -9,6 +9,12 @@ loadRepo('repositories/ProductRepository.php');
 $repo = new ProductRepository();
 $categories = $repo->getCategories();
 $toastMessage = '';
+$toastType = 'success';
+if (!empty($_SESSION['toast'])) {
+    $toastMessage = $_SESSION['toast']['message'] ?? '';
+    $toastType = $_SESSION['toast']['type'] ?? 'success';
+    unset($_SESSION['toast']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $qty = isset($_POST['onhand']) ? (int)$_POST['onhand'] : 0;
@@ -57,7 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($data['status'] === 'S' && empty($_POST['publish_at'])) $missing[] = 'publish_at';
 
     if ($missing) {
-        header('Location: /admin.products?status=missing_fields');
+        $_SESSION['toast'] = ['message' => 'Please fill in all required fields', 'type' => 'danger'];
+        header('Location: /admin.products');
         exit;
     }
 
@@ -85,9 +92,6 @@ if (isset($_GET['status'])) {
             break;
         case 'created':
             $toastMessage = 'Product created';
-            break;
-        case 'missing_fields':
-            $toastMessage = 'Please fill in all required fields';
             break;
     }
 }
@@ -289,7 +293,7 @@ ob_start();
 <?php if (!empty($toastMessage)): ?>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        showToast({ message: <?= json_encode($toastMessage) ?>, type: 'success' });
+        showToast({ message: <?= json_encode($toastMessage) ?>, type: <?= json_encode($toastType) ?> });
     });
 </script>
 <?php endif; ?>
