@@ -1278,9 +1278,9 @@ input[name="coupon_code"] {
   background-color: var(--success-color);
   color: #fafafa;
   font-weight: 500;
-  padding: 12px 32px;
+  /*padding: 12px 32px;*/
   border: none;
-  border-radius: 4px;
+  /*border-radius: 4px;*/
   transition: background 0.3s ease;
 }
 

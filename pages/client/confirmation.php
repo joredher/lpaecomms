@@ -25,6 +25,8 @@ $statusMap = [
     'C' => ['label' => 'Cancelled', 'pct' => 100],
 ];
 $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
+$user = $_SESSION['user'] ?? [];
+$isAdmin = isset($user['group']) && (int)$user['group'] === 1;
 ?>
 
 <style>
@@ -292,8 +294,8 @@ $st = $statusMap[$statusRaw] ?? ['label' => 'Processing', 'pct' => 50];
                                 <span class="fw-semibold">Total</span>
                                 <span class="fs-5 fw-bold"><?= $money($totals['total'] ?? 0) ?></span>
                             </div>
-                            <a href="/products" class="btn lpa-btn-green w-100 mb-2">Continue shopping</a>
-                            <a href="/profile#orders" class="btn btn-outline-success w-100">View my orders</a>
+                            <a href="<?= $isAdmin ? '#' : '/products' ?>" class="btn lpa-btn-green w-100 mb-2<?= $isAdmin ? ' disabled' : '' ?>"<?= $isAdmin ? ' tabindex="-1" aria-disabled="true"' : '' ?>>Continue shopping</a>
+                            <a href="<?= $isAdmin ? '#' : '/profile#orders' ?>" class="btn btn-outline-success w-100<?= $isAdmin ? ' disabled' : '' ?>"<?= $isAdmin ? ' tabindex="-1" aria-disabled="true"' : '' ?>>View my orders</a>
 
                             <div class="lpa-mini mt-3">
                                 <div class="d-flex justify-content-between">

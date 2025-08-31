@@ -22,3 +22,13 @@
   font-size: 2rem;
   color: var(--color-primary);
 }
+
+/* Uniform sizing for icon-only buttons in admin tables */
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

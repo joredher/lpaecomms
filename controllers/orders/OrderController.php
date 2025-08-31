@@ -45,14 +45,28 @@ class OrderController
 
     public function show(): void
     {
-        $invoiceId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-        if ($invoiceId <= 0) {
+        $slug = $_GET['slug'] ?? '';
+        $user   = $_SESSION['user'];
+        $userId = (isset($user['group']) && (int)$user['group'] === 1) ? null : $user['id'];
+
+        if ($slug === '' && isset($_GET['id'])) {
+            $invoiceId = (int)$_GET['id'];
+            if ($invoiceId > 0) {
+                $data = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $userId);
+                if ($data) {
+                    $slug = $data['invoice']['slug'];
+                    header('Location: /orders.show?slug=' . urlencode($slug));
+                    return;
+                }
+            }
+        }
+
+        if ($slug === '') {
             header('Location: /orders');
             return;
         }
 
-        $user = $_SESSION['user'];
-        $data = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $user['id']);
+        $data = $this->invoiceRepo->getInvoiceWithItemsBySlug($slug, $userId);
         if (!$data) {
             header('Location: /orders');
             return;

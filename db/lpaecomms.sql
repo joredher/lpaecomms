@@ -91,6 +91,7 @@ DELETE FROM `lpa_clients`;
 CREATE TABLE IF NOT EXISTS `lpa_invoices` (
   `lpa_invoices_ID` int NOT NULL AUTO_INCREMENT,
   `lpa_inv_no` varchar(20) NOT NULL,
+  `lpa_inv_slug` varchar(60) NOT NULL,
   `lpa_inv_date` datetime NOT NULL,
   `lpa_fk_clients_ID` int NOT NULL,
   `lpa_inv_client_name` varchar(50) NOT NULL,
@@ -99,6 +100,7 @@ CREATE TABLE IF NOT EXISTS `lpa_invoices` (
   `lpa_inv_status` char(1) DEFAULT 'A',
   PRIMARY KEY (`lpa_invoices_ID`),
   UNIQUE KEY `lpa_inv_no_UNIQUE` (`lpa_inv_no`),
+  UNIQUE KEY `lpa_inv_slug_UNIQUE` (`lpa_inv_slug`),
   KEY `fk_lpa_invoices_lpa_clients1_idx` (`lpa_fk_clients_ID`),
   CONSTRAINT `fk_lpa_invoices_lpa_clients1` FOREIGN KEY (`lpa_fk_clients_ID`) REFERENCES `lpa_clients` (`lpa_clients_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
