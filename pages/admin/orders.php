@@ -75,7 +75,11 @@ ob_start();
 <div class="container-account">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Orders</h1>
-        <a href="/admin.exportOrders?search=<?= urlencode($searchTerm) ?>&status=<?= urlencode($statusFilter) ?>" class="btn btn-sm btn-outline-secondary" id="export-orders">Export</a>
+        <a href="/admin.exportOrders?search=<?= urlencode($searchTerm) ?>&status=<?= urlencode($statusFilter) ?>"
+           class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="export-orders">
+            <i class="bi bi-download"></i>
+            <span>Export</span>
+        </a>
     </div>
     <div class="card">
         <div class="card-body">
