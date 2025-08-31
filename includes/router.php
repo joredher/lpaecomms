@@ -146,8 +146,7 @@ switch ($route) {
         break;
     case 'admin':
         AuthMiddleware::adminOnly();
-        $pageContent = $path . 'admin/account.php';
-        include 'includes/admin/layout.php';
+        include $path . 'admin/dashboard.php';
         break;
     case 'profile':
         AuthMiddleware::authOnly();
