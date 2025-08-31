@@ -3,7 +3,6 @@
 use repositories\BaseRepository;
 
 loadRepo('repositories/BaseRepository.php');
-loadRepo('repositories/UserRepository.php');
 
 class UserRepository extends BaseRepository
 {
