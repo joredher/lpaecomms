@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-loadRepo('repositories/ProductRepository.php');
+require_once __DIR__ . '/../repositories/ProductRepository.php';
 require_once __DIR__ . '/RepositoryTestCase.php';
 
 final class ProductRepositoryTest extends RepositoryTestCase

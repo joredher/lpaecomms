@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-loadRepo('repositories/invoice/InvoiceRepository.php');
-loadRepo('repositories/ProductRepository.php');
-loadRepo('repositories/client/ClientRepository.php');
+require_once __DIR__ . '/../repositories/invoice/InvoiceRepository.php';
+require_once __DIR__ . '/../repositories/ProductRepository.php';
+require_once __DIR__ . '/../repositories/client/ClientRepository.php';
 require_once __DIR__ . '/RepositoryTestCase.php';
 
 final class InvoiceRepositoryTest extends RepositoryTestCase
