@@ -15,7 +15,9 @@ loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/AddressService.php');
 
 
-$route = $_GET['route'] ?? trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+$uriPath = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+$segments = explode('/', $uriPath);
+$route = $_GET['route'] ?? ($segments[0] ?? 'home');
 if ($route === ''): $route = 'home'; endif;
 $path = 'pages/';
 
@@ -115,14 +117,11 @@ switch ($route) {
         include 'includes/layout.php';
         break;
     case 'product':
-        if (isset($_GET['id']) && is_numeric($_GET['id'])) {
-            $productId = (int)$_GET['id'];
-
-            // Optionally pass the ID to the page
+        $productSlug = $segments[1] ?? null;
+        if ($productSlug) {
             $title = 'Product Details';
             $pageContent = 'pages/product.php';
         } else {
-            // If no ID provided, show error or redirect
             $title = 'Product Not Found';
             $pageContent = 'pages/client/404.php';
         }

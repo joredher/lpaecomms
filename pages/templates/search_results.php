@@ -8,7 +8,7 @@
 
 <?php if (!empty($products)): ?>
     <?php foreach ($products as $product): ?>
-        <a href="/product?id=<?= $product['lpa_stock_ID'] ?>" class="list-group-item list-group-item-action">
+        <a href="/product/<?= htmlspecialchars($product['lpa_stock_slug']) ?>" class="list-group-item list-group-item-action">
             <?= htmlspecialchars($product['lpa_stock_name']) ?>
         </a>
     <?php endforeach; ?>

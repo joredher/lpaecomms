@@ -16,7 +16,7 @@ class SearchController
         }
 
         $conn = Database::getConnection();
-        $stmt = $conn->prepare('SELECT lpa_stock_ID, lpa_stock_name FROM lpa_stock WHERE lpa_stock_name LIKE ? ORDER BY lpa_stock_name LIMIT 10');
+        $stmt = $conn->prepare('SELECT lpa_stock_ID, lpa_stock_name, lpa_stock_slug FROM lpa_stock WHERE lpa_stock_name LIKE ? ORDER BY lpa_stock_name LIMIT 10');
         $stmt->execute(["%{$query}%"]);
         $products = $stmt->fetchAll();
 

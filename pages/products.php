@@ -75,7 +75,7 @@ function renderProducts(array $products): string {
     ob_start();
     foreach ($products as $product): ?>
         <div class="col mb-4">
-            <div class="product-card clickable-card ripple-container" data-id="<?= $product['lpa_stock_ID'] ?>">
+            <div class="product-card clickable-card ripple-container" data-slug="<?= htmlspecialchars($product['lpa_stock_slug']) ?>">
                 <img src="<?= htmlspecialchars(getProductImageUrl($product['lpa_stock_image'] ?? '')) ?>" alt="<?= htmlspecialchars($product['lpa_stock_name']) ?>" loading="lazy">
 
                 <div class="product-card-description">
