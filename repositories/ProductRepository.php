@@ -1,6 +1,5 @@
 <?php
 
-use PDO;
 use repositories\BaseRepository;
 
 loadRepo('repositories/BaseRepository.php');
