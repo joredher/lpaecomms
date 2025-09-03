@@ -15,17 +15,18 @@ class ProductRepository extends BaseRepository
     {
         return $this->create([
             'lpa_stock_ID'       => $this->generateStockId(),
-            'lpa_stock_name'      => $data['name'],
-            'lpa_stock_desc'      => $data['desc'] ?? null,
-            'lpa_stock_features'  => $data['features'] ?? null,
-            'lpa_stock_onhand'    => $data['onhand'] ?? null,
-            'lpa_stock_price'     => $data['price'] ?? 0,
-            'lpa_stock_image'     => $data['image'] ?? null,
-            'lpa_stock_status'    => $data['status'] ?? 'P',
+            'lpa_stock_name'     => $data['name'],
+            'lpa_stock_slug'     => $this->generateUniqueSlug($data['name']),
+            'lpa_stock_desc'     => $data['desc'] ?? null,
+            'lpa_stock_features' => $data['features'] ?? null,
+            'lpa_stock_onhand'   => $data['onhand'] ?? null,
+            'lpa_stock_price'    => $data['price'] ?? 0,
+            'lpa_stock_image'    => $data['image'] ?? null,
+            'lpa_stock_status'   => $data['status'] ?? 'P',
             'lpa_stock_publish_at'=> $data['publish_at'] ?? null,
-            'lpa_fk_category_ID'  => $data['category_id'] ?? 0,
-            'lpa_fk_type_ID'      => $data['type_id'] ?? 0,
-            'lpa_invitem_inv_no'  => $this->generateSku(),
+            'lpa_fk_category_ID' => $data['category_id'] ?? 0,
+            'lpa_fk_type_ID'     => $data['type_id'] ?? 0,
+            'lpa_invitem_inv_no' => $this->generateSku(),
         ]);
     }
 
@@ -33,6 +34,7 @@ class ProductRepository extends BaseRepository
     {
         return $this->update($id, [
             'lpa_stock_name'      => $data['name'],
+            'lpa_stock_slug'      => $this->generateUniqueSlug($data['name'], (int)$id),
             'lpa_stock_desc'      => $data['desc'] ?? null,
             'lpa_stock_features'  => $data['features'] ?? null,
             'lpa_stock_onhand'    => $data['onhand'] ?? null,
@@ -161,6 +163,68 @@ class ProductRepository extends BaseRepository
             'SELECT lpa_type_ID, lpa_type_name FROM lpa_type ORDER BY lpa_type_name'
         );
         return $stmt->fetchAll();
+    }
+
+    public function findBySlug(string $slug): ?array
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT s.*, c.lpa_category_name, t.lpa_type_name
+             FROM {$this->table} s
+             JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
+             JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID
+             WHERE s.lpa_stock_slug = :slug LIMIT 1"
+        );
+        $stmt->execute([':slug' => $slug]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public function ensureSlug(int $id, string $name): string
+    {
+        $stmt = $this->conn->prepare("SELECT lpa_stock_slug FROM {$this->table} WHERE lpa_stock_ID = :id LIMIT 1");
+        $stmt->execute([':id' => $id]);
+        $slug = $stmt->fetchColumn();
+        if (!empty($slug)) {
+            return (string)$slug;
+        }
+
+        $slug = $this->generateUniqueSlug($name);
+        $update = $this->conn->prepare("UPDATE {$this->table} SET lpa_stock_slug = :slug WHERE lpa_stock_ID = :id");
+        $update->execute([':slug' => $slug, ':id' => $id]);
+
+        return $slug;
+    }
+
+    private function slugify(string $text): string
+    {
+        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));
+        return $slug !== '' ? $slug : uniqid('prod-');
+    }
+
+    private function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $slug = $this->slugify($name);
+        $base = $slug;
+        $i = 1;
+        while ($this->slugExists($slug, $ignoreId)) {
+            $slug = $base . '-' . $i++;
+        }
+        return $slug;
+    }
+
+    private function slugExists(string $slug, ?int $ignoreId = null): bool
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE lpa_stock_slug = :slug";
+        if ($ignoreId) {
+            $sql .= " AND lpa_stock_ID <> :id";
+        }
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':slug', $slug, PDO::PARAM_STR);
+        if ($ignoreId) {
+            $stmt->bindValue(':id', $ignoreId, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        return (bool)$stmt->fetchColumn();
     }
 }
 

@@ -1,48 +1,63 @@
 <?php
 require_once 'includes/config.php';
+loadRepo('repositories/ProductRepository.php');
 $conn = Database::getConnection();
+$productRepo = new ProductRepository();
 
-$productId = $_GET['id'] ?? null;
-if (!$productId || !is_numeric($productId)) {
-    header('Location: index.php?page=categories');
-    exit;
+$productSlug = $productSlug ?? ($_GET['slug'] ?? null);
+$productId   = $productId   ?? ($_GET['id'] ?? null);
+if (!$productSlug && !$productId) {
+    http_response_code(404);
+    include 'pages/error/404.php';
+    return;
 }
 
+$where = $productSlug ? 's.lpa_stock_slug = ?' : 's.lpa_stock_ID = ?';
 $query = /** @lang text */
-    "SELECT s.*, c.lpa_category_name, t.lpa_type_name 
+    "SELECT s.*, c.lpa_category_name, t.lpa_type_name
           FROM lpa_stock s
           JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
           JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID
-          WHERE s.lpa_stock_ID = ?";
+          WHERE {$where}";
 $stmt = $conn->prepare($query);
-$stmt->execute([$productId]);
+$stmt->execute([$productSlug ?: $productId]);
 $product = $stmt->fetch();
 
 if (!$product) {
-    echo "<p>Product not found.</p>";
-    exit;
+    http_response_code(404);
+    include 'pages/error/404.php';
+    return;
 }
 
+$productId = $product['lpa_stock_ID'];
+$product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$productId, $product['lpa_stock_name'] ?? '');
+
 $relatedStmt = $conn->prepare(
-    /** @lang text */ "SELECT 
+    /** @lang text */ "SELECT
         s.*,
-        c.lpa_category_name, 
+        c.lpa_category_name,
         t.lpa_type_name
      FROM lpa_stock s
      JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
      JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID
-     WHERE lpa_fk_category_ID = ? AND lpa_stock_ID != ? 
+     WHERE lpa_fk_category_ID = ? AND lpa_stock_ID != ?
      ORDER BY RAND() LIMIT 3"
 );
 $relatedStmt->execute([$product['lpa_fk_category_ID'], $productId]);
 $related = $relatedStmt->fetchAll();
+foreach ($related as &$item) {
+    $item['lpa_stock_slug'] = $productRepo->ensureSlug((int)$item['lpa_stock_ID'], $item['lpa_stock_name'] ?? '');
+}
+unset($item);
 
-$features = explode('.', $product['lpa_stock_features']) ?? [];
+$features = array_filter(
+    array_map('trim', explode('.', (string)($product['lpa_stock_features'] ?? '')))
+);
 ?>
 
 <div class="pd-details-section container py-5">
     <div class="pd-details-back mb-4">
-        <a href="?route=products" class="pd-back-button d-flex align-items-center text-decoration-none">
+        <a href="/products" class="pd-back-button d-flex align-items-center text-decoration-none">
             <img src="../assets/images/icons/back.svg" alt="Back" class="me-2">
             <span>Back</span>
         </a>
@@ -70,7 +85,7 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
                     <?php if (!empty($features)): ?>
                         <ul class="product-features">
                             <?php foreach ($features as $feature): ?>
-                                <li><?= htmlspecialchars($feature) ?></li>
+                                <li><?= htmlspecialchars((string)$feature) ?></li>
                             <?php endforeach; ?>
                         </ul>
                     <?php endif; ?>
@@ -94,8 +109,8 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
             <div class="row gy-4 mb-5">
                 <?php foreach ($related as $item): ?>
                     <div class="col-md-4">
-                        <div class="product-card clickable-card clickable-card-detail ripple-container" data-id="<?= $item['lpa_stock_ID'] ?>">
-                            <img src="<?= htmlspecialchars(getProductImageUrl($item['lpa_stock_image'] ?? '')) ?>" alt="<?= htmlspecialchars($item['lpa_stock_name']) ?>">
+                        <div class="product-card clickable-card clickable-card-detail ripple-container" data-slug="<?= htmlspecialchars($item['lpa_stock_slug'] ?? $item['lpa_stock_ID']) ?>" data-id="<?= htmlspecialchars($item['lpa_stock_ID']) ?>">
+                            <img src="<?= htmlspecialchars((string)getProductImageUrl($item['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= htmlspecialchars($item['lpa_stock_name'] ?? '') ?>">
 
                             <div class="product-card-description">
                                 <h3 class="text-truncate"><?= htmlspecialchars($item['lpa_stock_name']) ?></h3>
@@ -110,7 +125,7 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
                                 </div>
                                 <div class="product-card-add-cart">
                                     <div class="price fw-bolder">$<?= number_format($item['lpa_stock_price'], 2) ?> AUD</div>
-                                    <button data-product-id="<?= htmlspecialchars($product['lpa_stock_ID']); ?>"
+                                    <button data-product-id="<?= htmlspecialchars($item['lpa_stock_ID']); ?>"
                                             onclick="addToCartBtn(event)"
                                             class="btn btn-sm btn-outline-primary add-to-cart-btn">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -132,19 +147,21 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
     </div>
 </div>
 <script>
-    const cards = document.querySelectorAll('.clickable-card-detail');
+const cards = document.querySelectorAll('.clickable-card-detail');
 
-    cards.forEach(card => {
-        card.addEventListener('click', (e) => {
-            // Prevent click from Add button inside
-            if (e.target.closest("button")) return;
-
-            const id = card.getAttribute("data-id");
-            console.log('LOG', id)
-            if (id) window.location.href = `index.php?page=product&id=${id}`;
-        })
-    })
-</script>
+cards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest("button")) return;
+      const slug = card.getAttribute("data-slug");
+      if (slug) {
+          window.location.href = `/product?slug=${slug}`;
+      } else {
+          const id = card.getAttribute("data-id");
+          if (id) window.location.href = `/product?id=${id}`;
+      }
+      });
+  });
+  </script>
 
 
 

@@ -1,7 +1,9 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/pagination.php';
+loadRepo('repositories/ProductRepository.php');
 $conn = Database::getConnection();
+$productRepo = new ProductRepository();
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
 // Fetch categories and types
@@ -71,12 +73,19 @@ $productStmt = $conn->prepare($productQuery);
 $productStmt->execute($params);
 $products = $productStmt->fetchAll();
 
+foreach ($products as &$product) {
+    $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
+}
+unset($product);
+
 function renderProducts(array $products): string {
     ob_start();
-    foreach ($products as $product): ?>
+    foreach ($products as $product):
+        $slug = $product['lpa_stock_slug'] ?? (string)$product['lpa_stock_ID'];
+        ?>
         <div class="col mb-4">
-            <div class="product-card clickable-card ripple-container" data-id="<?= $product['lpa_stock_ID'] ?>">
-                <img src="<?= htmlspecialchars(getProductImageUrl($product['lpa_stock_image'] ?? '')) ?>" alt="<?= htmlspecialchars($product['lpa_stock_name']) ?>" loading="lazy">
+            <div class="product-card clickable-card ripple-container" data-slug="<?= htmlspecialchars($slug) ?>" data-id="<?= htmlspecialchars($product['lpa_stock_ID']) ?>">
+                <img src="<?= htmlspecialchars((string)getProductImageUrl($product['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= htmlspecialchars($product['lpa_stock_name'] ?? '') ?>" loading="lazy">
 
                 <div class="product-card-description">
                     <h3 class="text-truncate"><?= htmlspecialchars($product['lpa_stock_name']) ?></h3>

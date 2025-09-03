@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmMessage = document.getElementById('confirmMessage');
     const confirmOk = document.getElementById('confirmOk');
     const confirmTitle = confirmModalEl ? confirmModalEl.querySelector('.modal-title') : null;
+    const nameInput = document.getElementById('product-name');
+    const descInput = document.getElementById('product-desc');
+    const featuresInput = document.getElementById('product-features');
+    const imageInput = document.getElementById('product-image');
 
     function clampQty() {
         let val = parseInt(qtyInput.value, 10);
@@ -187,13 +191,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (form) {
-        form.addEventListener('submit', () => {
+        form.addEventListener('submit', (e) => {
+            const required = [
+                { el: nameInput, name: 'Product Name' },
+                { el: qtyInput, name: 'Quantity' },
+                { el: priceInput, name: 'Price' },
+                { el: categorySelect, name: 'Category' },
+                { el: typeSelect, name: 'Type' },
+                { el: descInput, name: 'Description' },
+                { el: featuresInput, name: 'Features' }
+            ];
+            if (!currentImageInput.value && imageInput) {
+                required.push({ el: imageInput, name: 'Image' });
+            }
+            if (statusSelect.value === 'S') {
+                required.push({ el: publishInput, name: 'Publish At' });
+            }
+
+            const missing = required.filter(f => !f.el || !f.el.value.trim());
+            if (missing.length > 0) {
+                e.preventDefault();
+                missing.forEach(f => f.el.classList.add('is-invalid'));
+                showToast({ message: `Please fill in: ${missing.map(f => f.name).join(', ')}`, type: 'danger' });
+                return;
+            }
+
             clampQty();
             let val = parseFloat(priceInput.value.replace(/[^\d.]/g, ''));
             if (isNaN(val)) val = 0;
             val = Math.min(Math.max(val, 0), 999999);
             priceInput.value = val;
             if (statusSelect.value !== 'S') publishInput.value = '';
+        });
+
+        const fields = [nameInput, qtyInput, priceInput, categorySelect, typeSelect, descInput, featuresInput, imageInput, publishInput];
+        fields.forEach(f => {
+            if (!f) return;
+            ['input', 'change'].forEach(evt => {
+                f.addEventListener(evt, () => f.classList.remove('is-invalid'));
+            });
         });
     }
 });

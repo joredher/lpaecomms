@@ -9,19 +9,27 @@ loadRepo('repositories/ProductRepository.php');
 $repo = new ProductRepository();
 $categories = $repo->getCategories();
 $toastMessage = '';
+$toastType = 'success';
+if (!empty($_SESSION['toast'])) {
+    $toastMessage = $_SESSION['toast']['message'] ?? '';
+    $toastType = $_SESSION['toast']['type'] ?? 'success';
+    unset($_SESSION['toast']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $qty = isset($_POST['onhand']) ? (int)$_POST['onhand'] : 0;
     $qty = max(0, min(999, $qty));
 
-    $rawPrice = preg_replace('/[^\d.]/', '', $_POST['price'] ?? '0');
+    $rawPriceInput = $_POST['price'] ?? '';
+    $rawPrice = preg_replace('/[^\d.]/', '', $rawPriceInput);
     $price = (float)$rawPrice;
     $price = max(0, min(999999, $price));
 
     $currentImage = trim($_POST['current_image'] ?? '');
     $imageName = $currentImage;
 
-    if (!empty($_FILES['image']['name']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+    $uploadedImage = !empty($_FILES['image']['name']) && $_FILES['image']['error'] === UPLOAD_ERR_OK;
+    if ($uploadedImage) {
         if (!is_dir(PRODUCT_IMAGE_PATH) && !mkdir($concurrentDirectory = PRODUCT_IMAGE_PATH, 0777, true) && !is_dir($concurrentDirectory)) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
         }
@@ -42,6 +50,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'category_id' => trim($_POST['category_id'] ?? 0),
         'type_id'     => trim($_POST['type_id'] ?? 0),
     ];
+
+    $missing = [];
+    if ($data['name'] === '') $missing[] = 'name';
+    if (!isset($_POST['onhand']) || $_POST['onhand'] === '') $missing[] = 'onhand';
+    if (trim($rawPriceInput) === '') $missing[] = 'price';
+    if ($data['category_id'] === '' || $data['category_id'] == 0) $missing[] = 'category';
+    if ($data['type_id'] === '' || $data['type_id'] == 0) $missing[] = 'type';
+    if ($data['desc'] === '') $missing[] = 'desc';
+    if ($data['features'] === '') $missing[] = 'features';
+    if (!$currentImage && !$uploadedImage) $missing[] = 'image';
+    if ($data['status'] === 'S' && empty($_POST['publish_at'])) $missing[] = 'publish_at';
+
+    if ($missing) {
+        $_SESSION['toast'] = ['message' => 'Please fill in all required fields', 'type' => 'danger'];
+        header('Location: /admin.products');
+        exit;
+    }
+
     $id = $_POST['lpa_stock_ID'] ?? null;
     if ($id) {
         $repo->updateProduct($id, $data);
@@ -60,7 +86,14 @@ if (isset($_GET['delete'])) {
 }
 
 if (isset($_GET['status'])) {
-    $toastMessage = $_GET['status'] === 'updated' ? 'Product updated' : 'Product created';
+    switch ($_GET['status']) {
+        case 'updated':
+            $toastMessage = 'Product updated';
+            break;
+        case 'created':
+            $toastMessage = 'Product created';
+            break;
+    }
 }
 
 $searchTerm   = trim($_GET['search'] ?? '');
@@ -260,7 +293,7 @@ ob_start();
 <?php if (!empty($toastMessage)): ?>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        showToast({ message: <?= json_encode($toastMessage) ?>, type: 'success' });
+        showToast({ message: <?= json_encode($toastMessage) ?>, type: <?= json_encode($toastType) ?> });
     });
 </script>
 <?php endif; ?>

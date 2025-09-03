@@ -10,6 +10,12 @@ require_once __DIR__ . '/../../helpers/mail.php';
 $repo = new UserRepository();
 $groups = $repo->getGroups();
 $toastMessage = '';
+$toastType = 'success';
+if (!empty($_SESSION['toast'])) {
+    $toastMessage = $_SESSION['toast']['message'] ?? '';
+    $toastType = $_SESSION['toast']['type'] ?? 'success';
+    unset($_SESSION['toast']);
+}
 
 if (isset($_GET['check_email'])) {
     $email = trim($_GET['check_email']);
@@ -31,6 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
     $emailUser = explode('@', $data['lpa_user_email'])[0] ?? '';
     $data['lpa_user_username'] = $emailUser . date('Y');
+    if ($data['lpa_user_email'] === '' || !filter_var($data['lpa_user_email'], FILTER_VALIDATE_EMAIL) ||
+        $data['lpa_user_firstname'] === '' || $data['lpa_user_lastname'] === '' ||
+        $data['lpa_fk_user_group_ID'] === 0) {
+        $_SESSION['toast'] = ['message' => 'Please fill in all required fields correctly', 'type' => 'danger'];
+        header('Location: /admin.users');
+        exit;
+    }
     if (preg_match('/\d/', $data['lpa_user_firstname']) || preg_match('/\d/', $data['lpa_user_lastname'])) {
         header('Location: /admin.users?status=invalid_name');
         exit;
@@ -111,9 +124,11 @@ if (isset($_GET['status'])) {
             break;
         case 'email_exists':
             $toastMessage = 'Email already exists';
+            $toastType = 'danger';
             break;
         case 'invalid_name':
             $toastMessage = 'Names cannot contain numbers';
+            $toastType = 'danger';
             break;
     }
 }
@@ -289,7 +304,7 @@ ob_start();
     <?php if (!empty($toastMessage)): ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            showToast({ message: <?= json_encode($toastMessage) ?>, type: 'success' });
+            showToast({ message: <?= json_encode($toastMessage) ?>, type: <?= json_encode($toastType) ?> });
         });
     </script>
     <?php endif; ?>

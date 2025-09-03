@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailError = document.getElementById('email-error');
     const firstnameError = document.getElementById('firstname-error');
     const lastnameError = document.getElementById('lastname-error');
+    const groupSelect = document.getElementById('user-group');
 
     if (usernameInput) {
         usernameInput.readOnly = true;
@@ -93,11 +94,18 @@ document.addEventListener('DOMContentLoaded', () => {
         lastnameInput.addEventListener('input', () => validateName(lastnameInput, lastnameError));
     }
 
+    if (groupSelect) {
+        groupSelect.addEventListener('change', () => {
+            if (groupSelect.value) groupSelect.classList.remove('is-invalid');
+            updateSubmitState();
+        });
+    }
+
     if (userModalEl) {
         userModalEl.addEventListener('hidden.bs.modal', () => {
             form.reset();
             idInput.value = '';
-            [emailInput, firstnameInput, lastnameInput].forEach(inp => {
+            [emailInput, firstnameInput, lastnameInput, groupSelect].forEach(inp => {
                 if (inp) inp.classList.remove('is-invalid');
             });
             [emailError, firstnameError, lastnameError].forEach(el => {
@@ -197,6 +205,24 @@ document.addEventListener('DOMContentLoaded', () => {
     attachDeleteHandlers();
     attachStatusHandlers();
     initTooltips();
+
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            const required = [
+                { el: emailInput, name: 'Email' },
+                { el: firstnameInput, name: 'First Name' },
+                { el: lastnameInput, name: 'Last Name' },
+                { el: groupSelect, name: 'Group' }
+            ];
+            const missing = required.filter(f => !f.el || !f.el.value.trim());
+            if (missing.length > 0 || document.querySelectorAll('#user-form .is-invalid').length > 0) {
+                e.preventDefault();
+                missing.forEach(f => f.el.classList.add('is-invalid'));
+                showToast({ message: 'Please fill in all required fields correctly', type: 'danger' });
+                updateSubmitState();
+            }
+        });
+    }
 
     async function loadPage(page) {
         try {

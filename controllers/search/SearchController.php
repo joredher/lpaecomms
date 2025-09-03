@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/config.php';
+loadRepo('repositories/ProductRepository.php');
 
 class SearchController
 {
@@ -16,9 +17,14 @@ class SearchController
         }
 
         $conn = Database::getConnection();
-        $stmt = $conn->prepare('SELECT lpa_stock_ID, lpa_stock_name FROM lpa_stock WHERE lpa_stock_name LIKE ? ORDER BY lpa_stock_name LIMIT 10');
+        $stmt = $conn->prepare('SELECT lpa_stock_ID, lpa_stock_name, lpa_stock_slug FROM lpa_stock WHERE lpa_stock_name LIKE ? ORDER BY lpa_stock_name LIMIT 10');
         $stmt->execute(["%{$query}%"]);
         $products = $stmt->fetchAll();
+        $repo = new ProductRepository();
+        foreach ($products as &$product) {
+            $product['lpa_stock_slug'] = $repo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
+        }
+        unset($product);
 
         $accounts = [];
         $needle = strtolower($query);
