@@ -180,6 +180,22 @@ class ProductRepository extends BaseRepository
         return $row ?: null;
     }
 
+    public function ensureSlug(int $id, string $name): string
+    {
+        $stmt = $this->conn->prepare("SELECT lpa_stock_slug FROM {$this->table} WHERE lpa_stock_ID = :id LIMIT 1");
+        $stmt->execute([':id' => $id]);
+        $slug = $stmt->fetchColumn();
+        if (!empty($slug)) {
+            return (string)$slug;
+        }
+
+        $slug = $this->generateUniqueSlug($name);
+        $update = $this->conn->prepare("UPDATE {$this->table} SET lpa_stock_slug = :slug WHERE lpa_stock_ID = :id");
+        $update->execute([':slug' => $slug, ':id' => $id]);
+
+        return $slug;
+    }
+
     private function slugify(string $text): string
     {
         $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $text), '-'));

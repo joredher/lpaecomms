@@ -1,6 +1,8 @@
 <?php
 require_once 'includes/config.php';
+loadRepo('repositories/ProductRepository.php');
 $conn = Database::getConnection();
+$productRepo = new ProductRepository();
 
 $productSlug = $productSlug ?? ($_GET['slug'] ?? null);
 $productId   = $productId   ?? ($_GET['id'] ?? null);
@@ -28,6 +30,7 @@ if (!$product) {
 }
 
 $productId = $product['lpa_stock_ID'];
+$product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$productId, $product['lpa_stock_name'] ?? '');
 
 $relatedStmt = $conn->prepare(
     /** @lang text */ "SELECT
@@ -42,21 +45,14 @@ $relatedStmt = $conn->prepare(
 );
 $relatedStmt->execute([$product['lpa_fk_category_ID'], $productId]);
 $related = $relatedStmt->fetchAll();
+foreach ($related as &$item) {
+    $item['lpa_stock_slug'] = $productRepo->ensureSlug((int)$item['lpa_stock_ID'], $item['lpa_stock_name'] ?? '');
+}
+unset($item);
 
 $features = array_filter(
     array_map('trim', explode('.', (string)($product['lpa_stock_features'] ?? '')))
 );
-
-function getProductSlug(array $product): string {
-    if (!empty($product['lpa_stock_slug'])) {
-        return (string)$product['lpa_stock_slug'];
-    }
-
-    $name = $product['lpa_stock_name'] ?? '';
-    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
-
-    return $slug !== '' ? $slug : (string)($product['lpa_stock_ID'] ?? '');
-}
 ?>
 
 <div class="pd-details-section container py-5">
@@ -113,7 +109,7 @@ function getProductSlug(array $product): string {
             <div class="row gy-4 mb-5">
                 <?php foreach ($related as $item): ?>
                     <div class="col-md-4">
-                        <div class="product-card clickable-card clickable-card-detail ripple-container" data-slug="<?= htmlspecialchars(getProductSlug($item)) ?>" data-id="<?= htmlspecialchars($item['lpa_stock_ID']) ?>">
+                        <div class="product-card clickable-card clickable-card-detail ripple-container" data-slug="<?= htmlspecialchars($item['lpa_stock_slug'] ?? $item['lpa_stock_ID']) ?>" data-id="<?= htmlspecialchars($item['lpa_stock_ID']) ?>">
                             <img src="<?= htmlspecialchars((string)getProductImageUrl($item['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= htmlspecialchars($item['lpa_stock_name'] ?? '') ?>">
 
                             <div class="product-card-description">
