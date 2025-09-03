@@ -8,7 +8,7 @@ $productSlug = $productSlug ?? ($_GET['slug'] ?? null);
 $productId   = $productId   ?? ($_GET['id'] ?? null);
 if (!$productSlug && !$productId) {
     http_response_code(404);
-    include 'pages/client/404.php';
+    include 'pages/error/404.php';
     return;
 }
 
@@ -25,7 +25,7 @@ $product = $stmt->fetch();
 
 if (!$product) {
     http_response_code(404);
-    include 'pages/client/404.php';
+    include 'pages/error/404.php';
     return;
 }
 

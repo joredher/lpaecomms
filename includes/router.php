@@ -124,7 +124,7 @@ switch ($route) {
             $pageContent = 'pages/product.php';
         } else {
             $title = 'Product Not Found';
-            $pageContent = 'pages/client/404.php';
+            $pageContent = 'pages/error/404.php';
         }
         include 'includes/layout.php';
         break;
