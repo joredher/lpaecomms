@@ -1,6 +1,6 @@
 <?php
-require_once 'helpers/mail.php';
-require_once 'repositories/UserRepository.php';
+require_once __DIR__ . '/../../helpers/mail.php';
+require_once __DIR__ . '/../../repositories/UserRepository.php';
 
 class AuthController
 {
@@ -106,7 +106,7 @@ class AuthController
         // Sanitize inputs
         $firstname = trim($_POST['firstname'] ?? '');
         $lastname = trim($_POST['lastname'] ?? '');
-        $email = trim(filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL));
+        $email = strtolower(trim(filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL)));
         $phone = trim(preg_replace('/[^0-9]/', '', $_POST['phone'] ?? ''));
         $password = $_POST['password'] ?? '';
         $emailPrefix = explode('@', $email)[0];
@@ -119,12 +119,13 @@ class AuthController
                 'message' => '⚠️ Please fill out all fields correctly.',
                 'type' => 'danger'
             ];
-            header('Location: /register');
+            header('Location: ?route=register');
             exit;
         }
 
         // Check if user already exists
-        if ($existingUser = $this->userRepo->findByEmail($email)) {
+        if ($this->userRepo->emailExists($email)) {
+            $existingUser = $this->userRepo->findByEmail($email);
             sendEmailAlreadyExistsNotification([
                 'firstname' => $existingUser['lpa_user_firstname'] ?? '',
                 'email' => $email,
@@ -135,7 +136,7 @@ class AuthController
                 'message' => '⚠️ Email already exists.',
                 'type' => 'danger'
             ];
-            header('Location: /register');
+            header('Location: ?route=register');
             exit;
         }
 
