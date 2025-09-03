@@ -2,21 +2,23 @@
 require_once 'includes/config.php';
 $conn = Database::getConnection();
 
-$productSlug = $productSlug ?? null;
-if (!$productSlug) {
+$productSlug = $productSlug ?? ($_GET['slug'] ?? null);
+$productId   = $productId   ?? ($_GET['id'] ?? null);
+if (!$productSlug && !$productId) {
     http_response_code(404);
     include 'pages/client/404.php';
     return;
 }
 
+$where = $productSlug ? 's.lpa_stock_slug = ?' : 's.lpa_stock_ID = ?';
 $query = /** @lang text */
     "SELECT s.*, c.lpa_category_name, t.lpa_type_name
           FROM lpa_stock s
           JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
           JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID
-          WHERE s.lpa_stock_slug = ?";
+          WHERE {$where}";
 $stmt = $conn->prepare($query);
-$stmt->execute([$productSlug]);
+$stmt->execute([$productSlug ?: $productId]);
 $product = $stmt->fetch();
 
 if (!$product) {
@@ -44,6 +46,17 @@ $related = $relatedStmt->fetchAll();
 $features = array_filter(
     array_map('trim', explode('.', (string)($product['lpa_stock_features'] ?? '')))
 );
+
+function getProductSlug(array $product): string {
+    if (!empty($product['lpa_stock_slug'])) {
+        return (string)$product['lpa_stock_slug'];
+    }
+
+    $name = $product['lpa_stock_name'] ?? '';
+    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
+
+    return $slug !== '' ? $slug : (string)($product['lpa_stock_ID'] ?? '');
+}
 ?>
 
 <div class="pd-details-section container py-5">
@@ -100,8 +113,8 @@ $features = array_filter(
             <div class="row gy-4 mb-5">
                 <?php foreach ($related as $item): ?>
                     <div class="col-md-4">
-                        <div class="product-card clickable-card clickable-card-detail ripple-container" data-slug="<?= htmlspecialchars($item['lpa_stock_slug']) ?>">
-                            <img src="<?= htmlspecialchars(getProductImageUrl($item['lpa_stock_image'] ?? '')) ?>" alt="<?= htmlspecialchars($item['lpa_stock_name']) ?>">
+                        <div class="product-card clickable-card clickable-card-detail ripple-container" data-slug="<?= htmlspecialchars(getProductSlug($item)) ?>" data-id="<?= htmlspecialchars($item['lpa_stock_ID']) ?>">
+                            <img src="<?= htmlspecialchars((string)getProductImageUrl($item['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= htmlspecialchars($item['lpa_stock_name'] ?? '') ?>">
 
                             <div class="product-card-description">
                                 <h3 class="text-truncate"><?= htmlspecialchars($item['lpa_stock_name']) ?></h3>
@@ -142,12 +155,17 @@ const cards = document.querySelectorAll('.clickable-card-detail');
 
 cards.forEach(card => {
     card.addEventListener('click', (e) => {
-        if (e.target.closest("button")) return;
-        const slug = card.getAttribute("data-slug");
-        if (slug) window.location.href = `/product/${slug}`;
-    });
-});
-</script>
+      if (e.target.closest("button")) return;
+      const slug = card.getAttribute("data-slug");
+      if (slug) {
+          window.location.href = `/product/${slug}`;
+      } else {
+          const id = card.getAttribute("data-id");
+          if (id) window.location.href = `/product?id=${id}`;
+      }
+      });
+  });
+  </script>
 
 
 

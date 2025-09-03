@@ -8,8 +8,9 @@
 
 <?php if (!empty($products)): ?>
     <?php foreach ($products as $product): ?>
-        <a href="/product/<?= htmlspecialchars($product['lpa_stock_slug']) ?>" class="list-group-item list-group-item-action">
-            <?= htmlspecialchars($product['lpa_stock_name']) ?>
+        <?php $slug = $product['lpa_stock_slug'] ?? null; ?>
+        <a href="<?= $slug ? '/product/' . htmlspecialchars($slug) : '/product?id=' . urlencode($product['lpa_stock_ID']) ?>" class="list-group-item list-group-item-action">
+            <?= htmlspecialchars($product['lpa_stock_name'] ?? '') ?>
         </a>
     <?php endforeach; ?>
 <?php endif; ?>

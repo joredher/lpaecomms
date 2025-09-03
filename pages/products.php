@@ -71,12 +71,25 @@ $productStmt = $conn->prepare($productQuery);
 $productStmt->execute($params);
 $products = $productStmt->fetchAll();
 
+function getProductSlug(array $product): string {
+    if (!empty($product['lpa_stock_slug'])) {
+        return (string)$product['lpa_stock_slug'];
+    }
+
+    $name = $product['lpa_stock_name'] ?? '';
+    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name), '-'));
+
+    return $slug !== '' ? $slug : (string)($product['lpa_stock_ID'] ?? '');
+}
+
 function renderProducts(array $products): string {
     ob_start();
-    foreach ($products as $product): ?>
+    foreach ($products as $product):
+        $slug = getProductSlug($product);
+        ?>
         <div class="col mb-4">
-            <div class="product-card clickable-card ripple-container" data-slug="<?= htmlspecialchars($product['lpa_stock_slug']) ?>">
-                <img src="<?= htmlspecialchars(getProductImageUrl($product['lpa_stock_image'] ?? '')) ?>" alt="<?= htmlspecialchars($product['lpa_stock_name']) ?>" loading="lazy">
+            <div class="product-card clickable-card ripple-container" data-slug="<?= htmlspecialchars($slug) ?>" data-id="<?= htmlspecialchars($product['lpa_stock_ID']) ?>">
+                <img src="<?= htmlspecialchars((string)getProductImageUrl($product['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= htmlspecialchars($product['lpa_stock_name'] ?? '') ?>" loading="lazy">
 
                 <div class="product-card-description">
                     <h3 class="text-truncate"><?= htmlspecialchars($product['lpa_stock_name']) ?></h3>

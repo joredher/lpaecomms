@@ -117,8 +117,9 @@ switch ($route) {
         include 'includes/layout.php';
         break;
     case 'product':
-        $productSlug = $segments[1] ?? null;
-        if ($productSlug) {
+        $productSlug = $segments[1] ?? ($_GET['slug'] ?? null);
+        $productId   = $_GET['id'] ?? null;
+        if ($productSlug || $productId) {
             $title = 'Product Details';
             $pageContent = 'pages/product.php';
         } else {

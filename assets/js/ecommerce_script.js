@@ -158,7 +158,12 @@ function initClickableCards() {
       if (e.target.closest("button")) return;
 
       const slug = card.getAttribute("data-slug");
-      if (slug) window.location.href = `/product/${slug}`;
+      if (slug) {
+        window.location.href = `/product/${slug}`;
+      } else {
+        const id = card.getAttribute("data-id");
+        if (id) window.location.href = `/product?id=${id}`;
+      }
     });
   });
 }
