@@ -99,7 +99,7 @@ class AuthController
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ?route=register');
+            header('Location: /register');
             exit;
         }
 
@@ -119,7 +119,7 @@ class AuthController
                 'message' => '⚠️ Please fill out all fields correctly.',
                 'type' => 'danger'
             ];
-            header('Location: ?route=register');
+            header('Location: /register');
             exit;
         }
 
@@ -136,7 +136,7 @@ class AuthController
                 'message' => '⚠️ Email already exists.',
                 'type' => 'danger'
             ];
-            header('Location: ?route=register');
+            header('Location: /register');
             exit;
         }
 
@@ -157,7 +157,7 @@ class AuthController
                 'message' => '❌ Failed to create user.',
                 'type' => 'danger'
             ];
-            header('Location: ?route=register');
+            header('Location: /register');
             exit;
         }
 
