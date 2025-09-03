@@ -7,11 +7,11 @@ $productRepo = new ProductRepository();
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
 // Fetch categories and types
-$categoryStmt = $conn->prepare("SELECT * FROM lpa_category");
+$categoryStmt = $conn->prepare(/** @lang text */ "SELECT * FROM lpa_category");
 $categoryStmt->execute();
 $categories = $categoryStmt->fetchAll();
 
-$typeStmt = $conn->prepare("SELECT * FROM lpa_type");
+$typeStmt = $conn->prepare(/** @lang text */ "SELECT * FROM lpa_type");
 $typeStmt->execute();
 $types = $typeStmt->fetchAll();
 
@@ -20,7 +20,8 @@ $pageSize = 9;
 $offset   = ($pageNum - 1) * $pageSize;
 
 // Build product query
-$productQuery = "SELECT s.*, c.lpa_category_name, t.lpa_type_name
+$productQuery = /** @lang text */
+    "SELECT s.*, c.lpa_category_name, t.lpa_type_name
                  FROM lpa_stock s
                  JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
                  JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
@@ -85,7 +86,7 @@ function renderProducts(array $products): string {
         ?>
         <div class="col mb-4">
             <div class="product-card clickable-card ripple-container" data-slug="<?= htmlspecialchars($slug) ?>" data-id="<?= htmlspecialchars($product['lpa_stock_ID']) ?>">
-                <img src="<?= htmlspecialchars((string)getProductImageUrl($product['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= htmlspecialchars($product['lpa_stock_name'] ?? '') ?>" loading="lazy">
+                <img src="<?= htmlspecialchars(getProductImageUrl($product['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= ($product['lpa_stock_name'] ?? '') ?>" loading="lazy">
 
                 <div class="product-card-description">
                     <h3 class="text-truncate"><?= htmlspecialchars($product['lpa_stock_name']) ?></h3>
