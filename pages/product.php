@@ -110,7 +110,7 @@ $features = array_filter(
                 <?php foreach ($related as $item): ?>
                     <div class="col-md-4">
                         <div class="product-card clickable-card clickable-card-detail ripple-container" data-slug="<?= htmlspecialchars($item['lpa_stock_slug'] ?? $item['lpa_stock_ID']) ?>" data-id="<?= htmlspecialchars($item['lpa_stock_ID']) ?>">
-                            <img src="<?= htmlspecialchars((string)getProductImageUrl($item['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= htmlspecialchars($item['lpa_stock_name'] ?? '') ?>">
+                            <img src="<?= htmlspecialchars(getProductImageUrl($item['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= htmlspecialchars($item['lpa_stock_name'] ?? '') ?>">
 
                             <div class="product-card-description">
                                 <h3 class="text-truncate"><?= htmlspecialchars($item['lpa_stock_name']) ?></h3>
