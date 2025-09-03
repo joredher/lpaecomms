@@ -41,7 +41,9 @@ $relatedStmt = $conn->prepare(
 $relatedStmt->execute([$product['lpa_fk_category_ID'], $productId]);
 $related = $relatedStmt->fetchAll();
 
-$features = explode('.', $product['lpa_stock_features']) ?? [];
+$features = array_filter(
+    array_map('trim', explode('.', (string)($product['lpa_stock_features'] ?? '')))
+);
 ?>
 
 <div class="pd-details-section container py-5">
@@ -74,7 +76,7 @@ $features = explode('.', $product['lpa_stock_features']) ?? [];
                     <?php if (!empty($features)): ?>
                         <ul class="product-features">
                             <?php foreach ($features as $feature): ?>
-                                <li><?= htmlspecialchars($feature) ?></li>
+                                <li><?= htmlspecialchars((string)$feature) ?></li>
                             <?php endforeach; ?>
                         </ul>
                     <?php endif; ?>
