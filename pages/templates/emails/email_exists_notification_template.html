@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Account Already Exists</title>
+</head>
+<body style="font-family: Arial, sans-serif; background: linear-gradient(180deg, rgba(78, 181, 144, 0.7), rgba(53, 153, 143, 0.7) 50%, rgba(53, 124, 130, 0.7)); color: white; text-align: center; padding: 2rem;">
+<img src="https://lpaecomms.test/assets/images/logo.svg" alt="LPA Ecommerce" width="120" style="margin-bottom: 20px;">
+<h2>Hello {{firstname}},</h2>
+<p>The email address {{email}} is already registered in our system.</p>
+<p>If you forgot your password, you can reset it using the button below:</p>
+<p style="margin-top: 30px;">
+    <a href="{{reset_password_url}}" style="padding: 12px 24px; background: white; color: #013a63; text-decoration: none; font-weight: bold; border-radius: 5px;">Reset Password</a>
+</p>
+<p style="margin-top: 30px; font-size: 12px;">If you didn't attempt to sign up, please ignore this email.</p>
+</body>
+</html>

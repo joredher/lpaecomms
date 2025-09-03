@@ -124,7 +124,13 @@ class AuthController
         }
 
         // Check if user already exists
-        if ($this->userRepo->findByEmail($email)) {
+        if ($existingUser = $this->userRepo->findByEmail($email)) {
+            sendEmailAlreadyExistsNotification([
+                'firstname' => $existingUser['lpa_user_firstname'] ?? '',
+                'email' => $email,
+                'reset_password_url' => 'https://lpaecomms.test/forgot_password'
+            ]);
+
             $_SESSION['flash_message'] = [
                 'message' => '⚠️ Email already exists.',
                 'type' => 'danger'
