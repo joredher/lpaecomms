@@ -1,6 +1,6 @@
 <?php
-require_once 'helpers/mail.php';
-require_once 'repositories/UserRepository.php';
+require_once __DIR__ . '/../../helpers/mail.php';
+require_once __DIR__ . '/../../repositories/UserRepository.php';
 
 class AuthController
 {
@@ -99,14 +99,14 @@ class AuthController
         }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ?route=register');
+            header('Location: /register');
             exit;
         }
 
         // Sanitize inputs
         $firstname = trim($_POST['firstname'] ?? '');
         $lastname = trim($_POST['lastname'] ?? '');
-        $email = trim(filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL));
+        $email = strtolower(trim(filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL)));
         $phone = trim(preg_replace('/[^0-9]/', '', $_POST['phone'] ?? ''));
         $password = $_POST['password'] ?? '';
         $emailPrefix = explode('@', $email)[0];
@@ -124,7 +124,14 @@ class AuthController
         }
 
         // Check if user already exists
-        if ($this->userRepo->findByEmail($email)) {
+        if ($this->userRepo->emailExists($email)) {
+            $existingUser = $this->userRepo->findByEmail($email);
+            sendEmailAlreadyExistsNotification([
+                'firstname' => $existingUser['lpa_user_firstname'] ?? '',
+                'email' => $email,
+                'reset_password_url' => 'https://lpaecomms.test/forgot_password'
+            ]);
+
             $_SESSION['flash_message'] = [
                 'message' => '⚠️ Email already exists.',
                 'type' => 'danger'
@@ -150,7 +157,7 @@ class AuthController
                 'message' => '❌ Failed to create user.',
                 'type' => 'danger'
             ];
-            header('Location: ?route=register');
+            header('Location: /register');
             exit;
         }
 

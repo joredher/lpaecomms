@@ -88,6 +88,19 @@ function sendResetPasswordEmail (array $data): bool
     return sendEmail($data['to'], $subject, $html);
 }
 
+function sendEmailAlreadyExistsNotification(array $data): bool
+{
+    $html = file_get_contents(__DIR__ . '/../pages/templates/emails/email_exists_notification_template.html');
+    $html = str_replace(
+        ['{{firstname}}', '{{email}}', '{{reset_password_url}}'],
+        [htmlspecialchars($data['firstname']), $data['email'], $data['reset_password_url']],
+        $html
+    );
+
+    $subject = "Email Already Registered";
+    return sendEmail($data['email'], $subject, $html);
+}
+
 function sendInvoiceConfirmationEmail(array $data): bool
 {
     $html = file_get_contents(__DIR__ . '/../pages/templates/emails/invoice_confirmation_template.html');
