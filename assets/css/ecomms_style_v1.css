@@ -30,32 +30,26 @@ body {
 
 /** @header **/
 header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 28px 130px;
+  padding: 1.75rem 8.125rem;
   color: white;
-  font-size: 16px;
-  gap: 63px;
+  font-size: 1rem;
   position: relative;
   font-family: Verdana, serif;
   box-sizing: border-box;
-  height: 160px;
+  height: 10rem;
 }
 
 .logo-nav {
-  display: flex;
   align-items: center;
-  gap: 40px;
+  gap: 2.5rem;
 }
 
 .logo {
-  width: 50px;
+  width: 3.125rem;
 }
 
 .navigation {
-  display: flex;
-  gap: 30px;
+  gap: 1.875rem;
 }
 
 .navigation a {
@@ -71,35 +65,33 @@ header {
 }
 
 .actions {
-  display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 1.25rem;
 }
 
 .search-box {
-  display: flex;
   align-items: center;
   background-color: #fff;
-  padding: 8px 15px;
-  border-radius: 20px;
+  padding: 0.5rem 0.9375rem;
+  border-radius: 1.25rem;
 }
 
 .search-box input {
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .search-box img {
-  width: 16px;
-  margin-right: 10px;
+  width: 1rem;
+  margin-right: 0.625rem;
 }
 
 .create-account {
   background-color: var(--color-secondary);
   color: #fff;
-  padding: 10px 20px;
-  border-radius: 20px;
+  padding: 0.625rem 1.25rem;
+  border-radius: 1.25rem;
   border: none;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -111,8 +103,8 @@ header {
 
 .account-active {
   background: var(--color-secondary);
-  box-shadow: 0 2px 6px rgba(53, 153, 143, 0.25);
-  border: 1px dashed whitesmoke;
+  box-shadow: 0 0.125rem 0.375rem rgba(53, 153, 143, 0.25);
+  border: 0.0625rem dashed whitesmoke;
   transition: background 0.3s ease-in;
 }
 
@@ -127,15 +119,15 @@ header {
 }
 
 .dropdown .dropdown-menu {
-  margin-top: 8px;
-  border-radius: 10px;
-  min-width: 180px;
+  margin-top: 0.5rem;
+  border-radius: 0.625rem;
+  min-width: 11.25rem;
   font-size: 0.95rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
 }
 
 .dropdown .dropdown-item {
-  padding: 10px 15px;
+  padding: 0.625rem 0.9375rem;
   transition: background-color 0.2s;
 }
 
@@ -145,9 +137,9 @@ header {
 
 .login-link {
   font-weight: 500;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 0.0625rem solid white;
   color: white;
   transition: background-color 0.3s ease;
 }
@@ -157,46 +149,45 @@ header {
 }
 
 .currency {
-  display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 0.3125rem;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .currency img {
-  width: 20px;
+  width: 1.25rem;
 }
 
 .samsung {
   height: 96.88%;
   font-weight: 800;
   display: inline-block;
-  margin: 0 60px;
+  margin: 0 3.75rem;
 }
 .lenovo {
   height: 96.88%;
   font-weight: 800;
   display: inline-block;
-  margin: 0 60px;
+  margin: 0 3.75rem;
 }
 .acer {
   height: 96.88%;
   font-weight: 600;
   display: inline-block;
-  margin: 0 60px;
+  margin: 0 3.75rem;
 }
 .asus {
   height: 96.88%;
   font-weight: 600;
   display: inline-block;
-  margin: 0 60px;
+  margin: 0 3.75rem;
 }
 .dell {
   height: 87.5%;
   font-weight: 600;
   display: inline-block;
-  margin: 0 60px;
+  margin: 0 3.75rem;
 }
 
 .brands {
