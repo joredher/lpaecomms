@@ -135,6 +135,37 @@ header {
     width: 20px;
 }
 
+.samsung {
+    height: 96.88%;
+    font-weight: 800;
+    display: inline-block;
+    margin: 0 60px;
+}
+.lenovo {
+    height: 96.88%;
+    font-weight: 800;
+    display: inline-block;
+    margin: 0 60px;
+}
+.acer {
+    height: 96.88%;
+    font-weight: 600;
+    display: inline-block;
+    margin: 0 60px;
+}
+.asus {
+    height: 96.88%;
+    font-weight: 600;
+    display: inline-block;
+    margin: 0 60px;
+}
+.dell {
+    height: 87.5%;
+    font-weight: 600;
+    display: inline-block;
+    margin: 0 60px;
+}
+
 .brands {
     display: flex;
     position: relative;
@@ -147,15 +178,11 @@ header {
     font-family: Inter, Verdana, serif;
 }
 
-.brands > .brand-item {
+.brands > div {
     cursor: pointer;
-    height: 96.88%;
-    font-weight: 600;
-    display: inline-block;
-    margin: 0 60px;
 }
 
-.brands > .brand-item:hover {
+.brands > div:hover {
     color: var(--color-primary-hover);
     transition: color 0.1ms;
 }
