@@ -99,3 +99,146 @@
         height: 40px;
     }
 }
+
+/* ========== Home Page Mobile First ========== */
+.frame-parent {
+    max-width: 100%;
+    padding: 1.5rem;
+    margin: 2rem auto;
+    border-radius: 1.5rem;
+    background-color: #c1dcdc;
+    height: auto;
+    font-size: 2.25rem;
+    text-align: left;
+    overflow: hidden;
+    color: #000;
+    font-family: Poppins, Verdana, serif;
+}
+
+.frame-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    font-size: 1.5rem;
+    color: #1e1e1e;
+}
+
+.frame-child {
+    display: none;
+}
+
+.explore-logic-peripherals {
+    font-size: 2.25rem;
+    line-height: 2.75rem;
+    font-weight: 800;
+}
+
+.what-are-you-looking-for-parent {
+    height: 3.375rem;
+    font-size: 1rem;
+}
+
+.frame-item {
+    width: 2.5rem;
+    height: 2.5rem;
+}
+
+.about-us-section {
+    background-color: #c1dcdc;
+    padding: 3rem 1.5rem;
+    height: auto;
+    text-align: left;
+    font-family: Poppins, serif;
+}
+
+.about-us-container {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    align-items: center;
+}
+
+.features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    font-size: 1.125rem;
+    color: #000;
+}
+
+.features-section {
+    padding: 3rem 1.5rem;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.feature-card img {
+    width: 100%;
+    height: auto;
+}
+
+@media (min-width: 481px) {
+    .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    .frame-container {
+        flex-direction: row;
+    }
+
+    .frame-child {
+        display: block;
+    }
+
+    .features-list {
+        flex-direction: row;
+    }
+}
+
+@media (min-width: 1025px) {
+    .frame-parent {
+        height: 32rem;
+        font-size: 3.375rem;
+        margin: 5.25rem auto;
+        padding: 0 3rem;
+    }
+
+    .frame-container {
+        gap: 3rem;
+        font-size: 2rem;
+    }
+
+    .feature-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .about-us-section {
+        height: 32rem;
+    }
+}
+
+@media (min-width: 1367px) {
+    .frame-parent {
+        max-width: 80%;
+    }
+}
+
+@media (min-width: 1601px) {
+    .frame-parent {
+        max-width: 75%;
+    }
+}
+
+@media (min-width: 1921px) {
+    .frame-parent {
+        max-width: 70%;
+    }
+}
+

@@ -6,7 +6,7 @@ $searchPageLink = "";
 
 ?>
 
-<div class="frame-parent">
+<div class="frame-parent container-fluid">
     <div class="frame-group">
         <div class="explore-logic-peripherals-au-parent">
             <div class="explore-logic-peripherals">Explore Logic Peripherals AU</div>
@@ -54,27 +54,27 @@ $searchPageLink = "";
 </div>
 
 <div class="about-us-section">
-    <div class="about-us-container">
-        <div class="about-us-item">
+    <div class="about-us-container container">
+        <div class="about-us-item text-center">
             <b class="feature-title">About us</b>
             <div class="about-us-subtitle">Proudly designed for Australia by Logic Peripherals</div>
         </div>
-        <div class="features-list">
-            <div class="about-us-item">
+        <div class="features-list row">
+            <div class="about-us-item col-12 col-md-4">
                 <div class="feature-item">
                     <img class="feature-icon" alt="" src="<?= $path_body_images?>Bulb1.svg">
                     <b class="feature-title">Large Assortment</b>
                 </div>
                 <div class="feature-description">we offer many different types of products with fewer variations in each category.</div>
             </div>
-            <div class="about-us-item">
+            <div class="about-us-item col-12 col-md-4">
                 <div class="feature-item">
                     <img class="feature-icon" alt="" src="<?= $path_body_images?>Box1.svg">
                     <b class="feature-title">Fast & Free Shipping</b>
                 </div>
                 <div class="feature-description">4-day or less delivery time, free shipping and an expedited delivery option.</div>
             </div>
-            <div class="about-us-item">
+            <div class="about-us-item col-12 col-md-4">
                 <div class="feature-item">
                     <img class="feature-icon" alt="" src="<?= $path_body_images?>TelephoneOutbound1.svg">
                     <b class="feature-title">24/7 Support</b>
@@ -85,7 +85,7 @@ $searchPageLink = "";
     </div>
 </div>
 
-<div class="features-section">
+<div class="features-section container">
     <div class="feature-grid">
         <div class="feature-card">
             <img src="<?= $path_body_images?>assortment.png" alt="Large Assortment">
@@ -101,3 +101,4 @@ $searchPageLink = "";
         </div>
     </div>
 </div>
+
