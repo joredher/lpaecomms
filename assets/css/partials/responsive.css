@@ -58,6 +58,17 @@
 }
 
 @media (max-width: 768px) {
+    .brands {
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .brands > .brand-item {
+        margin: 10px 20px;
+    }
+}
+
+@media (max-width: 768px) {
     .frame-parent {
         padding: 24px;
     }

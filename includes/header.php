@@ -34,7 +34,7 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
         <a href="/home" class="text-decoration-none">
             <img class="logo" src="../assets/images/Logo.svg" alt="Logo">
         </a>
-        <nav class="navigation">
+        <nav class="navigation flex-column flex-md-row">
             <a href="/home" class="<?= strtolower($uri) === '/home' ? $style : '' ?>">Home</a>
             <a href="/products" class="<?= strtolower($uri) === '/products' ? $style : '' ?>">Products</a>
             <a href="/about" class="<?= strtolower($uri) === '/about' ? $style : '' ?>">About</a>
@@ -42,7 +42,7 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
         </nav>
     </div>
     <div class="actions">
-        <div class="search-box">
+        <div class="search-box d-none d-md-flex">
             <img src="../assets/images/header/u_search.svg" alt="Search icon">
             <label>
                 <input type="text" name="search" placeholder="Search something here!">
@@ -58,7 +58,7 @@ if (in_array(strtolower($uri), ['/home', '/products', '/about', '/contact'])) {
 <!--                --><?php //endif; ?>
             </a>
         </div>
-        <div class="currency">
+        <div class="currency d-none d-md-flex">
             <img src="../assets/images/header/Australia.svg" alt="Australia flag">
             <span>AUD</span>
             <img src="../assets/images/header/Caret_Down_SM.svg" alt="Arrow icon">
