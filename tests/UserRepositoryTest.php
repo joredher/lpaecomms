@@ -1,0 +1,94 @@
+<?php
+declare(strict_types=1);
+
+loadRepo('repositories/UserRepository.php');
+loadRepo('helpers/mail.php');
+require_once __DIR__ . '/RepositoryTestCase.php';
+
+final class UserRepositoryTest extends RepositoryTestCase
+{
+    private UserRepository $repo;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->repo = new UserRepository();
+    }
+
+    public function testCreateUserWithMissingNames(): void
+    {
+        $email = uniqid('missing_') . '@example.com';
+        $this->repo->createUser([
+            'email' => $email,
+            'password' => 'secret',
+            'username' => 'user_missing',
+        ]);
+
+        $user = $this->repo->findByEmail($email);
+        $this->assertSame('', $user['lpa_user_firstname']);
+        $this->assertSame('', $user['lpa_user_lastname']);
+        $this->assertEquals(2, $user['lpa_fk_user_group_ID']);
+        $this->assertTrue($this->repo->emailExists($email));
+    }
+
+    public function testCreateUserWithCustomGroup(): void
+    {
+        $email = uniqid('admin_') . '@example.com';
+        $this->repo->createUser([
+            'email' => $email,
+            'password' => 'secret',
+            'username' => 'admin_user',
+            'firstname' => 'Admin',
+            'lastname' => 'User',
+            'group_id' => 1,
+        ]);
+
+        $user = $this->repo->findByEmail($email);
+        $this->assertEquals(1, $user['lpa_fk_user_group_ID']);
+        $this->assertTrue($this->repo->emailExists($email));
+    }
+
+    public function testDuplicateEmailThrowsException(): void
+    {
+        $email = uniqid('dup_') . '@example.com';
+        $this->repo->createUser([
+            'email' => $email,
+            'password' => 'secret',
+            'username' => 'dup_user1',
+        ]);
+
+        $this->assertNotFalse($this->repo->findByEmail($email));
+        $this->assertTrue($this->repo->emailExists($email));
+
+        $this->expectException(PDOException::class);
+        $this->repo->createUser([
+            'email' => $email,
+            'password' => 'secret',
+            'username' => 'dup_user2',
+        ]);
+    }
+
+    public function testCreateClientAndSendEmail(): void
+    {
+        $email = uniqid('client_') . '@example.com';
+        $this->repo->createUser([
+            'email' => $email,
+            'password' => 'secret',
+            'username' => 'client_email',
+            'firstname' => 'Client',
+            'lastname' => 'Email',
+            'group_id' => 2,
+        ]);
+
+        $user = $this->repo->findByEmail($email);
+        $this->assertEquals(2, $user['lpa_fk_user_group_ID']);
+
+        $sent = sendVerificationEmail([
+            'email' => $email,
+            'firstname' => 'Client',
+            'verificationUrl' => 'http://example.com/verify',
+        ]);
+
+        $this->assertIsBool($sent);
+    }
+}

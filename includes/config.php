@@ -29,7 +29,17 @@ class Database {
     private PDO $conn;
 
     private function __construct() {
-        $env = parse_ini_file(__DIR__ . '/../.env');
+        $appEnv = getenv('APP_ENV');
+        $envPath = __DIR__ . '/../.env';
+
+        if ($appEnv === 'test') {
+            $testPath = __DIR__ . '/../.env.test';
+            if (file_exists($testPath)) {
+                $envPath = $testPath;
+            }
+        }
+
+        $env = parse_ini_file($envPath);
 
         $dsn = "mysql:host={$env['DB_HOST']};dbname={$env['DB_NAME']};charset=utf8mb4";
         $options = [
