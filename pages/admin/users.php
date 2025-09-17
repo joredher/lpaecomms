@@ -45,22 +45,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     if (preg_match('/\d/', $data['lpa_user_firstname']) || preg_match('/\d/', $data['lpa_user_lastname'])) {
-        header('Location: /admin.users?status=invalid_name');
+        $_SESSION['toast'] = ['message' => 'Names cannot contain numbers', 'type' => 'danger'];
+        header('Location: /admin.users');
         exit;
     }
     if ($repo->emailExists($data['lpa_user_email'], $id ? (int)$id : null)) {
-        header('Location: /admin.users?status=email_exists');
+        $_SESSION['toast'] = ['message' => 'Email already exists', 'type' => 'danger'];
+        header('Location: /admin.users');
         exit;
     }
     if ($id) {
         $repo->update($id, $data);
-        header('Location: /admin.users?status=updated');
+        $_SESSION['toast'] = ['message' => 'User updated', 'type' => 'success'];
     } else {
         $data['lpa_user_password'] = password_hash('stage123.', PASSWORD_DEFAULT);
         $data['lpa_user_status'] = 'I';
         $repo->create($data);
-        header('Location: /admin.users?status=created');
+        $_SESSION['toast'] = ['message' => 'User created', 'type' => 'success'];
     }
+    header('Location: /admin.users');
     exit;
 }
 
@@ -90,7 +93,8 @@ if (isset($_GET['activate'])) {
             'verificationUrl' => $verificationUrl
         ]);
     }
-    header('Location: /admin.users?status=activated');
+    $_SESSION['toast'] = ['message' => 'User activated', 'type' => 'success'];
+    header('Location: /admin.users');
     exit;
 }
 
@@ -104,33 +108,9 @@ if (isset($_GET['deactivate'])) {
             'username' => $user['lpa_user_username']
         ]);
     }
-    header('Location: /admin.users?status=deactivated');
+    $_SESSION['toast'] = ['message' => 'User deactivated', 'type' => 'success'];
+    header('Location: /admin.users');
     exit;
-}
-
-if (isset($_GET['status'])) {
-    switch ($_GET['status']) {
-        case 'updated':
-            $toastMessage = 'User updated';
-            break;
-        case 'created':
-            $toastMessage = 'User created';
-            break;
-        case 'activated':
-            $toastMessage = 'User activated';
-            break;
-        case 'deactivated':
-            $toastMessage = 'User deactivated';
-            break;
-        case 'email_exists':
-            $toastMessage = 'Email already exists';
-            $toastType = 'danger';
-            break;
-        case 'invalid_name':
-            $toastMessage = 'Names cannot contain numbers';
-            $toastType = 'danger';
-            break;
-    }
 }
 
 $searchTerm   = trim($_GET['search'] ?? '');

@@ -71,11 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['lpa_stock_ID'] ?? null;
     if ($id) {
         $repo->updateProduct($id, $data);
-        header('Location: /admin.products?status=updated');
+        $_SESSION['toast'] = ['message' => 'Product updated', 'type' => 'success'];
     } else {
         $repo->createProduct($data);
-        header('Location: /admin.products?status=created');
+        $_SESSION['toast'] = ['message' => 'Product created', 'type' => 'success'];
     }
+    header('Location: /admin.products');
     exit;
 }
 
@@ -83,17 +84,6 @@ if (isset($_GET['delete'])) {
     $repo->delete((int)$_GET['delete'], 'lpa_stock_ID');
     header('Location: /admin.products');
     exit;
-}
-
-if (isset($_GET['status'])) {
-    switch ($_GET['status']) {
-        case 'updated':
-            $toastMessage = 'Product updated';
-            break;
-        case 'created':
-            $toastMessage = 'Product created';
-            break;
-    }
 }
 
 $searchTerm   = trim($_GET['search'] ?? '');
