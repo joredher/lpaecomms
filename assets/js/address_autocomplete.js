@@ -3,7 +3,8 @@
 // =========================
 const url = "https://addressr.p.rapidapi.com/addresses?q=";
 const headers = {
-  "x-rapidapi-key": "fdb9e0567dmsha6e1dfa8a5d4f52p1f769bjsn932503b8f8e9",
+  // "x-rapidapi-key": "fdb9e0567dmsha6e1dfa8a5d4f52p1f769bjsn932503b8f8e9",
+  "x-rapidapi-key": "ce4edd7875msh249ce6e77ef0d06p17bc4fjsn33a5fb6efe20",
   "x-rapidapi-host": "addressr.p.rapidapi.com",
 };
 let checkoutSection = document.getElementById("checkout-section");
