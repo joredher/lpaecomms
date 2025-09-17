@@ -220,3 +220,23 @@
     box-shadow: 0 0 0 3px rgba(12, 141, 59, 0.3);
 }
 
+.btn-buy-now:disabled,
+.btn-add-to-cart:disabled {
+    background-color: #d3d6da;
+    color: #5c636a;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.btn-buy-now:disabled:hover,
+.btn-add-to-cart:disabled:hover {
+    transform: none;
+}
+
+.product-unavailable-note {
+    margin-top: 16px;
+    font-weight: 600;
+    color: #b02a37;
+}
+

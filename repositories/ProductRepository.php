@@ -47,6 +47,13 @@ class ProductRepository extends BaseRepository
         ]);
     }
 
+    public function updateStatus(int $id, string $status): bool
+    {
+        return $this->update($id, [
+            'lpa_stock_status' => $status,
+        ]);
+    }
+
     private function generateSku(): string
     {
         do {

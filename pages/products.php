@@ -26,7 +26,7 @@ $productQuery = /** @lang text */
                  JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
                  JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
 $params     = [];
-$conditions = ["(s.lpa_stock_status = 'P' OR (s.lpa_stock_status = 'S' AND s.lpa_stock_publish_at <= NOW()))"];
+$conditions = ["(s.lpa_stock_status IN ('P','A','D') OR (s.lpa_stock_status = 'S' AND s.lpa_stock_publish_at <= NOW()))"];
 
 $categoryFilter = $_GET['category'] ?? [];
 if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
@@ -83,9 +83,20 @@ function renderProducts(array $products): string {
     ob_start();
     foreach ($products as $product):
         $slug = $product['lpa_stock_slug'] ?? (string)$product['lpa_stock_ID'];
+        $status = $product['lpa_stock_status'] ?? '';
+        $isUnavailable = $status === 'D';
+        $cardClasses = 'product-card clickable-card ripple-container';
+        if ($isUnavailable) {
+            $cardClasses .= ' disabled-product';
+        }
+        $buttonClasses = 'btn btn-sm btn-outline-primary add-to-cart-btn';
+        if ($isUnavailable) {
+            $buttonClasses .= ' disabled';
+        }
+        $buttonTitle = $isUnavailable ? 'Product unavailable for purchase' : 'Add to cart';
         ?>
         <div class="col mb-4">
-            <div class="product-card clickable-card ripple-container" data-slug="<?= htmlspecialchars($slug) ?>" data-id="<?= htmlspecialchars($product['lpa_stock_ID']) ?>">
+            <div class="<?= htmlspecialchars($cardClasses, ENT_QUOTES) ?>" data-slug="<?= htmlspecialchars($slug) ?>" data-id="<?= htmlspecialchars($product['lpa_stock_ID']) ?>" data-status="<?= htmlspecialchars($status) ?>">
                 <img src="<?= htmlspecialchars(getProductImageUrl($product['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= ($product['lpa_stock_name'] ?? '') ?>" loading="lazy">
 
                 <div class="product-card-description">
@@ -103,7 +114,9 @@ function renderProducts(array $products): string {
                         <div class="price fw-bolder">$<?= number_format($product['lpa_stock_price'], 2) ?> AUD</div>
                         <button data-product-id="<?= htmlspecialchars($product['lpa_stock_ID']); ?>"
                                 onclick="addToCartBtn(event)"
-                                class="btn btn-sm btn-outline-primary add-to-cart-btn">
+                                class="<?= htmlspecialchars($buttonClasses, ENT_QUOTES) ?>"
+                                <?= $isUnavailable ? 'disabled aria-disabled="true"' : '' ?>
+                                title="<?= htmlspecialchars($buttonTitle) ?>">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             Add
                         </button>

@@ -17,6 +17,33 @@ if (!empty($_SESSION['toast'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? 'save';
+
+    if ($action === 'toggle-status') {
+        $id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+        $targetStatus = strtoupper(trim($_POST['target_status'] ?? ''));
+        $allowedStatuses = ['D', 'P'];
+
+        if (!$id || !in_array($targetStatus, $allowedStatuses, true)) {
+            $_SESSION['toast'] = ['message' => 'Invalid product action requested.', 'type' => 'danger'];
+            header('Location: /admin.products');
+            exit;
+        }
+
+        $updated = $repo->updateStatus($id, $targetStatus);
+        if ($updated) {
+            $message = $targetStatus === 'D'
+                ? 'Product deactivated. It will remain visible but cannot be purchased.'
+                : 'Product activated and available for purchase again.';
+            $_SESSION['toast'] = ['message' => $message, 'type' => 'success'];
+        } else {
+            $_SESSION['toast'] = ['message' => 'Could not update product status. Please try again.', 'type' => 'danger'];
+        }
+
+        header('Location: /admin.products');
+        exit;
+    }
+
     $qty = isset($_POST['onhand']) ? (int)$_POST['onhand'] : 0;
     $qty = max(0, min(999, $qty));
 
@@ -80,12 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-if (isset($_GET['delete'])) {
-    $repo->delete((int)$_GET['delete'], 'lpa_stock_ID');
-    header('Location: /admin.products');
-    exit;
-}
-
 $searchTerm   = trim($_GET['search'] ?? '');
 $statusFilter = trim($_GET['status'] ?? '');
 $pageNum  = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
@@ -120,7 +141,26 @@ function renderRows(array $products): string {
                         data-category="<?= htmlspecialchars($product['lpa_fk_category_ID'], ENT_QUOTES) ?>"
                         data-type="<?= htmlspecialchars($product['lpa_fk_type_ID'], ENT_QUOTES) ?>"
                         data-publish-at="<?= htmlspecialchars($product['lpa_stock_publish_at'] ?? '', ENT_QUOTES) ?>"><i class="bi bi-pencil"></i></button>
-                <a href="/admin.products?delete=<?= $product['lpa_stock_ID'] ?>" class="btn btn-sm btn-danger text-white delete-product" data-bs-toggle="tooltip" title="Delete" data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"><i class="bi bi-trash"></i></a>
+                <?php
+                $isDeactivated = ($product['lpa_stock_status'] ?? '') === 'D';
+                $toggleTarget = $isDeactivated ? 'P' : 'D';
+                $toggleAction = $isDeactivated ? 'activate' : 'deactivate';
+                $toggleClass = $isDeactivated ? 'btn-success' : 'btn-danger';
+                $toggleIcon = $isDeactivated ? 'bi-arrow-counterclockwise' : 'bi-power';
+                ?>
+                <form method="POST" action="/admin.products" class="d-inline">
+                    <input type="hidden" name="action" value="toggle-status">
+                    <input type="hidden" name="product_id" value="<?= $product['lpa_stock_ID'] ?>">
+                    <input type="hidden" name="target_status" value="<?= htmlspecialchars($toggleTarget, ENT_QUOTES) ?>">
+                    <button type="button"
+                            class="btn btn-sm <?= $toggleClass ?> text-white toggle-status-btn ms-1"
+                            data-bs-toggle="tooltip"
+                            title="<?= htmlspecialchars(ucfirst($toggleAction), ENT_QUOTES) ?>"
+                            data-name="<?= htmlspecialchars($product['lpa_stock_name'], ENT_QUOTES) ?>"
+                            data-action="<?= htmlspecialchars($toggleAction, ENT_QUOTES) ?>">
+                        <i class="bi <?= $toggleIcon ?>"></i>
+                    </button>
+                </form>
             </td>
         </tr>
         <?php
@@ -155,6 +195,7 @@ function statusLabel($code) {
     return match ($code) {
         'P', 'A' => 'Published',
         'S'       => 'Scheduled',
+        'D'       => 'Deactivated',
         'U', 'I'  => 'Unpublished',
         default   => 'Unpublished',
     };
@@ -182,6 +223,7 @@ ob_start();
                 </div>
                 <form id="product-form" action="/admin.products" method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
+                        <input type="hidden" name="action" value="save">
                         <input type="hidden" name="lpa_stock_ID" id="product-id">
                         <input type="hidden" name="current_image" id="current-image">
                         <div class="row g-4">
@@ -232,6 +274,7 @@ ob_start();
                                     <option value="P">Published</option>
                                     <option value="S">Scheduled</option>
                                     <option value="U">Unpublished</option>
+                                    <option value="D">Deactivated</option>
                                 </select>
                             </div>
                             <div class="col-md-6" id="publish-at-group" style="display:none;">
@@ -257,6 +300,7 @@ ob_start();
                 <option value="P"<?= $statusFilter === 'P' ? ' selected' : '' ?>>Published</option>
                 <option value="S"<?= $statusFilter === 'S' ? ' selected' : '' ?>>Scheduled</option>
                 <option value="U"<?= $statusFilter === 'U' ? ' selected' : '' ?>>Unpublished</option>
+                <option value="D"<?= $statusFilter === 'D' ? ' selected' : '' ?>>Deactivated</option>
             </select>
         </div>
         <div class="table-responsive">
