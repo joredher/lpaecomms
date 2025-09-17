@@ -83,7 +83,7 @@ function renderProducts(array $products): string {
     ob_start();
     foreach ($products as $product):
         $slug = $product['lpa_stock_slug'] ?? (string)$product['lpa_stock_ID'];
-        $status = $product['lpa_stock_status'] ?? '';
+        $status = strtoupper((string)($product['lpa_stock_status'] ?? ''));
         $isUnavailable = $status === 'D';
         $cardClasses = 'product-card clickable-card ripple-container';
         if ($isUnavailable) {

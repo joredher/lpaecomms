@@ -221,16 +221,21 @@
 }
 
 .btn-buy-now:disabled,
-.btn-add-to-cart:disabled {
+.btn-add-to-cart:disabled,
+.btn-buy-now.disabled,
+.btn-add-to-cart.disabled {
     background-color: #d3d6da;
     color: #5c636a;
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
+    pointer-events: none;
 }
 
 .btn-buy-now:disabled:hover,
-.btn-add-to-cart:disabled:hover {
+.btn-add-to-cart:disabled:hover,
+.btn-buy-now.disabled:hover,
+.btn-add-to-cart.disabled:hover {
     transform: none;
 }
 

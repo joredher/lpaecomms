@@ -31,7 +31,11 @@ if (!$product) {
 
 $productId = $product['lpa_stock_ID'];
 $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$productId, $product['lpa_stock_name'] ?? '');
-$isUnavailable = ($product['lpa_stock_status'] ?? '') === 'D';
+$status = $product['lpa_stock_status'] ?? '';
+$isUnavailable = strtoupper((string)$status) === 'D';
+$buyButtonClasses = 'btn-buy-now' . ($isUnavailable ? ' disabled' : '');
+$cartButtonClasses = 'btn-add-to-cart' . ($isUnavailable ? ' disabled' : '');
+$disabledAttributes = $isUnavailable ? 'disabled aria-disabled="true"' : '';
 
 $relatedStmt = $conn->prepare(
     /** @lang text */ "SELECT
@@ -94,15 +98,16 @@ $features = array_filter(
             </div>
 
             <div class="product-actions">
-                <button class="btn-buy-now"
-                        <?= $isUnavailable ? 'disabled aria-disabled="true"' : '' ?>
+                <button type="button"
+                        class="<?= htmlspecialchars($buyButtonClasses, ENT_QUOTES) ?>"
+                        <?= $disabledAttributes ?>
                         title="<?= htmlspecialchars($isUnavailable ? 'Product unavailable for purchase' : 'Buy now', ENT_QUOTES) ?>">
                     Buy now
                 </button>
-                <button class="btn-add-to-cart"
+                <button class="<?= htmlspecialchars($cartButtonClasses, ENT_QUOTES) ?>"
                         data-product-id="<?= htmlspecialchars($product['lpa_stock_ID']); ?>"
                         onclick="addToCartBtn(event)"
-                        <?= $isUnavailable ? 'disabled aria-disabled="true"' : '' ?>
+                        <?= $disabledAttributes ?>
                         title="<?= htmlspecialchars($isUnavailable ? 'Product unavailable for purchase' : 'Add to cart', ENT_QUOTES) ?>">
                     Add to cart
                 </button>
@@ -120,7 +125,7 @@ $features = array_filter(
             <div class="row gy-4 mb-5">
                 <?php foreach ($related as $item): ?>
                     <?php
-                        $relatedStatus = $item['lpa_stock_status'] ?? '';
+                        $relatedStatus = strtoupper((string)($item['lpa_stock_status'] ?? ''));
                         $relatedUnavailable = $relatedStatus === 'D';
                         $relatedCardClasses = 'product-card clickable-card clickable-card-detail ripple-container';
                         if ($relatedUnavailable) {
