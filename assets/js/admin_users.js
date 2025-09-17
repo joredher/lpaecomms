@@ -24,9 +24,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const firstnameError = document.getElementById('firstname-error');
     const lastnameError = document.getElementById('lastname-error');
     const groupSelect = document.getElementById('user-group');
+    const usernameError = document.getElementById('username-error');
+    const groupError = document.getElementById('group-error');
+    const serverState = window.userFormState || null;
 
     if (usernameInput) {
         usernameInput.readOnly = true;
+    }
+    function setErrorState(input, errorEl, message) {
+        if (!input) return;
+        if (message) {
+            input.classList.add('is-invalid');
+            if (errorEl) errorEl.textContent = message;
+        } else {
+            input.classList.remove('is-invalid');
+            if (errorEl) errorEl.textContent = '';
+        }
     }
     function updateSubmitState() {
         if (!submitBtn) return;
@@ -37,8 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!emailInput) return;
         const email = emailInput.value.trim();
         if (!email) {
-            emailInput.classList.remove('is-invalid');
-            if (emailError) emailError.textContent = '';
+            setErrorState(emailInput, emailError, '');
             updateSubmitState();
             return;
         }
@@ -49,11 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await res.json();
             if (data.exists) {
-                emailInput.classList.add('is-invalid');
-                if (emailError) emailError.textContent = 'Email already exists';
+                setErrorState(emailInput, emailError, 'Email already exists');
             } else {
-                emailInput.classList.remove('is-invalid');
-                if (emailError) emailError.textContent = '';
+                setErrorState(emailInput, emailError, '');
             }
         } catch (e) {
             console.error('Failed to validate email', e);
@@ -65,11 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!input) return;
         const val = input.value;
         if (/\d/.test(val)) {
-            input.classList.add('is-invalid');
-            if (errorEl) errorEl.textContent = 'Numbers are not allowed';
+            setErrorState(input, errorEl, 'Numbers are not allowed');
         } else {
-            input.classList.remove('is-invalid');
-            if (errorEl) errorEl.textContent = '';
+            setErrorState(input, errorEl, '');
         }
         updateSubmitState();
     }
@@ -80,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const localPart = emailInput.value.split('@')[0] || '';
             const year = new Date().getFullYear();
             usernameInput.value = localPart ? `${localPart}${year}` : '';
+            setErrorState(usernameInput, usernameError, '');
             clearTimeout(emailTimer);
             emailTimer = setTimeout(checkEmail, 300);
         });
@@ -96,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (groupSelect) {
         groupSelect.addEventListener('change', () => {
-            if (groupSelect.value) groupSelect.classList.remove('is-invalid');
+            if (groupSelect.value) setErrorState(groupSelect, groupError, '');
             updateSubmitState();
         });
     }
@@ -105,12 +114,18 @@ document.addEventListener('DOMContentLoaded', () => {
         userModalEl.addEventListener('hidden.bs.modal', () => {
             form.reset();
             idInput.value = '';
-            [emailInput, firstnameInput, lastnameInput, groupSelect].forEach(inp => {
-                if (inp) inp.classList.remove('is-invalid');
-            });
-            [emailError, firstnameError, lastnameError].forEach(el => {
-                if (el) el.textContent = '';
-            });
+            if (usernameInput) usernameInput.value = '';
+            if (emailInput) emailInput.value = '';
+            if (firstnameInput) firstnameInput.value = '';
+            if (lastnameInput) lastnameInput.value = '';
+            if (groupSelect && groupSelect.options.length > 0) {
+                groupSelect.value = groupSelect.options[0].value;
+            }
+            setErrorState(usernameInput, usernameError, '');
+            setErrorState(emailInput, emailError, '');
+            setErrorState(firstnameInput, firstnameError, '');
+            setErrorState(lastnameInput, lastnameError, '');
+            setErrorState(groupSelect, groupError, '');
             if (submitBtn) {
                 submitBtn.textContent = 'Save User';
                 submitBtn.disabled = false;
@@ -136,6 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('user-firstname').value = btn.dataset.firstname || '';
                 document.getElementById('user-lastname').value = btn.dataset.lastname || '';
                 document.getElementById('user-group').value = btn.dataset.group || '';
+                setErrorState(usernameInput, usernameError, '');
+                setErrorState(emailInput, emailError, '');
+                setErrorState(firstnameInput, firstnameError, '');
+                setErrorState(lastnameInput, lastnameError, '');
+                setErrorState(groupSelect, groupError, '');
                 if (submitBtn) submitBtn.textContent = 'Update User';
                 if (modalTitle) modalTitle.textContent = 'Edit User';
                 checkEmail();
@@ -201,6 +221,39 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
     }
 
+    function applyServerState() {
+        if (!serverState || !form) return;
+
+        const data = serverState.data || {};
+        if (idInput) idInput.value = data.id !== undefined && data.id !== null ? data.id : '';
+        if (usernameInput) usernameInput.value = data.username || '';
+        if (emailInput) emailInput.value = data.email || '';
+        if (firstnameInput) firstnameInput.value = data.firstname || '';
+        if (lastnameInput) lastnameInput.value = data.lastname || '';
+        if (groupSelect) {
+            const groupValue = data.group_id !== undefined && data.group_id !== null ? String(data.group_id) : '';
+            groupSelect.value = groupValue;
+        }
+
+        const errors = serverState.errors || {};
+        setErrorState(usernameInput, usernameError, errors.username || '');
+        setErrorState(emailInput, emailError, errors.email || '');
+        setErrorState(firstnameInput, firstnameError, errors.firstname || '');
+        setErrorState(lastnameInput, lastnameError, errors.lastname || '');
+        setErrorState(groupSelect, groupError, errors.group_id || '');
+
+        if (submitBtn) submitBtn.textContent = serverState.isEdit ? 'Update User' : 'Save User';
+        if (modalTitle) modalTitle.textContent = serverState.isEdit ? 'Edit User' : 'Add User';
+
+        if (serverState.open && userModal) {
+            userModal.show();
+        }
+
+        updateSubmitState();
+        window.userFormState = null;
+    }
+
+    applyServerState();
     attachEditHandlers();
     attachDeleteHandlers();
     attachStatusHandlers();
@@ -209,15 +262,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('submit', (e) => {
             const required = [
-                { el: emailInput, name: 'Email' },
-                { el: firstnameInput, name: 'First Name' },
-                { el: lastnameInput, name: 'Last Name' },
-                { el: groupSelect, name: 'Group' }
+                { el: emailInput, error: emailError, message: 'Email is required' },
+                { el: firstnameInput, error: firstnameError, message: 'First name is required' },
+                { el: lastnameInput, error: lastnameError, message: 'Last name is required' },
+                { el: groupSelect, error: groupError, message: 'Please select a group' }
             ];
-            const missing = required.filter(f => !f.el || !f.el.value.trim());
+            const missing = required.filter(f => {
+                if (!f.el) return true;
+                const value = f.el.value;
+                if (f.el === groupSelect) {
+                    return !value || value === '0';
+                }
+                return !value.trim();
+            });
             if (missing.length > 0 || document.querySelectorAll('#user-form .is-invalid').length > 0) {
                 e.preventDefault();
-                missing.forEach(f => f.el.classList.add('is-invalid'));
+                missing.forEach(f => setErrorState(f.el, f.error, f.message));
                 showToast({ message: 'Please fill in all required fields correctly', type: 'danger' });
                 updateSubmitState();
             }
