@@ -46,6 +46,21 @@ class UserRepository extends BaseRepository
         return (bool) $stmt->fetchColumn();
     }
 
+    public function usernameExists(string $username, ?int $excludeId = null): bool
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE lpa_user_username = :username";
+        $params = [':username' => $username];
+
+        if ($excludeId) {
+            $sql .= " AND lpa_users_ID != :id";
+            $params[':id'] = $excludeId;
+        }
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($params);
+        return (bool) $stmt->fetchColumn();
+    }
+
     /**
      * Find user by ID (override for cleaner name)
      */

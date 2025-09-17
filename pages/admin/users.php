@@ -17,6 +17,42 @@ if (!empty($_SESSION['toast'])) {
     unset($_SESSION['toast']);
 }
 
+$formData = $_SESSION['user_form_data'] ?? [];
+$formErrors = $_SESSION['user_form_errors'] ?? [];
+$formIsEdit = $_SESSION['user_form_is_edit'] ?? false;
+$shouldReopenForm = $_SESSION['user_form_open'] ?? false;
+unset($_SESSION['user_form_data'], $_SESSION['user_form_errors'], $_SESSION['user_form_is_edit'], $_SESSION['user_form_open']);
+
+$preserveFormState = static function (array $data, array $errors, bool $isEdit, ?array $toast = null): void {
+    $_SESSION['user_form_data'] = $data;
+    $_SESSION['user_form_errors'] = $errors;
+    $_SESSION['user_form_is_edit'] = $isEdit;
+    $_SESSION['user_form_open'] = true;
+    if ($toast) {
+        $_SESSION['toast'] = $toast;
+    }
+};
+
+$buildErrorToast = static function (array $errors): array {
+    $toast = ['message' => 'Please correct the highlighted fields', 'type' => 'danger'];
+    if (isset($errors['email']) && $errors['email'] === 'Email already exists') {
+        $toast['message'] = 'A user with this email already exists';
+    } elseif (isset($errors['username']) && $errors['username'] === 'Username already exists') {
+        $toast['message'] = 'This user is already registered';
+    } elseif ((isset($errors['firstname']) && $errors['firstname'] === 'Names cannot contain numbers') ||
+        (isset($errors['lastname']) && $errors['lastname'] === 'Names cannot contain numbers')) {
+        $toast['message'] = 'Names cannot contain numbers';
+    }
+    return $toast;
+};
+
+$serverFormState = [
+    'open' => (bool)$shouldReopenForm,
+    'isEdit' => (bool)$formIsEdit,
+    'data' => empty($formData) ? new stdClass() : $formData,
+    'errors' => empty($formErrors) ? new stdClass() : $formErrors,
+];
+
 if (isset($_GET['check_email'])) {
     $email = trim($_GET['check_email']);
     $excludeId = isset($_GET['id']) ? (int)$_GET['id'] : null;
@@ -27,40 +63,99 @@ if (isset($_GET['check_email'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = $_POST['lpa_users_ID'] ?? null;
-    $data = [
-        'lpa_user_username'   => trim($_POST['username'] ?? ''),
-        'lpa_user_email'      => trim($_POST['email'] ?? ''),
-        'lpa_user_firstname'  => trim($_POST['firstname'] ?? ''),
-        'lpa_user_lastname'   => trim($_POST['lastname'] ?? ''),
-        'lpa_fk_user_group_ID'=> (int)($_POST['group_id'] ?? 2),
+    $id = isset($_POST['lpa_users_ID']) && $_POST['lpa_users_ID'] !== '' ? (int)$_POST['lpa_users_ID'] : null;
+    $formInput = [
+        'id' => $id,
+        'username' => trim($_POST['username'] ?? ''),
+        'email' => trim($_POST['email'] ?? ''),
+        'firstname' => trim($_POST['firstname'] ?? ''),
+        'lastname' => trim($_POST['lastname'] ?? ''),
+        'group_id' => (int)($_POST['group_id'] ?? 2),
     ];
-    $emailUser = explode('@', $data['lpa_user_email'])[0] ?? '';
-    $data['lpa_user_username'] = $emailUser . date('Y');
-    if ($data['lpa_user_email'] === '' || !filter_var($data['lpa_user_email'], FILTER_VALIDATE_EMAIL) ||
-        $data['lpa_user_firstname'] === '' || $data['lpa_user_lastname'] === '' ||
-        $data['lpa_fk_user_group_ID'] === 0) {
-        $_SESSION['toast'] = ['message' => 'Please fill in all required fields correctly', 'type' => 'danger'];
+
+    if ($formInput['username'] === '' && $formInput['email'] !== '') {
+        $emailUser = explode('@', $formInput['email'])[0] ?? '';
+        if ($emailUser !== '') {
+            $formInput['username'] = $emailUser . date('Y');
+        }
+    }
+
+    $data = [
+        'lpa_user_username'   => $formInput['username'],
+        'lpa_user_email'      => $formInput['email'],
+        'lpa_user_firstname'  => $formInput['firstname'],
+        'lpa_user_lastname'   => $formInput['lastname'],
+        'lpa_fk_user_group_ID'=> $formInput['group_id'],
+    ];
+
+    $errors = [];
+
+    if ($formInput['email'] === '' || !filter_var($formInput['email'], FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = 'Please provide a valid email address';
+    }
+
+    if ($formInput['firstname'] === '') {
+        $errors['firstname'] = 'First name is required';
+    } elseif (preg_match('/\d/', $formInput['firstname'])) {
+        $errors['firstname'] = 'Names cannot contain numbers';
+    }
+
+    if ($formInput['lastname'] === '') {
+        $errors['lastname'] = 'Last name is required';
+    } elseif (preg_match('/\d/', $formInput['lastname'])) {
+        $errors['lastname'] = 'Names cannot contain numbers';
+    }
+
+    if ($formInput['group_id'] === 0) {
+        $errors['group_id'] = 'Please select a group';
+    }
+
+    if (!isset($errors['email']) && $repo->emailExists($formInput['email'], $id)) {
+        $errors['email'] = 'Email already exists';
+    }
+
+    if ($formInput['username'] === '') {
+        $errors['username'] = 'A username is required';
+    } elseif ($repo->usernameExists($formInput['username'], $id)) {
+        $errors['username'] = 'Username already exists';
+    }
+
+    if (!empty($errors)) {
+        $preserveFormState($formInput, $errors, $id !== null, $buildErrorToast($errors));
         header('Location: /admin.users');
         exit;
     }
-    if (preg_match('/\d/', $data['lpa_user_firstname']) || preg_match('/\d/', $data['lpa_user_lastname'])) {
-        header('Location: /admin.users?status=invalid_name');
+
+    try {
+        if ($id) {
+            $repo->update($id, $data);
+            $_SESSION['toast'] = ['message' => 'User updated', 'type' => 'success'];
+        } else {
+            $data['lpa_user_password'] = password_hash('stage123.', PASSWORD_DEFAULT);
+            $data['lpa_user_status'] = 'I';
+            $repo->create($data);
+            $_SESSION['toast'] = ['message' => 'User created', 'type' => 'success'];
+        }
+    } catch (PDOException $e) {
+        $duplicateToast = null;
+        if ($e->getCode() === '23000') {
+            $duplicateMessage = strtolower($e->getMessage());
+            if (strpos($duplicateMessage, 'lpa_user_email') !== false) {
+                $errors['email'] = 'Email already exists';
+            } else {
+                $errors['username'] = 'Username already exists';
+            }
+            $duplicateToast = $buildErrorToast($errors);
+        } else {
+            error_log('Failed to save user: ' . $e->getMessage());
+            $duplicateToast = ['message' => 'An unexpected error occurred while saving the user', 'type' => 'danger'];
+        }
+        $preserveFormState($formInput, $errors, $id !== null, $duplicateToast);
+        header('Location: /admin.users');
         exit;
     }
-    if ($repo->emailExists($data['lpa_user_email'], $id ? (int)$id : null)) {
-        header('Location: /admin.users?status=email_exists');
-        exit;
-    }
-    if ($id) {
-        $repo->update($id, $data);
-        header('Location: /admin.users?status=updated');
-    } else {
-        $data['lpa_user_password'] = password_hash('stage123.', PASSWORD_DEFAULT);
-        $data['lpa_user_status'] = 'I';
-        $repo->create($data);
-        header('Location: /admin.users?status=created');
-    }
+
+    header('Location: /admin.users');
     exit;
 }
 
@@ -90,7 +185,8 @@ if (isset($_GET['activate'])) {
             'verificationUrl' => $verificationUrl
         ]);
     }
-    header('Location: /admin.users?status=activated');
+    $_SESSION['toast'] = ['message' => 'User activated', 'type' => 'success'];
+    header('Location: /admin.users');
     exit;
 }
 
@@ -104,33 +200,9 @@ if (isset($_GET['deactivate'])) {
             'username' => $user['lpa_user_username']
         ]);
     }
-    header('Location: /admin.users?status=deactivated');
+    $_SESSION['toast'] = ['message' => 'User deactivated', 'type' => 'success'];
+    header('Location: /admin.users');
     exit;
-}
-
-if (isset($_GET['status'])) {
-    switch ($_GET['status']) {
-        case 'updated':
-            $toastMessage = 'User updated';
-            break;
-        case 'created':
-            $toastMessage = 'User created';
-            break;
-        case 'activated':
-            $toastMessage = 'User activated';
-            break;
-        case 'deactivated':
-            $toastMessage = 'User deactivated';
-            break;
-        case 'email_exists':
-            $toastMessage = 'Email already exists';
-            $toastType = 'danger';
-            break;
-        case 'invalid_name':
-            $toastMessage = 'Names cannot contain numbers';
-            $toastType = 'danger';
-            break;
-    }
 }
 
 $searchTerm   = trim($_GET['search'] ?? '');
@@ -217,6 +289,9 @@ $adminJs = '../assets/js/admin_users.js';
 ob_start();
 ?>
 <div class="container-account">
+    <script>
+        window.userFormState = <?= json_encode($serverFormState, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    </script>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Users</h1>
         <button id="add-user" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
@@ -229,47 +304,66 @@ ob_start();
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add User</h5>
+                    <h5 class="modal-title"><?= $formIsEdit ? 'Edit User' : 'Add User' ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="user-form" action="/admin.users" method="POST">
                     <div class="modal-body">
-                        <input type="hidden" name="lpa_users_ID" id="user-id">
+                        <input type="hidden" name="lpa_users_ID" id="user-id" value="<?= htmlspecialchars($formData['id'] ?? '') ?>">
                         <div class="row g-3">
                             <div class="col-md-12">
                                 <label class="form-label">Username</label>
-                                <input type="text" class="form-control" name="username" id="user-username" readonly>
+                                <input type="text"
+                                       class="form-control<?= isset($formErrors['username']) ? ' is-invalid' : '' ?>"
+                                       name="username"
+                                       id="user-username"
+                                       value="<?= htmlspecialchars($formData['username'] ?? '') ?>"
+                                       readonly>
+                                <div class="invalid-feedback" id="username-error"><?= htmlspecialchars($formErrors['username'] ?? '') ?></div>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Email</label>
-                                <input type="email" class="form-control" name="email" id="user-email">
-                                <div class="invalid-feedback" id="email-error"></div>
+                                <input type="email"
+                                       class="form-control<?= isset($formErrors['email']) ? ' is-invalid' : '' ?>"
+                                       name="email"
+                                       id="user-email"
+                                       value="<?= htmlspecialchars($formData['email'] ?? '') ?>">
+                                <div class="invalid-feedback" id="email-error"><?= htmlspecialchars($formErrors['email'] ?? '') ?></div>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" name="firstname" id="user-firstname">
-                                <div class="invalid-feedback" id="firstname-error"></div>
+                                <input type="text"
+                                       class="form-control<?= isset($formErrors['firstname']) ? ' is-invalid' : '' ?>"
+                                       name="firstname"
+                                       id="user-firstname"
+                                       value="<?= htmlspecialchars($formData['firstname'] ?? '') ?>">
+                                <div class="invalid-feedback" id="firstname-error"><?= htmlspecialchars($formErrors['firstname'] ?? '') ?></div>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" name="lastname" id="user-lastname">
-                                <div class="invalid-feedback" id="lastname-error"></div>
+                                <input type="text"
+                                       class="form-control<?= isset($formErrors['lastname']) ? ' is-invalid' : '' ?>"
+                                       name="lastname"
+                                       id="user-lastname"
+                                       value="<?= htmlspecialchars($formData['lastname'] ?? '') ?>">
+                                <div class="invalid-feedback" id="lastname-error"><?= htmlspecialchars($formErrors['lastname'] ?? '') ?></div>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label">Group</label>
-                                <select class="form-select" name="group_id" id="user-group">
+                                <select class="form-select<?= isset($formErrors['group_id']) ? ' is-invalid' : '' ?>" name="group_id" id="user-group">
                                     <?php foreach ($groups as $group): ?>
-                                        <option value="<?= $group['lpa_user_group_ID'] ?>">
+                                        <option value="<?= $group['lpa_user_group_ID'] ?>" <?= isset($formData['group_id']) && (int)$formData['group_id'] === (int)$group['lpa_user_group_ID'] ? 'selected' : '' ?>>
                                             <?= htmlspecialchars($group['name']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                                <div class="invalid-feedback" id="group-error"><?= htmlspecialchars($formErrors['group_id'] ?? '') ?></div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">Save User</button>
+                        <button type="submit" class="btn btn-success"><?= $formIsEdit ? 'Update User' : 'Save User' ?></button>
                     </div>
                 </form>
             </div>

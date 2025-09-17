@@ -31,6 +31,11 @@ if (!$product) {
 
 $productId = $product['lpa_stock_ID'];
 $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$productId, $product['lpa_stock_name'] ?? '');
+$status = $product['lpa_stock_status'] ?? '';
+$isUnavailable = strtoupper((string)$status) === 'D';
+$buyButtonClasses = 'btn-buy-now' . ($isUnavailable ? ' disabled' : '');
+$cartButtonClasses = 'btn-add-to-cart' . ($isUnavailable ? ' disabled' : '');
+$disabledAttributes = $isUnavailable ? 'disabled aria-disabled="true"' : '';
 
 $relatedStmt = $conn->prepare(
     /** @lang text */ "SELECT
@@ -93,12 +98,23 @@ $features = array_filter(
             </div>
 
             <div class="product-actions">
-                <button class="btn-buy-now">Buy now</button>
-                <button class="btn-add-to-cart"
+                <button type="button"
+                        class="<?= htmlspecialchars($buyButtonClasses, ENT_QUOTES) ?>"
+                        <?= $disabledAttributes ?>
+                        title="<?= htmlspecialchars($isUnavailable ? 'Product unavailable for purchase' : 'Buy now', ENT_QUOTES) ?>">
+                    Buy now
+                </button>
+                <button class="<?= htmlspecialchars($cartButtonClasses, ENT_QUOTES) ?>"
                         data-product-id="<?= htmlspecialchars($product['lpa_stock_ID']); ?>"
                         onclick="addToCartBtn(event)"
-                >Add to cart</button>
+                        <?= $disabledAttributes ?>
+                        title="<?= htmlspecialchars($isUnavailable ? 'Product unavailable for purchase' : 'Add to cart', ENT_QUOTES) ?>">
+                    Add to cart
+                </button>
             </div>
+            <?php if ($isUnavailable): ?>
+                <p class="product-unavailable-note">This product is currently unavailable for purchase.</p>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -108,8 +124,21 @@ $features = array_filter(
             <input type="hidden" name="page" value="product">
             <div class="row gy-4 mb-5">
                 <?php foreach ($related as $item): ?>
+                    <?php
+                        $relatedStatus = strtoupper((string)($item['lpa_stock_status'] ?? ''));
+                        $relatedUnavailable = $relatedStatus === 'D';
+                        $relatedCardClasses = 'product-card clickable-card clickable-card-detail ripple-container';
+                        if ($relatedUnavailable) {
+                            $relatedCardClasses .= ' disabled-product';
+                        }
+                        $relatedButtonClasses = 'btn btn-sm btn-outline-primary add-to-cart-btn';
+                        if ($relatedUnavailable) {
+                            $relatedButtonClasses .= ' disabled';
+                        }
+                        $relatedButtonTitle = $relatedUnavailable ? 'Product unavailable for purchase' : 'Add to cart';
+                    ?>
                     <div class="col-md-4">
-                        <div class="product-card clickable-card clickable-card-detail ripple-container" data-slug="<?= htmlspecialchars($item['lpa_stock_slug'] ?? $item['lpa_stock_ID']) ?>" data-id="<?= htmlspecialchars($item['lpa_stock_ID']) ?>">
+                        <div class="<?= htmlspecialchars($relatedCardClasses, ENT_QUOTES) ?>" data-slug="<?= htmlspecialchars($item['lpa_stock_slug'] ?? $item['lpa_stock_ID']) ?>" data-id="<?= htmlspecialchars($item['lpa_stock_ID']) ?>" data-status="<?= htmlspecialchars($relatedStatus) ?>">
                             <img src="<?= htmlspecialchars(getProductImageUrl($item['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= htmlspecialchars($item['lpa_stock_name'] ?? '') ?>">
 
                             <div class="product-card-description">
@@ -127,7 +156,9 @@ $features = array_filter(
                                     <div class="price fw-bolder">$<?= number_format($item['lpa_stock_price'], 2) ?> AUD</div>
                                     <button data-product-id="<?= htmlspecialchars($item['lpa_stock_ID']); ?>"
                                             onclick="addToCartBtn(event)"
-                                            class="btn btn-sm btn-outline-primary add-to-cart-btn">
+                                            class="<?= htmlspecialchars($relatedButtonClasses, ENT_QUOTES) ?>"
+                                            <?= $relatedUnavailable ? 'disabled aria-disabled="true"' : '' ?>
+                                            title="<?= htmlspecialchars($relatedButtonTitle, ENT_QUOTES) ?>">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                         Add
                                     </button>

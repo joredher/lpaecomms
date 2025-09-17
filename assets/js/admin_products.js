@@ -123,24 +123,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function attachDeleteHandlers() {
-        document.querySelectorAll('.delete-product').forEach(btn => {
+    function attachToggleHandlers() {
+        document.querySelectorAll('.toggle-status-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                const url = btn.getAttribute('href');
+                const formEl = btn.closest('form');
+                if (!formEl) return;
+
+                const action = (btn.dataset.action || 'deactivate').toLowerCase();
                 const name = btn.dataset.name || 'this product';
+                const isActivate = action === 'activate';
+                const actionLabel = isActivate ? 'Activate' : 'Deactivate';
+                const message = `${actionLabel} ${name}?`;
+
                 if (!confirmModal) {
-                    if (confirm(`Are you sure to delete ${name}?`)) {
-                        window.location.href = url;
+                    if (confirm(message)) {
+                        formEl.submit();
                     }
                     return;
                 }
-                confirmMessage.textContent = `Are you sure to delete ${name}?`;
-                if (confirmTitle) confirmTitle.textContent = 'Confirm Delete';
+
+                confirmMessage.textContent = message;
+                if (confirmTitle) confirmTitle.textContent = `${actionLabel} Product`;
                 if (confirmOk) {
-                    confirmOk.textContent = 'Delete';
-                    confirmOk.className = 'btn btn-danger';
-                    confirmOk.onclick = () => { window.location.href = url; };
+                    confirmOk.textContent = actionLabel;
+                    confirmOk.className = isActivate ? 'btn btn-success' : 'btn btn-danger';
+                    confirmOk.onclick = null;
+                    confirmOk.onclick = () => {
+                        formEl.submit();
+                    };
                 }
                 confirmModal.show();
             });
@@ -151,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     attachEditHandlers();
-    attachDeleteHandlers();
+    attachToggleHandlers();
     initTooltips();
 
     async function loadPage(page) {
@@ -165,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = data.rows;
             paginationContainer.innerHTML = data.pagination;
             attachEditHandlers();
-            attachDeleteHandlers();
+            attachToggleHandlers();
             initTooltips();
         } catch (e) {
             console.error('Failed to load page', e);

@@ -14,6 +14,14 @@ function addToCartBtn(event) {
   event.stopPropagation();
 
   const target = event.currentTarget;
+  if (
+    !target ||
+    target.hasAttribute("disabled") ||
+    target.classList.contains("disabled") ||
+    target.getAttribute("aria-disabled") === "true"
+  ) {
+    return;
+  }
   console.log("Target", target);
 
   const productId = target.getAttribute("data-product-id");
