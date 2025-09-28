@@ -31,9 +31,15 @@ class AuthMiddleware
         }
     }
 
-    public static function userOnly(): bool
+    public static function userOnly($user = null): bool
     {
-        return $_SESSION['user']['group'] === 2;
+        $isFromGroupTwo = isset($_SESSION['user']) && $_SESSION['user']['group'] === 2;
+
+        if ($user !== null):
+            $isFromGroupTwo = $user['lpa_fk_user_group_ID'] === 2;
+        endif;
+
+        return $isFromGroupTwo;
     }
 
 }
