@@ -1,5 +1,5 @@
 /** @header **/
-header {
+.header.navbar {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,6 +11,7 @@ header {
     font-family: Verdana, serif;
     box-sizing: border-box;
     height: 160px;
+    z-index: 1020;
 }
 
 .logo-nav {
@@ -26,6 +27,10 @@ header {
 .navigation {
     display: flex;
     gap: 30px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
 }
 
 .navigation a {
@@ -185,4 +190,16 @@ header {
 .brands > div:hover {
     color: var(--color-primary-hover);
     transition: color 0.1ms;
+}
+
+@media (max-width: 991.98px) {
+    .header.navbar .navbar-collapse {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        padding: 15px 20px;
+    }
 }
