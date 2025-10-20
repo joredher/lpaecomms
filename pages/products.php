@@ -1,83 +1,21 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/pagination.php';
-loadRepo('repositories/ProductRepository.php');
-$conn = Database::getConnection();
-$productRepo = new ProductRepository();
+require_once 'services/ProductService.php';
+
+$productService = new ProductService();
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
 
-// Fetch categories and types
-$categoryStmt = $conn->prepare(/** @lang text */ "SELECT * FROM lpa_category");
-$categoryStmt->execute();
-$categories = $categoryStmt->fetchAll();
+$filterOptions = $productService->getFilterOptions();
+$listing = $productService->getProducts($_GET, 9);
 
-$typeStmt = $conn->prepare(/** @lang text */ "SELECT * FROM lpa_type");
-$typeStmt->execute();
-$types = $typeStmt->fetchAll();
-
-$pageNum = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
-$pageSize = 9;
-$offset   = ($pageNum - 1) * $pageSize;
-
-// Build product query
-$productQuery = /** @lang text */
-    "SELECT s.*, c.lpa_category_name, t.lpa_type_name
-                 FROM lpa_stock s
-                 JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
-                 JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
-$params     = [];
-$conditions = ["(s.lpa_stock_status IN ('P','A','D') OR (s.lpa_stock_status = 'S' AND s.lpa_stock_publish_at <= NOW()))"];
-
-$categoryFilter = $_GET['category'] ?? [];
-if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
-
-$typeFilter = $_GET['type'] ?? [];
-if (!is_array($typeFilter)) $typeFilter = [$typeFilter];
-$typeFilter = array_filter($typeFilter, fn($val) => $val !== '4');
-
-if (!empty($typeFilter)) {
-    $placeholders = implode(',', array_fill(0, count($typeFilter), '?'));
-    $conditions[] = "s.lpa_fk_type_ID IN ($placeholders)";
-    $params      = array_merge($params, $typeFilter);
-} elseif (!empty($categoryFilter)) {
-    $placeholders = implode(',', array_fill(0, count($categoryFilter), '?'));
-    $conditions[] = "s.lpa_fk_category_ID IN ($placeholders)";
-    $params      = array_merge($params, $categoryFilter);
-}
-
-if (isset($_GET['min_price']) && is_numeric($_GET['min_price'])) {
-    $conditions[] = "s.lpa_stock_price >= ?";
-    $params[]     = $_GET['min_price'];
-}
-if (isset($_GET['max_price']) && is_numeric($_GET['max_price'])) {
-    $conditions[] = "s.lpa_stock_price <= ?";
-    $params[]     = $_GET['max_price'];
-}
-
-if (!empty($conditions)) {
-    $productQuery .= " WHERE " . implode(" AND ", $conditions);
-}
-
-$productQuery .= match ($_GET['sort'] ?? '') {
-    'price_low_high' => " ORDER BY s.lpa_stock_price ASC",
-    'price_high_low' => " ORDER BY s.lpa_stock_price DESC",
-    default => " ORDER BY s.lpa_stock_ID DESC",
-};
-
-$countStmt = $conn->prepare($productQuery);
-$countStmt->execute($params);
-$totalProducts = count($countStmt->fetchAll());
-$totalPages    = ceil($totalProducts / $pageSize);
-
-$productQuery .= " LIMIT $offset, $pageSize";
-$productStmt = $conn->prepare($productQuery);
-$productStmt->execute($params);
-$products = $productStmt->fetchAll();
-
-foreach ($products as &$product) {
-    $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
-}
-unset($product);
+$categories = $filterOptions['categories'];
+$types = $filterOptions['types'];
+$products = $listing['items'];
+$pagination = $listing['pagination'];
+$selectedFilters = $listing['filters'];
+$pageNum = $pagination['page'];
+$totalPages = $pagination['total_pages'];
 
 function renderProducts(array $products): string {
     ob_start();
@@ -132,7 +70,7 @@ $productsHtml   = renderProducts($products);
 $paginationHtml = renderPagination($pageNum, $totalPages, $_GET);
 
 if ($isAjax) {
-    $activeLabel = (!empty($_GET['category']) || !empty($_GET['type'])) ? 'Filtered' : 'All';
+    $activeLabel = (!empty($selectedFilters['category']) || !empty($selectedFilters['type'])) ? 'Filtered' : 'All';
     echo json_encode([
         'html'       => $productsHtml,
         'pagination' => $paginationHtml,
@@ -150,10 +88,11 @@ if ($isAjax) {
 
             <div class="filter-group">
                 <h3 class="filter-title">Categories of Peripherals</h3>
+                <?php $selectedCategories = $selectedFilters['category'] ?? []; ?>
                 <?php foreach ($categories as $category): ?>
                     <label class="filter-option">
                         <input type="checkbox" name="category[]" value="<?= $category['lpa_category_ID'] ?>"
-                            <?= (isset($_GET['category']) && in_array($category['lpa_category_ID'], $_GET['category'])) ? 'checked' : '' ?>>
+                            <?= in_array((int)$category['lpa_category_ID'], $selectedCategories, true) ? 'checked' : '' ?>>
                         <?= htmlspecialchars($category['lpa_category_name']) ?>
                     </label>
                 <?php endforeach; ?>
@@ -162,19 +101,20 @@ if ($isAjax) {
             <div class="filter-group">
                 <h3 class="filter-title">Price</h3>
                 <div class="price-inputs">
-                    <input type="number" name="min_price" min="20" minlength="2" placeholder="Min" value="<?= $_GET['min_price'] ?? '' ?>" class="price-field">
-                    <input type="number" name="max_price" min="50" maxlength="5" max="9999" placeholder="Max" value="<?= $_GET['max_price'] ?? '' ?>" class="price-field">
+                    <input type="number" name="min_price" min="20" minlength="2" placeholder="Min" value="<?= $selectedFilters['min_price'] ?? '' ?>" class="price-field">
+                    <input type="number" name="max_price" min="50" maxlength="5" max="9999" placeholder="Max" value="<?= $selectedFilters['max_price'] ?? '' ?>" class="price-field">
                 </div>
             </div>
 
             <div class="filter-group">
                 <h3 class="filter-title">Types</h3>
+                <?php $selectedTypes = $selectedFilters['type'] ?? []; ?>
                 <?php foreach ($types as $type): ?>
                     <?php
-                        $isAll    = $type['lpa_type_ID'] == 4;
-                        $userTypes = $_GET['type'] ?? [];
-                        if (!is_array($userTypes)) $userTypes = [$userTypes];
-                        $checked = ($isAll && empty($userTypes)) || (!$isAll && in_array($type['lpa_type_ID'], $userTypes));
+                        $isAll = (int)$type['lpa_type_ID'] === 4;
+                        $checked = $isAll
+                            ? (empty($selectedTypes) || in_array(4, $selectedTypes, true))
+                            : in_array((int)$type['lpa_type_ID'], $selectedTypes, true);
                     ?>
                     <label class="filter-option">
                         <input type="checkbox" name="type[]" value="<?= $type['lpa_type_ID'] ?>" <?= $checked ? 'checked' : '' ?> class="type-checkbox" data-type-id="<?= $type['lpa_type_ID'] ?>">
@@ -187,7 +127,7 @@ if ($isAjax) {
         <div class="products-container container">
             <div class="products-toolbar">
                 <div class="active-filter-label">
-                    <?php $activeLabel = (!empty($_GET['category']) || !empty($_GET['type'])) ? 'Filtered' : 'All'; ?>
+                    <?php $activeLabel = (!empty($selectedFilters['category']) || !empty($selectedFilters['type'])) ? 'Filtered' : 'All'; ?>
                     <span class="filter-tag <?= ($activeLabel === 'Filtered') ? 'is-active' : '' ?>" id="results-label">
                       <?= $activeLabel ?> (<?= count($products) ?> Results)
                     </span>
@@ -196,9 +136,9 @@ if ($isAjax) {
                 <div class="sort-dropdown">
                     <label for="sort">Sort by:</label>
                     <select id="sort" name="sort">
-                        <option value="popular" <?= ($_GET['sort'] ?? '') === 'popular' ? 'selected' : '' ?>>Popular</option>
-                        <option value="price_low_high" <?= ($_GET['sort'] ?? '') === 'price_low_high' ? 'selected' : '' ?>>Price: Low to High</option>
-                        <option value="price_high_low" <?= ($_GET['sort'] ?? '') === 'price_high_low' ? 'selected' : '' ?>>Price: High to Low</option>
+                        <option value="popular" <?= ($selectedFilters['sort'] ?? '') === 'popular' ? 'selected' : '' ?>>Popular</option>
+                        <option value="price_low_high" <?= ($selectedFilters['sort'] ?? '') === 'price_low_high' ? 'selected' : '' ?>>Price: Low to High</option>
+                        <option value="price_high_low" <?= ($selectedFilters['sort'] ?? '') === 'price_high_low' ? 'selected' : '' ?>>Price: High to Low</option>
                     </select>
                 </div>
             </div>
