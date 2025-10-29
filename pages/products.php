@@ -28,6 +28,16 @@ $productQuery = /** @lang text */
 $params     = [];
 $conditions = ["(s.lpa_stock_status IN ('P','A','D') OR (s.lpa_stock_status = 'S' AND s.lpa_stock_publish_at <= NOW()))"];
 
+// Text search (from home hero or querystring)
+$q = trim($_GET['q'] ?? ($_GET['query'] ?? ''));
+if ($q !== '') {
+    $conditions[] = "(s.lpa_stock_name LIKE ? OR c.lpa_category_name LIKE ? OR t.lpa_type_name LIKE ?)";
+    $like = "%$q%";
+    $params[] = $like;
+    $params[] = $like;
+    $params[] = $like;
+}
+
 $categoryFilter = $_GET['category'] ?? [];
 if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
 
@@ -110,8 +120,8 @@ function renderProducts(array $products): string {
                             Type: <strong><?= $product['lpa_type_name'] ?></strong>
                         </p>
                     </div>
-                    <div class="product-card-add-cart">
-                        <div class="price fw-bolder">$<?= number_format($product['lpa_stock_price'], 2) ?> AUD</div>
+                        <div class="product-card-add-cart">
+                        <div class="price fw-bolder" data-price-aud="<?= number_format((float)$product['lpa_stock_price'], 2, '.', '') ?>">$<?= number_format((float)$product['lpa_stock_price'], 2) ?> AUD</div>
                         <button data-product-id="<?= htmlspecialchars($product['lpa_stock_ID']); ?>"
                                 onclick="addToCartBtn(event)"
                                 class="<?= htmlspecialchars($buttonClasses, ENT_QUOTES) ?>"
@@ -132,7 +142,9 @@ $productsHtml   = renderProducts($products);
 $paginationHtml = renderPagination($pageNum, $totalPages, $_GET);
 
 if ($isAjax) {
-    $activeLabel = (!empty($_GET['category']) || !empty($_GET['type'])) ? 'Filtered' : 'All';
+    $activeLabel = (!empty($_GET['q']) || !empty($_GET['query']))
+        ? 'Search'
+        : ((!empty($_GET['category']) || !empty($_GET['type'])) ? 'Filtered' : 'All');
     echo json_encode([
         'html'       => $productsHtml,
         'pagination' => $paginationHtml,
@@ -145,7 +157,7 @@ if ($isAjax) {
 <form method="GET" id="filter-form" action="index.php">
     <input type="hidden" name="route" value="products">
     <div class="categories">
-        <div class="filter-panel">
+        <div class="filter-panel" id="filters">
             <h2 class="filter-main-title">Filter</h2>
 
             <div class="filter-group">
@@ -186,9 +198,16 @@ if ($isAjax) {
 
         <div class="products-container container">
             <div class="products-toolbar">
+                <button type="button" class="btn btn-outline-light d-md-none" id="toggle-filters" aria-expanded="false" aria-controls="filters">
+                    Filters
+                </button>
                 <div class="active-filter-label">
-                    <?php $activeLabel = (!empty($_GET['category']) || !empty($_GET['type'])) ? 'Filtered' : 'All'; ?>
-                    <span class="filter-tag <?= ($activeLabel === 'Filtered') ? 'is-active' : '' ?>" id="results-label">
+                    <?php
+                    $activeLabel = (!empty($_GET['q']) || !empty($_GET['query']))
+                        ? 'Search'
+                        : ((!empty($_GET['category']) || !empty($_GET['type'])) ? 'Filtered' : 'All');
+                    ?>
+                    <span class="filter-tag <?= ($activeLabel !== 'All') ? 'is-active' : '' ?>" id="results-label">
                       <?= $activeLabel ?> (<?= count($products) ?> Results)
                     </span>
                 </div>

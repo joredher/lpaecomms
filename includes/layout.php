@@ -36,6 +36,59 @@ $title = $title ?? 'LPA Ecommerce';
     </div>
     <?php include 'includes/footer.php' ?>
 </div>
+<!-- Accessibility Preferences Modal -->
+<div class="modal fade lpa-modal" id="accessibilityModal" tabindex="-1" aria-labelledby="accessibilityTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="accessibilityTitle">Accessibility Preferences</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="a11y-form">
+                    <div class="mb-3">
+                        <label for="a11y-text-size" class="form-label">Text size</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <select id="a11y-text-size" class="form-select w-auto" aria-describedby="textSizeHelp">
+                                <option value="normal">Normal</option>
+                                <option value="large">Large</option>
+                                <option value="xlarge">Extra large</option>
+                            </select>
+                            <div class="a11y-preview" aria-hidden="true" title="Preview">
+                                <span>A</span><span>A</span><span>A</span>
+                            </div>
+                        </div>
+                        <div id="textSizeHelp" class="form-text">Live preview shows how text size affects content.</div>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="a11y-contrast">
+                        <label class="form-check-label" for="a11y-contrast">High contrast</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="a11y-dark-mode">
+                        <label class="form-check-label" for="a11y-dark-mode">Dark mode</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="a11y-underline-links">
+                        <label class="form-check-label" for="a11y-underline-links">Underline links</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="a11y-reduce-motion">
+                        <label class="form-check-label" for="a11y-reduce-motion">Reduce motion</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="a11y-focus-outline">
+                        <label class="form-check-label" for="a11y-focus-outline">Highlight keyboard focus</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" id="a11y-reset">Reset</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="a11y-save">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="toast-container position-fixed top-0 end-0 p-3 z-3">
     <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
         <div class="toast-header">
@@ -57,6 +110,21 @@ $title = $title ?? 'LPA Ecommerce';
 <script type="application/javascript" src="../assets/js/ecommerce_script.js"></script>
 <script type="application/javascript" src="../assets/js/toast.js"></script>
 <script type="application/javascript" src="../assets/js/search.js"></script>
+<script type="application/javascript">
+    // Ensure accessibility preferences apply as early as possible on layout load
+    (function(){
+        try {
+            const prefs = JSON.parse(localStorage.getItem('a11y')||'{}');
+            const b = document.body;
+            if (prefs.textSize === 'large') b.classList.add('a11y-text-lg');
+            if (prefs.textSize === 'xlarge') b.classList.add('a11y-text-xl');
+            if (prefs.contrast) b.classList.add('a11y-contrast');
+            if (prefs.underlineLinks) b.classList.add('a11y-underline-links');
+            if (prefs.reduceMotion) b.classList.add('a11y-reduce-motion');
+            if (prefs.focusOutline) b.classList.add('a11y-focus-outline');
+        } catch(e) { /* noop */ }
+    })();
+  </script>
 
 <?php if (isset($_SESSION['flash_message'])): ?>
     <script>

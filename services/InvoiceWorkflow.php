@@ -12,12 +12,15 @@ class InvoiceWorkflow
     }
 
     /**
-     * Create an invoice, persist items and mark it as paid.
+     * Create an invoice, persist items and set initial status.
      */
     public function handle(array $invoiceData, array $cart): int
     {
-        // Start with a pending invoice
-        $invoiceData['status'] = $invoiceData['status'] ?? 'P';
+        // Determine initial status based on payment method
+        $method = strtolower((string)($invoiceData['payment_method'] ?? 'card'));
+        // If cash on delivery, keep it Pending; if card, activate immediately
+        $invoiceData['status'] = $invoiceData['status'] ?? ($method === 'cod' ? 'P' : 'A');
+
         $invoiceId = $this->invoiceRepo->createInvoice($invoiceData);
         if (!$invoiceId) {
             return 0;
@@ -34,8 +37,10 @@ class InvoiceWorkflow
             ]);
         }
 
-        // Payment succeeded: activate invoice
-        $this->invoiceRepo->updateStatus($invoiceId, 'A');
+        // For card method, ensure invoice is marked Active
+        if ($method !== 'cod') {
+            $this->invoiceRepo->updateStatus($invoiceId, 'A');
+        }
 
         return $invoiceId;
     }

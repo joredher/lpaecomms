@@ -139,6 +139,88 @@ function initFiltersAndSorting() {
   });
 }
 
+function initFilterToggle() {
+  const toggleBtn = document.getElementById('toggle-filters');
+  const filtersPanel = document.getElementById('filters');
+  if (!toggleBtn || !filtersPanel) return;
+
+  toggleBtn.addEventListener('click', () => {
+    const isOpen = filtersPanel.classList.toggle('is-open');
+    toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    if (isOpen) {
+      filtersPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+}
+
+// =========================
+// Currency Switcher
+// =========================
+const Currency = (function () {
+  const RATES = {
+    AUD: { rate: 1, symbol: '$', locale: 'en-AU', code: 'AUD', minFrac: 2, maxFrac: 2 },
+    USD: { rate: 0.65, symbol: '$', locale: 'en-US', code: 'USD', minFrac: 2, maxFrac: 2 },
+    GBP: { rate: 0.53, symbol: '£', locale: 'en-GB', code: 'GBP', minFrac: 2, maxFrac: 2 },
+    COP: { rate: 2600, symbol: '$', locale: 'es-CO', code: 'COP', minFrac: 0, maxFrac: 0 },
+    BRL: { rate: 3.2, symbol: 'R$', locale: 'pt-BR', code: 'BRL', minFrac: 2, maxFrac: 2 },
+  };
+
+  function get() {
+    return localStorage.getItem('currency') || 'AUD';
+  }
+
+  function set(cur) {
+    if (!RATES[cur]) return;
+    localStorage.setItem('currency', cur);
+  }
+
+  function convertAud(audAmount, toCur) {
+    const meta = RATES[toCur] || RATES.AUD;
+    return audAmount * meta.rate;
+  }
+
+  function format(audAmount, cur) {
+    const meta = RATES[cur] || RATES.AUD;
+    const nf = new Intl.NumberFormat(meta.locale, {
+      minimumFractionDigits: meta.minFrac,
+      maximumFractionDigits: meta.maxFrac,
+    });
+    const converted = convertAud(audAmount, cur);
+    return `${meta.symbol}${nf.format(converted)} ${meta.code}`;
+  }
+
+  function apply() {
+    const cur = get();
+    // Update header label
+    const codeEl = document.getElementById('currency-code');
+    if (codeEl) codeEl.textContent = cur;
+
+    // Update all known price elements with data-price-aud
+    document.querySelectorAll('[data-price-aud]').forEach((el) => {
+      const raw = parseFloat(el.getAttribute('data-price-aud'));
+      if (!isNaN(raw)) el.textContent = format(raw, cur);
+    });
+  }
+
+  function init() {
+    // Apply at load
+    apply();
+
+    // Hook dropdown options
+    document.querySelectorAll('.currency-option').forEach((opt) => {
+      opt.addEventListener('click', (e) => {
+        e.preventDefault();
+        const cur = opt.getAttribute('data-currency');
+        if (cur) {
+          set(cur);
+          apply();
+        }
+      });
+    });
+  }
+
+  return { init, apply, get };
+})();
 function initClickableCards() {
   const cards = document.querySelectorAll(".clickable-card");
 
@@ -302,7 +384,358 @@ function initProfileNavigation() {
 // =========================
 document.addEventListener("DOMContentLoaded", function () {
   initFiltersAndSorting();
+  initFilterToggle();
   initClickableCards();
   verifiedIfCartCountIsNeeded();
   initProfileNavigation();
+  Currency.init();
+  A11y.init();
+  PaymentMock.init();
+  initCheckoutExpiryWatcher();
+  initProductGallery();
 });
+
+// =========================
+// Accessibility Preferences
+// =========================
+const A11y = (function () {
+  const STORE_KEY = 'a11y';
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); }
+    catch { return {}; }
+  }
+
+  function save(prefs) {
+    localStorage.setItem(STORE_KEY, JSON.stringify(prefs));
+  }
+
+  function apply(prefs) {
+    const b = document.body;
+    b.classList.toggle('a11y-text-lg', prefs.textSize === 'large');
+    b.classList.toggle('a11y-text-xl', prefs.textSize === 'xlarge');
+    b.classList.toggle('a11y-contrast', !!prefs.contrast);
+    b.classList.toggle('theme-dark', !!prefs.darkMode);
+    b.classList.toggle('a11y-underline-links', !!prefs.underlineLinks);
+    b.classList.toggle('a11y-reduce-motion', !!prefs.reduceMotion);
+    b.classList.toggle('a11y-focus-outline', !!prefs.focusOutline);
+  }
+
+  function syncForm(prefs) {
+    const sel = document.getElementById('a11y-text-size');
+    const c = document.getElementById('a11y-contrast');
+    const d = document.getElementById('a11y-dark-mode');
+    const u = document.getElementById('a11y-underline-links');
+    const r = document.getElementById('a11y-reduce-motion');
+    const f = document.getElementById('a11y-focus-outline');
+    if (!sel) return; // modal not present
+    sel.value = prefs.textSize || 'normal';
+    if (c) c.checked = !!prefs.contrast;
+    if (d) d.checked = !!prefs.darkMode;
+    if (u) u.checked = !!prefs.underlineLinks;
+    if (r) r.checked = !!prefs.reduceMotion;
+    if (f) f.checked = !!prefs.focusOutline;
+  }
+
+  function bind() {
+    const saveBtn = document.getElementById('a11y-save');
+    const resetBtn = document.getElementById('a11y-reset');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        const prefs = load();
+        const sel = document.getElementById('a11y-text-size');
+        const c = document.getElementById('a11y-contrast');
+        const d = document.getElementById('a11y-dark-mode');
+        const u = document.getElementById('a11y-underline-links');
+        const r = document.getElementById('a11y-reduce-motion');
+        const f = document.getElementById('a11y-focus-outline');
+        const next = {
+          textSize: sel ? sel.value : (prefs.textSize || 'normal'),
+          contrast: c ? c.checked : !!prefs.contrast,
+          darkMode: d ? d.checked : !!prefs.darkMode,
+          underlineLinks: u ? u.checked : !!prefs.underlineLinks,
+          reduceMotion: r ? r.checked : !!prefs.reduceMotion,
+          focusOutline: f ? f.checked : !!prefs.focusOutline,
+        };
+        save(next);
+        apply(next);
+      });
+    }
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        const defaults = { textSize: 'normal', contrast: false, darkMode: false, underlineLinks: false, reduceMotion: false, focusOutline: false };
+        save(defaults);
+        apply(defaults);
+        syncForm(defaults);
+      });
+    }
+
+    // When the modal opens, reflect current prefs
+    const modalEl = document.getElementById('accessibilityModal');
+    if (modalEl) {
+      modalEl.addEventListener('show.bs.modal', () => syncForm(load()));
+      // Live preview + autosave on change
+      modalEl.addEventListener('change', () => {
+        const sel = document.getElementById('a11y-text-size');
+        const c = document.getElementById('a11y-contrast');
+        const d = document.getElementById('a11y-dark-mode');
+        const u = document.getElementById('a11y-underline-links');
+        const r = document.getElementById('a11y-reduce-motion');
+        const f = document.getElementById('a11y-focus-outline');
+        const next = {
+          textSize: sel ? sel.value : 'normal',
+          contrast: c && c.checked,
+          darkMode: d && d.checked,
+          underlineLinks: u && u.checked,
+          reduceMotion: r && r.checked,
+          focusOutline: f && f.checked,
+        };
+        apply(next);
+        save(next); // persist even if user closes without clicking Apply
+      });
+    }
+  }
+
+  function init() {
+    const prefs = load();
+    apply(prefs);
+    bind();
+  }
+
+  return { init };
+})();
+
+// =========================
+// Checkout expiry watcher
+// =========================
+function initCheckoutExpiryWatcher(){
+  const root = document.getElementById('checkout-section');
+  if (!root) return;
+  const createdAt = parseInt(root.getAttribute('data-created-at')||'0',10) * 1000;
+  const timeoutSec = parseInt(root.getAttribute('data-timeout-seconds')||'1800',10);
+  if (!createdAt || !timeoutSec) return;
+
+  const warnLeadMs = 2 * 60 * 1000; // warn 2 minutes before expiry
+  function now(){ return Date.now(); }
+  function expiresAtMs(){ return createdAt + timeoutSec*1000; }
+
+  const warnAt = expiresAtMs() - warnLeadMs;
+  const showWarn = () => {
+    const modalEl = document.getElementById('cartExpiryModal');
+    if (!modalEl) return;
+    const modal = new bootstrap.Modal(modalEl, {backdrop: 'static', keyboard: false});
+    const keepBtn = document.getElementById('keepCartAliveBtn');
+    keepBtn?.addEventListener('click', async ()=>{
+      try {
+        const res = await fetch('/checkout.keepAlive', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          // update base timestamp and reschedule
+          root.setAttribute('data-created-at', Math.floor(Date.now()/1000).toString());
+          modal.hide();
+          if (typeof showToast === 'function') {
+            showToast({ title: 'Session', message: 'Cart time extended for 30 minutes.', type: 'success', image: 'assets/images/icons/success.png' });
+          }
+          // re-arm timers
+          setTimeout(showWarn, Math.max(0, (timeoutSec*1000) - warnLeadMs));
+          setTimeout(hardExpire, timeoutSec*1000);
+        } else {
+          alert('Could not keep cart alive.');
+        }
+      } catch (e) { alert('Network error.'); }
+    }, { once: true });
+    modal.show();
+  };
+
+  const hardExpire = () => {
+    // server will enforce, but guide the user gently
+    if (typeof showToast === 'function') {
+      showToast({ title: 'Session', message: 'Cart expired due to inactivity.', type: 'warning', image: 'assets/images/icons/error.png' });
+    }
+    // Optional: redirect after short delay
+    setTimeout(()=>{ window.location.href = '/products'; }, 3000);
+  };
+
+  const timeToWarn = warnAt - now();
+  const timeToExpire = expiresAtMs() - now();
+  if (timeToWarn <= 0 && timeToExpire > 0) {
+    showWarn();
+  } else if (timeToExpire > 0) {
+    setTimeout(showWarn, timeToWarn);
+  }
+  if (timeToExpire > 0) {
+    setTimeout(hardExpire, timeToExpire);
+  }
+}
+
+// =========================
+// Product gallery + zoom
+// =========================
+function initProductGallery(){
+  const mainImg = document.getElementById('pd-main-image');
+  const thumbs = document.querySelectorAll('.pd-thumb');
+  if (!mainImg) return;
+  thumbs.forEach(t => {
+    t.addEventListener('click', () => {
+      thumbs.forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      const full = t.getAttribute('data-full') || t.getAttribute('src');
+      if (full) { mainImg.src = full; }
+    });
+  });
+
+  const zoomWrap = mainImg.closest('.pd-image-zoom');
+  if (zoomWrap) {
+    zoomWrap.addEventListener('mousemove', (e)=>{
+      const r = zoomWrap.getBoundingClientRect();
+      const x = ((e.clientX - r.left) / r.width) * 100;
+      const y = ((e.clientY - r.top) / r.height) * 100;
+      mainImg.style.transformOrigin = `${x}% ${y}%`;
+    });
+    zoomWrap.addEventListener('mouseleave', ()=>{ mainImg.style.transformOrigin = 'center center'; });
+    // tap to toggle zoom on touch
+    zoomWrap.addEventListener('click', ()=>{
+      const scaleOn = mainImg.style.transform === 'scale(1.6)';
+      mainImg.style.transform = scaleOn ? 'scale(1)' : 'scale(1.6)';
+      if (!scaleOn) mainImg.style.transformOrigin = 'center center';
+      setTimeout(()=>{ mainImg.style.transform = ''; }, 1200); // fall back to hover behavior
+    });
+  }
+}
+
+// =========================
+// Buy Now: add to cart then go to checkout
+// =========================
+function buyNow(event, productId){
+  if (event) { event.preventDefault(); event.stopPropagation(); }
+  const id = productId || (event?.currentTarget?.getAttribute('data-product-id'));
+  if (!id) { window.location.href = '/checkout'; return; }
+  fetch('/cart.add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    credentials: 'same-origin',
+    body: new URLSearchParams({ productId: id })
+  })
+    .then(res => res.ok ? res.json() : Promise.reject(res))
+    .then(data => {
+      if (data && data.success) {
+        updateCartCount?.(data.cartCount);
+      }
+      window.location.href = '/checkout';
+    })
+    .catch(() => { window.location.href = '/checkout'; });
+}
+
+// =========================
+// Payment mock (test cards)
+// =========================
+const PaymentMock = (function(){
+  const STORE = 'cards';
+
+  function getCards(){
+    try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch { return []; }
+  }
+  function saveCards(cards){ localStorage.setItem(STORE, JSON.stringify(cards)); }
+
+  function luhnOk(num){
+    const s = (num||'').replace(/\D/g,''); let sum=0, alt=false;
+    for (let i=s.length-1;i>=0;i--) { let n=parseInt(s[i],10); if(alt){ n*=2; if(n>9)n-=9; } sum+=n; alt=!alt; }
+    return s.length>=12 && (sum%10===0);
+  }
+
+  function brandFromNumber(num){
+    const s=(num||'').replace(/\D/g,'');
+    if(/^4/.test(s)) return 'visa';
+    if(/^(5[1-5]|2[2-7])/.test(s)) return 'mastercard';
+    if(/^3[47]/.test(s)) return 'amex';
+    return 'card';
+  }
+
+  function populateSelect(){
+    const select = document.getElementById('cardSelect');
+    if(!select) return;
+    const cards = getCards();
+    select.innerHTML = '<option value="">Select a saved test card…</option>' +
+      cards.map((c,i)=>`<option value="${i}">${c.brand.toUpperCase()} •••• ${c.last4}</option>`).join('');
+  }
+
+  function bind(){
+    const addBtn = document.getElementById('addCardBtn');
+    const saveBtn = document.getElementById('saveCardBtn');
+    const select = document.getElementById('cardSelect');
+    const modalEl = document.getElementById('cardModal');
+    const cardRadio = document.getElementById('card');
+    const codRadio = document.getElementById('cod');
+    const cardBox = document.getElementById('cardBox');
+
+    if (cardRadio && codRadio && cardBox) {
+      const toggle = () => { cardBox.style.display = cardRadio.checked ? 'block' : 'none'; };
+      cardRadio.addEventListener('change', toggle);
+      codRadio.addEventListener('change', toggle);
+      toggle();
+    }
+
+    if (addBtn && modalEl) {
+      const modal = new bootstrap.Modal(modalEl);
+      addBtn.addEventListener('click', ()=>{ modal.show(); });
+    }
+
+    if (saveBtn) {
+      saveBtn.addEventListener('click', ()=>{
+        const p1 = (document.getElementById('cardNumber1')?.value || '').replace(/\D/g,'');
+        const p2 = (document.getElementById('cardNumber2')?.value || '').replace(/\D/g,'');
+        const p3 = (document.getElementById('cardNumber3')?.value || '').replace(/\D/g,'');
+        const p4 = (document.getElementById('cardNumber4')?.value || '').replace(/\D/g,'');
+        const number = `${p1}${p2}${p3}${p4}`;
+        const brandSel = document.getElementById('cardBrand').value;
+        if(!luhnOk(number)) { alert('Card number is invalid (Luhn check)'); return; }
+        const last4 = number.replace(/\D/g,'').slice(-4);
+        const brand = brandSel || brandFromNumber(number);
+        const token = btoa(`${brand}-${last4}-${Date.now()}`);
+        const cards = getCards();
+        cards.push({ brand, last4, token });
+        saveCards(cards);
+        populateSelect();
+        bootstrap.Modal.getInstance(document.getElementById('cardModal'))?.hide();
+      });
+    }
+
+    if (select) {
+      select.addEventListener('change', ()=>{
+        const idx = parseInt(select.value,10);
+        const cards = getCards();
+        const c = cards[idx];
+        const brandEl = document.getElementById('card_brand');
+        const last4El = document.getElementById('card_last4');
+        const tokenEl = document.getElementById('card_token');
+        if (c) {
+          brandEl && (brandEl.value = c.brand);
+          last4El && (last4El.value = c.last4);
+          tokenEl && (tokenEl.value = c.token);
+        } else {
+          brandEl && (brandEl.value = '');
+          last4El && (last4El.value = '');
+          tokenEl && (tokenEl.value = '');
+        }
+      });
+    }
+
+    // Auto-advance for card parts and uppercase for holder
+    const parts = ['cardNumber1','cardNumber2','cardNumber3','cardNumber4'].map(id=>document.getElementById(id));
+    parts.forEach((inp, idx)=>{
+      if(!inp) return;
+      inp.addEventListener('input', ()=>{
+        inp.value = inp.value.replace(/\D/g,'').slice(0,4);
+        if (inp.value.length === 4 && parts[idx+1]) parts[idx+1].focus();
+      });
+      inp.addEventListener('keydown', (e)=>{
+        if (e.key === 'Backspace' && inp.selectionStart === 0 && parts[idx-1]) parts[idx-1].focus();
+      });
+    });
+    const holder = document.getElementById('cardHolder');
+    if (holder) holder.addEventListener('input', ()=>{ holder.value = holder.value.toUpperCase(); });
+  }
+
+  function init(){ populateSelect(); bind(); }
+  return { init };
+})();

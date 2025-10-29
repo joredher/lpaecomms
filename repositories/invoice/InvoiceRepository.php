@@ -24,6 +24,11 @@ class InvoiceRepository extends BaseRepository
             'lpa_inv_status'      => $data['status'],
             'lpa_fk_clients_ID'   => $data['client_id'],
             'lpa_inv_client_address' => $data['address'],
+            // new payment meta (columns created in DB)
+            'lpa_inv_payment_method' => $data['payment_method'] ?? 'card',
+            'lpa_inv_card_brand'     => $data['card_brand'] ?? null,
+            'lpa_inv_card_last4'     => $data['card_last4'] ?? null,
+            'lpa_inv_save_info'      => (int)($data['save_info'] ?? 0),
         ]);
 
         return $success ? $this->conn->lastInsertId() : false;
@@ -222,6 +227,9 @@ class InvoiceRepository extends BaseRepository
                i.lpa_inv_date         AS created_at,
                i.lpa_inv_status       AS status,
                i.lpa_inv_amount       AS total_amount,
+               i.lpa_inv_payment_method AS payment_method,
+               i.lpa_inv_card_brand     AS card_brand,
+               i.lpa_inv_card_last4     AS card_last4,
                i.lpa_inv_client_name  AS client_name,
                i.lpa_inv_client_address AS client_address,
                c.lpa_clients_firstname,

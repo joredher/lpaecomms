@@ -24,11 +24,11 @@ $searchPageLink = "";
             </div>
         </div>
         <div class="what-are-you-looking-for-parent">
-            <form method="get">
+            <form method="get" action="/products">
                 <label>
                     <input
                             type="text"
-                            name="query"
+                            name="q"
                             placeholder="What are you looking for?"
                             class="what-are-you"
                             style="border: none; outline: none; background: transparent; height: 100%; padding-left: 18px;"

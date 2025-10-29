@@ -6,6 +6,14 @@ $path = "./../../assets/images/auth/";
 
 <div class="auth-page-container">
     <div class="form-wrapper">
+        <?php if (!empty($_SESSION['intended_route']) && $_SESSION['intended_route'] === '/checkout'): ?>
+            <div class="alert alert-info d-flex align-items-center" role="alert">
+                <i class="bi bi-info-circle me-2"></i>
+                <div>
+                    You were redirected here to create an account before checkout. Once you sign up, we’ll take you back to your cart to complete the order.
+                </div>
+            </div>
+        <?php endif; ?>
         <div class="logo-container text-center mb-4">
             <img src="./../../assets/images/Logo.svg" alt="Ecommerce Logo" class="logo-img">
         </div>

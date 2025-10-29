@@ -95,6 +95,7 @@ class ClientRepository extends BaseRepository
             'lpa_client_postcode' => $data['zipcode'],
             'lpa_client_phone' => $data['phone'] ?? 000,
             'lpa_client_email' => $data['email'],
+            'lpa_consent_save_info' => (int)($data['consent'] ?? 0),
             'lpa_clients_fk_user_id' => $data['user_id'],
             'lpa_pid_address' => $data['addressId']
         ]);
@@ -105,6 +106,15 @@ class ClientRepository extends BaseRepository
         }
 
         return false;
+    }
+
+    /**
+     * Update consent flag on an existing client record
+     */
+    public function updateConsent(int $clientId, int $consent): bool
+    {
+        $base = new BaseRepository('lpa_clients');
+        return $base->update($clientId, ['lpa_consent_save_info' => (int)$consent]);
     }
 
     public function addLpaUserClientAddressValid(array $data, bool $byUserId = false): bool

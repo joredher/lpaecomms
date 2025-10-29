@@ -49,7 +49,7 @@ $total = $_SESSION['total'] ?? 0;
                                          onerror="this.src='<?= PRODUCT_PLACEHOLDER_URL ?>';">
                                     <?= $item['name'] ?>
                                 </td>
-                                <td>$<?= number_format($item['price'], 2) ?></td>
+                                <td class="cart-price" data-price-aud="<?= number_format((float)$item['price'], 2, '.', '') ?>">$<?= number_format((float)$item['price'], 2) ?> AUD</td>
                                 <td>
                                     <input type="hidden" name="id[]" value="<?= $id ?>">
                                     <input type="number"
@@ -61,7 +61,7 @@ $total = $_SESSION['total'] ?? 0;
                                            style="width: 70px;">
                                     <div class="invalid-feedback"></div>
                                 </td>
-                                <td>$<?= number_format($subtotal, 2) ?></td>
+                                <td class="cart-subtotal" data-price-aud="<?= number_format((float)$subtotal, 2, '.', '') ?>">$<?= number_format((float)$subtotal, 2) ?> AUD</td>
                                 <td>
                                     <a href="?route=cart.remove&id=<?= $id ?>" class="btn btn-sm btn-outline-danger">✖</a>
                                 </td>
@@ -82,12 +82,13 @@ $total = $_SESSION['total'] ?? 0;
                 <!-- Coupon Section -->
                 <div class="col-md-6 mb-3">
                     <?php if (isset($_SESSION['user'])): ?>
-                        <form method="POST" action="?route=apply_coupon" class="d-flex flex-column flex-md-row align-items-md-center">
-                            <label>
-                                <input type="text" name="coupon_code" class="form-control me-md-2 mb-2 mb-md-0" placeholder="Coupon Code">
+                        <form class="coupon-form d-flex flex-column flex-md-row align-items-md-center" onsubmit="return false;">
+                            <label class="w-100 w-md-auto">
+                                <input type="text" name="coupon_code" class="form-control me-md-2 mb-2 mb-md-0" placeholder="Coupon Code" disabled aria-disabled="true">
                             </label>
-                            <button type="submit" class="btn btn-success">Apply Coupon</button>
+                            <button type="button" class="btn btn-success" disabled aria-disabled="true">Apply Coupon</button>
                         </form>
+                        <small class="text-muted d-block mt-2">Coupons are temporarily disabled.</small>
                     <?php endif; ?>
                 </div>
 
@@ -98,7 +99,7 @@ $total = $_SESSION['total'] ?? 0;
                             <h5 class="card-title">Cart Total</h5>
                             <div class="d-flex justify-content-between">
                                 <span>Subtotal:</span>
-                                <strong>$<?= number_format($total, 2) ?></strong>
+                                <strong data-price-aud="<?= number_format((float)$total, 2, '.', '') ?>">$<?= number_format((float)$total, 2) ?> AUD</strong>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <span>Shipping:</span>
@@ -107,7 +108,7 @@ $total = $_SESSION['total'] ?? 0;
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <span>Total:</span>
-                                <strong>$<?= number_format($total, 2) ?></strong>
+                                <strong data-price-aud="<?= number_format((float)$total, 2, '.', '') ?>">$<?= number_format((float)$total, 2) ?> AUD</strong>
                             </div>
                             <a href="/checkout" class="btn btn-success w-100" id="checkoutBtn">Proceed to Checkout</a>
                         </div>
@@ -118,11 +119,33 @@ $total = $_SESSION['total'] ?? 0;
     </div>
 </div>
 
+<!-- Confirm Remove Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Remove Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to remove this item from your cart?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveBtn">Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const qtyInputs = document.querySelectorAll('.cart-qty');
         const updateBtn = document.getElementById('updateCartBtn');
         const checkoutBtn = document.getElementById('checkoutBtn');
+        const modalEl = document.getElementById('confirmDeleteModal');
+        const confirmBtn = document.getElementById('confirmRemoveBtn');
+        let pendingRemoveUrl = null;
 
         const preventCheckout = (e) => {
             if (checkoutBtn.classList.contains('disabled')) {
@@ -175,6 +198,21 @@ $total = $_SESSION['total'] ?? 0;
         checkoutBtn.addEventListener('click', preventCheckout);
 
         validate();
+
+        // Hook remove confirmation for any cart.remove link
+        if (modalEl && confirmBtn) {
+            const modal = new bootstrap.Modal(modalEl);
+            document.querySelectorAll('a[href*="route=cart.remove"]').forEach((link) => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    pendingRemoveUrl = link.getAttribute('data-remove-url') || link.getAttribute('href');
+                    modal.show();
+                });
+            });
+            confirmBtn.addEventListener('click', () => {
+                if (pendingRemoveUrl) window.location.href = pendingRemoveUrl;
+            });
+        }
     });
 </script>
 <script>

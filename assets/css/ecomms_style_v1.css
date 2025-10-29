@@ -20,13 +20,161 @@ body {
 
   box-sizing: border-box;
   position: relative;
+  overflow-x: hidden;
 }
 
-/*#main {
+/* Accessibility helpers */
+body.a11y-text-lg { font-size: 22px; }
+body.a11y-text-xl { font-size: 24px; }
+
+body.a11y-contrast {
+  color: #111;
+}
+body.a11y-contrast a { color: #0033aa; }
+body.a11y-contrast .header a { color: #0033aa; }
+body.a11y-contrast .site-footer { color: #0a0a0a; }
+
+body.a11y-underline-links a { text-decoration: underline !important; }
+
+body.a11y-reduce-motion *,
+body.a11y-reduce-motion *::before,
+body.a11y-reduce-motion *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+body.a11y-focus-outline :focus,
+body.a11y-focus-outline :focus-visible {
+  outline: 3px solid #ffbf47 !important; /* GOV.UK style yellow focus */
+  outline-offset: 2px;
+}
+
+/* Themed modal to match platform look */
+.lpa-modal .modal-content {
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: #c1dcdc; /* matches site panels */
+}
+.lpa-modal .modal-header {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid));
+  color: #fff;
+  border: none;
+}
+.lpa-modal .modal-title { font-weight: 600; }
+.lpa-modal .btn-primary { background-color: var(--color-secondary); border-color: var(--color-secondary); }
+.lpa-modal .btn-primary:hover { background-color: var(--color-secondary-hover); border-color: var(--color-secondary-hover); }
+.lpa-modal .btn-outline-secondary { border-color: #fff; color: #333; background: #fff; }
+
+/* AAA text-size preview */
+.a11y-preview span {
+  display: inline-block;
+  font-weight: 700;
+  color: #000;
+  margin-right: 4px;
+}
+body.a11y-text-lg .a11y-preview span { font-size: 1.25rem; }
+body.a11y-text-xl .a11y-preview span { font-size: 1.45rem; }
+body.theme-dark .a11y-preview span { color: #e5e7eb; }
+
+/* Dark mode via CSS variables and component tweaks */
+body.theme-dark {
+  --color-primary: #e4eef5;
+  --color-primary-hover: #ffffff;
+  --color-secondary: #1f6f7a;
+  --color-secondary-hover: #1a616b;
+  --gradient-start: #0f3443;
+  --gradient-mid: #0b5563;
+  --gradient-end: #073642;
+  --link-color: #7cc3ff;
+  --neutral-bg: rgba(0,0,0,0.35);
+  color: #e5e7eb;
+}
+
+body.theme-dark .bg-white,
+body.theme-dark .order-summary-container,
+body.theme-dark .product-card,
+body.theme-dark .modal-content,
+body.theme-dark .search-box {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+body.theme-dark .site-footer { background-color: #0b5563; color: #e5e7eb; }
+body.theme-dark header .navigation a { color: #e5e7eb; }
+body.theme-dark .login-link { border-color: #e5e7eb; color: #e5e7eb; }
+body.theme-dark .btn,
+body.theme-dark .create-account { color: #fff; }
+body.theme-dark input, body.theme-dark select, body.theme-dark textarea { background: #111827; color: #e5e7eb; border-color: #374151; }
+body.theme-dark .lpa-modal .modal-content { background: #1f2937; }
+
+/* Dark variants for common sections and menus */
+body.theme-dark .frame-parent,
+body.theme-dark .about-us-section,
+body.theme-dark .features-section,
+body.theme-dark .payment-card-box,
+body.theme-dark .feature-card {
+  background-color: #102a33 !important;
+  color: #e5e7eb !important;
+}
+body.theme-dark .feature-card { background-color: #0f2530 !important; }
+body.theme-dark .what-are-you-looking-for-parent { background-color: #1f2937 !important; color: #e5e7eb; }
+body.theme-dark .dropdown-menu { background-color: #111827; color: #e5e7eb; border-color: #1f2937; }
+body.theme-dark .dropdown-item { color: #e5e7eb; }
+body.theme-dark .dropdown-item:hover { background-color: #1f2937; }
+body.theme-dark .table { color: #e5e7eb; }
+body.theme-dark .table-striped > tbody > tr:nth-of-type(odd) { --bs-table-accent-bg: rgba(255,255,255,0.04); color: inherit; }
+
+/* Switches – platform look & better contrast */
+.lpa-modal .form-switch .form-check-input {
+  width: 2.5rem; height: 1.35rem;
+  background-color: rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.2);
+  cursor: pointer;
+  box-shadow: inset 0 0 3px rgba(0,0,0,0.2);
+}
+.lpa-modal .form-switch .form-check-input:focus { outline: none; box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
+.lpa-modal .form-switch .form-check-input:checked { background-color: var(--color-secondary); border-color: var(--color-secondary); }
+.lpa-modal .form-switch .form-check-input:checked:focus { box-shadow: 0 0 0 2px rgba(1,58,99,0.35); }
+body.theme-dark .lpa-modal .form-switch .form-check-input { background-color: #0f2530; border-color: #173245; }
+body.theme-dark .lpa-modal .form-switch .form-check-input:checked { background-color: #1a616b; border-color: #1a616b; }
+
+/* Back link (used across pages) */
+.pd-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: #ffffff !important;
+  line-height: 1;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.pd-back-button:active { transform: translateY(1px); }
+.pd-back-button img { width: 18px; height: 18px; }
+.pd-back-button span { font-weight: 600; }
+
+@media (max-width: 576px) {
+  .pd-back-button { padding: 8px 12px; gap: 8px; }
+}
+
+/* Sticky footer foundation */
+html, body { height: 100%; }
+#main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.content { flex: 1 0 auto; }
+.site-footer { margin-top: auto; }
+
+/* old main layout kept for reference
+#main {
     display: flex;
     flex-direction: row;
     justify-content: stretch;
-}*/
+}
+*/
 
 /** @header **/
 header {
@@ -98,11 +246,19 @@ header {
 .create-account {
   background-color: var(--color-secondary);
   color: #fff;
-  padding: 10px 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  min-height: 44px;
   border-radius: 20px;
   border: none;
   cursor: pointer;
   transition: background-color 0.3s;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .create-account:hover {
@@ -218,6 +374,24 @@ header {
 .brands > div:hover {
   color: #caf0f8;
   transition: color 0.1ms;
+}
+
+/* Hide brands strip on phones */
+@media (max-width: 767.98px) {
+  .brands { display: none; }
+}
+
+/* Tablet tuning for brands strip */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .brands {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding: 8px 16px;
+  }
+  .brands > div {
+    margin: 0 24px;
+    font-size: 16px;
+  }
 }
 
 /**Body Page**/
@@ -613,6 +787,9 @@ header {
   /*margin-top: 130px;*/
   /*margin-left: 97px;*/
   font-family: "Poppins", sans-serif;
+  position: sticky;
+  top: 20px;
+  align-self: flex-start;
 }
 
 .filter-group {
@@ -921,6 +1098,21 @@ input[name="coupon_code"] {
   max-width: 250px;
 }
 
+/* Coupon disabled state */
+.coupon-form input[disabled] {
+  background-color: #eef2f3 !important;
+  color: #6c757d !important;
+  cursor: not-allowed;
+}
+.coupon-form .btn-success:disabled,
+.coupon-form .btn-success[aria-disabled="true"] {
+  background-color: #b8e986 !important;
+  border: 1px solid #a6d873 !important;
+  color: #ffffff !important;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .card .card-body {
     padding: 1rem;
@@ -968,6 +1160,7 @@ input[name="coupon_code"] {
 @media (max-width: 768px) {
   .categories {
     flex-direction: column;
+    padding: 16px;
   }
 
   .products-toolbar {
@@ -981,6 +1174,15 @@ input[name="coupon_code"] {
 @media (max-width: 768px) {
   .filter-panel {
     max-width: 100%;
+    position: static;
+    align-self: stretch;
+    display: none; /* hidden by default on small screens */
+    background-color: rgba(255, 255, 255, 0.08);
+    padding: 12px;
+  }
+
+  .filter-panel.is-open {
+    display: block; /* show when toggled */
   }
 
   .price-inputs {
@@ -997,11 +1199,19 @@ input[name="coupon_code"] {
   }
 }
 
+@media (max-width: 1200px) {
+  .categories {
+    padding: 20px 40px;
+    gap: 24px;
+  }
+}
+
 @media (max-width: 900px) {
   .header {
     flex-direction: column;
     gap: 15px;
     padding: 15px 20px;
+    height: auto;
   }
 
   .logo-nav,
@@ -1012,6 +1222,8 @@ input[name="coupon_code"] {
 
   .navigation {
     gap: 15px;
+    flex-direction: column;
+    align-items: center;
   }
 
   .search-box,
@@ -1019,6 +1231,16 @@ input[name="coupon_code"] {
   .currency {
     width: 100%;
     justify-content: center;
+  }
+
+  /* Allow wrapping on small screens while staying centered */
+  .create-account {
+    white-space: normal;
+  }
+
+  /* Increase touch targets for collapsed nav */
+  .navigation a {
+    padding: 8px 0;
   }
 }
 
@@ -1051,6 +1273,134 @@ input[name="coupon_code"] {
     width: 40px;
     height: 40px;
   }
+}
+
+/* Home hero and sections: responsive fixes */
+@media (max-width: 900px) {
+  .frame-parent {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .frame-group {
+    position: static;
+    top: auto;
+    left: auto;
+    gap: 24px;
+  }
+
+  .what-are-you-looking-for-parent {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Hide purely decorative shapes on small screens by default */
+  .frame-inner,
+  .vector-icon,
+  .frame-child1 {
+    display: none;
+  }
+
+  .image-icon {
+    position: static;
+    width: 70%;
+    max-width: 360px;
+    height: auto;
+    align-self: center;
+  }
+
+  /* About section stacks and grows */
+  .about-us-section {
+    height: auto;
+    padding: 40px 16px;
+  }
+
+  .about-us-container {
+    position: static;
+    gap: 24px;
+  }
+
+  .features-list {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .feature-description {
+    width: auto;
+    max-width: 100%;
+  }
+
+  /* Features grid wraps with fluid cards */
+  .features-section {
+    height: auto;
+    padding: 24px 16px;
+  }
+
+  .feature-grid {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .feature-card {
+    width: calc(50% - 10px);
+    max-width: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .explore-logic-peripherals {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .feature-card {
+    width: 100%;
+  }
+}
+
+/* Reverted to earlier mobile hero styling */
+
+/* Footer responsiveness */
+@media (max-width: 900px) {
+  .site-footer {
+    height: auto;
+    overflow: visible;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 16px;
+    text-align: center;
+    font-size: 16px;
+  }
+
+  .footer-branding { top: 0; align-items: center; gap: 16px; }
+  .footer-description { width: auto; }
+
+  .footer-links {
+    top: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .footer-column { align-items: center; }
+  .footer-credits { position: static; margin-top: 8px; text-align: center; }
+}
+
+@media (min-width: 901px) and (max-width: 1200px) {
+  .site-footer {
+    height: auto;
+    overflow: visible;
+    padding: 32px 40px;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .footer-credits { position: static; margin-top: 8px; }
 }
 
 /**TEST**/
@@ -1231,6 +1581,14 @@ input[name="coupon_code"] {
   object-fit: contain;
 }
 
+.payment-card-box {
+  background: #edf3f5;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.payment-card-box select { min-width: 220px; }
+
 .btn-place-order {
   margin-top: 1.5rem;
 }
@@ -1250,6 +1608,31 @@ input[name="coupon_code"] {
 .btn-place-order button:hover,
 .btn-place-order a:hover {
   background-color: var(--success-hover);
+}
+
+/* Uppercase helper */
+.uppercase { text-transform: uppercase; }
+
+/* Checkout responsiveness */
+@media (max-width: 1200px) {
+  .checkout-form { gap: 6rem; }
+}
+
+@media (max-width: 992px) {
+  .checkout-form {
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .order-summary-container {
+    width: 100%;
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .checkout-title { font-size: 1.5rem; }
+  .order-summary-container { padding: 1rem; }
+  .item-image { width: 46px; height: 46px; }
 }
 
 /** ACCOUNT **/

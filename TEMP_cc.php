@@ -14,7 +14,6 @@ loadRepo('services/InvoiceWorkflow.php');
 class CheckoutController
 {
     private ClientRepository $clientRepo;
-    private InvoiceRepository $invoiceRepo;
     private InvoiceWorkflow $workflow;
 
     public function __construct()
@@ -106,23 +105,6 @@ class CheckoutController
 
         $addressId = trim($_POST['address-id'] ?? '');
 
-        // Payment method validation (server-side)
-        $paymentMethod = strtolower(trim($_POST['payment_method'] ?? 'card'));
-        if (!in_array($paymentMethod, ['card','cod'], true)) {
-            $paymentMethod = 'card';
-        }
-        $cardBrand = trim($_POST['card_brand'] ?? '');
-        $cardLast4 = trim($_POST['card_last4'] ?? '');
-        $cardToken = trim($_POST['card_token'] ?? '');
-        if ($paymentMethod === 'card' && ($cardBrand === '' || $cardLast4 === '' || $cardToken === '')) {
-            $_SESSION['flash_message'] = [
-                'message' => 'Please select or add a test card to pay.',
-                'type' => 'warning'
-            ];
-            header('Location: /checkout');
-            exit;
-        }
-
 //        $addressData = $billingData['street'] . ' ' . $billingData['apartment'] . ' ' . $billingData['city'];
 //        $billingData['lpa_client_address'] = $addressData;
 
@@ -141,19 +123,16 @@ class CheckoutController
 
         $exists = $this->clientRepo->findIfTheAddressValid($billingData['street'], $user['id'])[0];
 
-
-        if ($exists['isValid'] === true){
+        if ($exists['isValid']):
             $fullStreet = $exists['data']['lpa_full_address'];
             $billingId = $exists['data']['lpa_fk_client_ID'];
             // Update consent preference on the existing client record
             if (method_exists($this->clientRepo, 'updateConsent')) {
                 $this->clientRepo->updateConsent($billingId, (int)($_SESSION['save_checkout_info'] ?? 0));
             }
+        else:
 
-        } else {
             $addressService = new AddressService();
-            var_dump($_POST);
-            die();
             $addressData = $addressService->getStructuredAddress($addressId);
 
             $billingData = array_merge($billingData, [
@@ -175,7 +154,7 @@ class CheckoutController
                 'lpa_fk_client_ID' => $billingId,
                 'lpa_fk_users_ID' =>$user['id']
             ], true);
-        }
+        endif;
 
         // 3-5. Persist invoice, items and mark as paid (workflow)
         $invoiceId = $this->workflow->handle([
@@ -184,9 +163,6 @@ class CheckoutController
             'address' => $fullStreet,
             'client_name' => $billingData['firstname'],
             'save_info' => $_SESSION['save_checkout_info'] ?? 0,
-            'payment_method' => $paymentMethod,
-            'card_brand' => $cardBrand ?: null,
-            'card_last4' => $cardLast4 ?: null,
         ], $_SESSION['cart']);
 
         // Send invoice confirmation email
@@ -205,27 +181,6 @@ class CheckoutController
 
         header("Location: ".$this->orderUrl($invoiceId, true));
         exit;
-    }
-
-    /**
-     * Keep the checkout/cart session alive a bit longer.
-     * Returns JSON with a new expiry timestamp.
-     */
-    public function keepAlive(): void
-    {
-        header('Content-Type: application/json');
-        try {
-            AuthMiddleware::authOnly();
-            if (empty($_SESSION['cart'])) {
-                echo json_encode(['ok' => false, 'error' => 'Cart is empty']);
-                return;
-            }
-            $_SESSION['cart_created_at'] = time();
-            $expiresAt = $_SESSION['cart_created_at'] + 1800; // 30 minutes
-            echo json_encode(['ok' => true, 'expiresAt' => $expiresAt]);
-        } catch (Throwable $e) {
-            echo json_encode(['ok' => false, 'error' => 'keepAlive failed']);
-        }
     }
 
     /**
@@ -316,3 +271,4 @@ class CheckoutController
     }
 
 }
+

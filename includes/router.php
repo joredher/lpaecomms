@@ -24,7 +24,7 @@ $path = 'pages/';
 RegisterController::register($route, 'auth', 'AuthController', ['login', 'register', 'logout', 'forgot', 'resetPassword']);
 RegisterController::register($route, 'profile', 'ProfileController', ['create', 'store']);
 RegisterController::register($route, 'cart', 'CartController', ['add', 'remove', 'update', 'applyCoupon']);
-RegisterController::register($route, 'checkout', 'CheckoutController', ['process', 'confirmation']);
+RegisterController::register($route, 'checkout', 'CheckoutController', ['process', 'confirmation', 'keepAlive']);
 RegisterController::register($route, 'contact', 'ContactController', ['send', 'capture']);
 RegisterController::register($route, 'orders', 'OrderController', ['index', 'show']);
 RegisterController::register($route, 'nav', 'NavigationController', ['track']);

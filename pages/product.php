@@ -68,39 +68,42 @@ $features = array_filter(
         </a>
     </div>
 
-    <div class="details-product row g-0 row-cols-3 m-auto">
-        <div>
-            <div class="details-product-child"></div>
-            <img class="image-1-icon" alt="Product Image" src="<?= htmlspecialchars(getProductImageUrl($product['lpa_stock_image'] ?? '')) ?>">
+    <?php
+        $imagesRaw = (string)($product['lpa_stock_image'] ?? '');
+        $imageParts = strpos($imagesRaw, ',') !== false ? array_map('trim', explode(',', $imagesRaw)) : [$imagesRaw];
+        $gallery = array_values(array_filter(array_map('getProductImageUrl', $imageParts)));
+        if (empty($gallery)) { $gallery = [getProductImageUrl($product['lpa_stock_image'] ?? '')]; }
+        $gallery = array_filter($gallery);
+        $mainImageUrl = htmlspecialchars($gallery[0] ?? '');
+    ?>
+    <div class="details-product">
+        <div class="pd-gallery">
+            <div class="pd-image-zoom">
+                <img id="pd-main-image" class="image-1-icon" src="<?= $mainImageUrl ?>" alt="<?= htmlspecialchars($product['lpa_stock_name']) ?>">
+            </div>
+            <div class="pd-thumbs mt-3">
+                <?php foreach ($gallery as $gi => $src): ?>
+                    <img class="pd-thumb <?= $gi === 0 ? 'active' : '' ?>" src="<?= htmlspecialchars($src) ?>" alt="thumb-<?= $gi ?>" data-full="<?= htmlspecialchars($src) ?>">
+                <?php endforeach; ?>
+            </div>
         </div>
-        <div>
+
+        <div class="pd-main">
             <div class="product-name">
                 <?= htmlspecialchars($product['lpa_stock_name']) ?>
             </div>
             <div class="au">
-                $<?= number_format($product['lpa_stock_price'], 2) ?> AU
+                <span class="price fw-bolder" data-price-aud="<?= number_format((float)$product['lpa_stock_price'], 2, '.', '') ?>">$<?= number_format((float)$product['lpa_stock_price'], 2) ?> AUD</span>
             </div>
             <div class="what-you-need-container">
-                <div class="what-you-need-container1">
-                    <p class="what-you-need">What you need to know about this product:</p>
-                    <p class="optimize-your-machines-perfor">
-                        Description: <?= $product['lpa_stock_desc'] ?>
-                    </p>
-
-                    <?php if (!empty($features)): ?>
-                        <ul class="product-features">
-                            <?php foreach ($features as $feature): ?>
-                                <li><?= htmlspecialchars((string)$feature) ?></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php endif; ?>
-                </div>
+                <p class="what-you-need">What you need to know about this product:</p>
+                <p class="optimize-your-machines-perfor">Description: <?= $product['lpa_stock_desc'] ?></p>
             </div>
-
             <div class="product-actions">
                 <button type="button"
                         class="<?= htmlspecialchars($buyButtonClasses, ENT_QUOTES) ?>"
                         <?= $disabledAttributes ?>
+                        onclick="buyNow(event, <?= (int)$product['lpa_stock_ID'] ?>)"
                         title="<?= htmlspecialchars($isUnavailable ? 'Product unavailable for purchase' : 'Buy now', ENT_QUOTES) ?>">
                     Buy now
                 </button>
@@ -116,6 +119,20 @@ $features = array_filter(
                 <p class="product-unavailable-note">This product is currently unavailable for purchase.</p>
             <?php endif; ?>
         </div>
+
+        <details class="pd-specs" open>
+            <summary class="d-lg-none">Specs</summary>
+            <h6 class="pd-specs-title d-none d-lg-block">Specifications</h6>
+            <?php if (!empty($features)): ?>
+                <ul class="product-features">
+                    <?php foreach ($features as $feature): ?>
+                        <li><?= htmlspecialchars((string)$feature) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php else: ?>
+                <p class="text-muted">No additional specifications.</p>
+            <?php endif; ?>
+        </details>
     </div>
 
     <div class="pd-related-section mt-5">
@@ -153,7 +170,7 @@ $features = array_filter(
                                     </p>
                                 </div>
                                 <div class="product-card-add-cart">
-                                    <div class="price fw-bolder">$<?= number_format($item['lpa_stock_price'], 2) ?> AUD</div>
+                                    <div class="price fw-bolder" data-price-aud="<?= number_format((float)$item['lpa_stock_price'], 2, '.', '') ?>">$<?= number_format((float)$item['lpa_stock_price'], 2) ?> AUD</div>
                                     <button data-product-id="<?= htmlspecialchars($item['lpa_stock_ID']); ?>"
                                             onclick="addToCartBtn(event)"
                                             class="<?= htmlspecialchars($relatedButtonClasses, ENT_QUOTES) ?>"
