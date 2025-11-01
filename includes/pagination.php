@@ -51,5 +51,32 @@ function renderPagination($currentPage, $totalPages, array $baseUrlParams = []):
 function buildPageUrl($page, $params) : string
 {
     $params['page_num'] = $page;
-    return 'index.php?' . http_build_query($params);
+
+    // Normalize and clean params for pretty URLs
+    if (isset($params['route'])) unset($params['route']);
+
+    $clean = [];
+    foreach ($params as $key => $val) {
+        // Drop empty or default sort
+        if ($key === 'sort' && ($val === '' || $val === 'popular')) continue;
+
+        // Remove empty price values
+        if (($key === 'min_price' || $key === 'max_price') && ($val === '' || $val === null)) continue;
+
+        // Normalize type[] (ensure '4' (All) is not carried)
+        if ($key === 'type') {
+            if (is_array($val)) {
+                $val = array_values(array_filter($val, fn($v) => (string)$v !== '4'));
+                if (empty($val)) continue; // nothing to include
+            } else {
+                if ((string)$val === '4' || $val === '') continue;
+            }
+        }
+
+        // Keep others as-is
+        $clean[$key] = $val;
+    }
+
+    $qs = http_build_query($clean);
+    return '/products' . ($qs ? ('?' . $qs) : '');
 }

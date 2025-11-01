@@ -5,7 +5,11 @@ const filterForm = document.getElementById("filter-form");
 
 function changeSelection(input) {
   input.addEventListener("change", () => {
-    filterForm.submit();
+    if (window.USE_AJAX_CATALOG) {
+      document.dispatchEvent(new CustomEvent('catalog:filtersChanged', { bubbles: true }));
+    } else {
+      filterForm?.submit();
+    }
   });
 }
 
@@ -149,6 +153,197 @@ function initFilterToggle() {
     toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     if (isOpen) {
       filtersPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+}
+
+// =========================
+// AJAX Catalog Filters
+// =========================
+function initAjaxCatalogFilters() {
+  const form = document.getElementById('filter-form');
+  const list = document.getElementById('products-list');
+  const pager = document.getElementById('pagination');
+  const label = document.getElementById('results-label');
+
+  if (!form || !list || !pager) return;
+
+  let pending = null;
+
+  function getState() {
+    const cats = Array.from(form.querySelectorAll('input[name="category[]"]'));
+    const types = Array.from(form.querySelectorAll('input[name="type[]"]'));
+    const typeAll = form.querySelector('.type-checkbox[data-type-id="4"], input[name="type[]"][value="4"]');
+    const selectedCats = cats.filter(cb => cb.checked);
+    const selectedTypes = types.filter(cb => cb.checked && (cb.dataset.typeId !== '4' && cb.value !== '4'));
+    return { cats, types, typeAll, selectedCats, selectedTypes };
+  }
+
+  function enforceRules() {
+    const { cats, types, typeAll, selectedCats, selectedTypes } = getState();
+
+    // Rule 2: If any A is active, B must not appear active
+    if (selectedCats.length > 0) {
+      types.forEach(cb => { cb.checked = false; });
+    }
+
+    // Rule 3: If any B (not "All") is active, A must not appear active
+    if (selectedTypes.length > 0) {
+      cats.forEach(cb => { cb.checked = false; });
+      if (typeAll) typeAll.checked = false; // specific type overrides 'All'
+    }
+
+    // Rule 6: If user selects more than 3 options in A, revert to default (B option 9 = All)
+    if (selectedCats.length > 3) {
+      cats.forEach(cb => { cb.checked = false; });
+      if (typeAll) typeAll.checked = true;
+    }
+
+    // Rule 4 & 5: If no A/B are selected at all, default B option 9 (All)
+    const afterCats = form.querySelectorAll('input[name="category[]"]:checked').length;
+    const afterTypes = Array.from(form.querySelectorAll('input[name="type[]"]:checked')).filter(cb => (cb.dataset.typeId ?? cb.value) !== '4').length;
+    if (afterCats === 0 && afterTypes === 0) {
+      if (typeAll) typeAll.checked = true;
+    }
+  }
+
+  function buildUrl(params) {
+    const url = new URL(window.location.origin + '/products');
+
+    // keep existing q/query if present
+    const current = new URL(window.location.href);
+    ['q', 'query'].forEach((k) => {
+      const val = current.searchParams.get(k);
+      if (val) url.searchParams.set(k, val);
+    });
+
+    // from form (after enforcing rules)
+    enforceRules();
+    const fd = new FormData(form);
+    for (const [k, v] of fd.entries()) {
+      // Skip empty values
+      if (v === null || v === '') continue;
+      // Skip default sort
+      if (k === 'sort' && v === 'popular') continue;
+      // Skip Type "All" (value 4)
+      if ((k === 'type[]' || k === 'type') && v === '4') continue;
+      url.searchParams.append(k, v);
+    }
+
+    // overlay explicit params
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (k === 'route') return; // never propagate route
+        url.searchParams.delete(k);
+        if (v !== undefined && v !== null && v !== '') {
+          url.searchParams.set(k, v);
+        }
+      });
+    }
+    // Rule 1: Price only applies when A or B has selections (excluding 'All')
+    const catsActive = form.querySelectorAll('input[name="category[]"]:checked').length > 0;
+    const typesActive = Array.from(form.querySelectorAll('input[name="type[]"]:checked')).some(cb => (cb.dataset.typeId ?? cb.value) !== '4');
+    if (!catsActive && !typesActive) {
+      url.searchParams.delete('min_price');
+      url.searchParams.delete('max_price');
+    }
+    // Remove empty/invalid price params regardless
+    const minVal = url.searchParams.get('min_price');
+    const maxVal = url.searchParams.get('max_price');
+    if (!minVal || isNaN(Number(minVal))) url.searchParams.delete('min_price');
+    if (!maxVal || isNaN(Number(maxVal))) url.searchParams.delete('max_price');
+
+    // Drop default sort if still present
+    if (url.searchParams.get('sort') === 'popular') url.searchParams.delete('sort');
+
+    return url;
+  }
+
+  async function applyFilters(params = {}, { push = true } = {}) {
+    if (!('page_num' in params)) params.page_num = 1;
+
+    const url = buildUrl(params);
+
+    if (pending && typeof pending.abort === 'function') pending.abort();
+    const controller = new AbortController();
+    pending = controller;
+
+    try {
+      const res = await fetch(url.toString(), {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      list.innerHTML = data.html || '';
+      pager.innerHTML = data.pagination || '';
+      if (label && data.label) {
+        const countStr = (typeof data.total_products !== 'undefined')
+          ? `${data.label} (${data.total_products} Results)`
+          : `${data.label} (${data.count ?? 0} Results)`;
+        label.textContent = countStr;
+        label.classList.toggle('is-active', data.label !== 'All');
+      }
+
+      if (typeof Currency?.apply === 'function') Currency.apply();
+      if (typeof initClickableCards === 'function') initClickableCards();
+
+      if (push) {
+        history.pushState({ productsAjax: true }, '', url.toString());
+      }
+    } catch (e) {
+      console.error('Filter fetch failed', e);
+    }
+  }
+
+  // intercept programmatic submit in this context
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    applyFilters();
+  });
+
+  // react to filter changes from changeSelection
+  document.addEventListener('catalog:filtersChanged', () => { enforceRules(); applyFilters(); });
+
+  // pagination clicks (event delegation)
+  pager.addEventListener('click', (e) => {
+    const a = e.target.closest('a.page-link');
+    if (!a) return;
+    e.preventDefault();
+    const u = new URL(a.href, window.location.origin);
+    const page = u.searchParams.get('page_num') || 1;
+    applyFilters({ page_num: page });
+  });
+
+  // sort change (in case not covered by changeSelection)
+  const sortSel = document.getElementById('sort');
+  if (sortSel) {
+    sortSel.addEventListener('change', () => applyFilters({ sort: sortSel.value }));
+  }
+
+  // debounced price updates for smoother UX
+  const minEl = form.querySelector('input[name="min_price"]');
+  const maxEl = form.querySelector('input[name="max_price"]');
+  function debounce(fn, ms) { let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
+  const updatePrice = debounce(() => {
+    const minV = minEl?.value || '';
+    const maxV = maxEl?.value || '';
+    if (minV && maxV && Number(minV) > Number(maxV)) return;
+    applyFilters({ min_price: minV, max_price: maxV });
+  }, 400);
+  if (minEl) minEl.addEventListener('input', updatePrice);
+  if (maxEl) maxEl.addEventListener('input', updatePrice);
+
+  // back/forward
+  window.addEventListener('popstate', (ev) => {
+    if (ev.state && ev.state.productsAjax) {
+      const params = Object.fromEntries(new URLSearchParams(window.location.search));
+      applyFilters(params, { push: false });
+    } else {
+      window.location.reload();
     }
   });
 }
@@ -383,6 +578,11 @@ function initProfileNavigation() {
 // DOM Ready
 // =========================
 document.addEventListener("DOMContentLoaded", function () {
+  // Enable AJAX enhancement for products catalog
+  window.USE_AJAX_CATALOG = !!document.getElementById('products-list');
+  if (window.USE_AJAX_CATALOG) {
+    initAjaxCatalogFilters();
+  }
   initFiltersAndSorting();
   initFilterToggle();
   initClickableCards();

@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/pagination.php';
+require_once 'helpers/cache.php';
 loadRepo('repositories/ProductRepository.php');
 $conn = Database::getConnection();
 $productRepo = new ProductRepository();
@@ -20,11 +21,12 @@ $pageSize = 9;
 $offset   = ($pageNum - 1) * $pageSize;
 
 // Build product query
-$productQuery = /** @lang text */
-    "SELECT s.*, c.lpa_category_name, t.lpa_type_name
-                 FROM lpa_stock s
+$baseFrom = /** @lang text */
+    " FROM lpa_stock s
                  JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
                  JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
+$productQuery = "SELECT s.*, c.lpa_category_name, t.lpa_type_name" . $baseFrom;
+$countQuery   = "SELECT COUNT(*)" . $baseFrom;
 $params     = [];
 $conditions = ["(s.lpa_stock_status IN ('P','A','D') OR (s.lpa_stock_status = 'S' AND s.lpa_stock_publish_at <= NOW()))"];
 
@@ -45,27 +47,33 @@ $typeFilter = $_GET['type'] ?? [];
 if (!is_array($typeFilter)) $typeFilter = [$typeFilter];
 $typeFilter = array_filter($typeFilter, fn($val) => $val !== '4');
 
+// Determine if any group filter (A or B) is active. If none, price filter is ignored.
+$hasGroupFilter = !empty($categoryFilter) || !empty($typeFilter);
+
 if (!empty($typeFilter)) {
     $placeholders = implode(',', array_fill(0, count($typeFilter), '?'));
     $conditions[] = "s.lpa_fk_type_ID IN ($placeholders)";
     $params      = array_merge($params, $typeFilter);
-} elseif (!empty($categoryFilter)) {
+}
+if (!empty($categoryFilter)) {
     $placeholders = implode(',', array_fill(0, count($categoryFilter), '?'));
     $conditions[] = "s.lpa_fk_category_ID IN ($placeholders)";
     $params      = array_merge($params, $categoryFilter);
 }
 
-if (isset($_GET['min_price']) && is_numeric($_GET['min_price'])) {
+if ($hasGroupFilter && isset($_GET['min_price']) && is_numeric($_GET['min_price'])) {
     $conditions[] = "s.lpa_stock_price >= ?";
     $params[]     = $_GET['min_price'];
 }
-if (isset($_GET['max_price']) && is_numeric($_GET['max_price'])) {
+if ($hasGroupFilter && isset($_GET['max_price']) && is_numeric($_GET['max_price'])) {
     $conditions[] = "s.lpa_stock_price <= ?";
     $params[]     = $_GET['max_price'];
 }
 
 if (!empty($conditions)) {
-    $productQuery .= " WHERE " . implode(" AND ", $conditions);
+    $where = " WHERE " . implode(" AND ", $conditions);
+    $productQuery .= $where;
+    $countQuery   .= $where;
 }
 
 $productQuery .= match ($_GET['sort'] ?? '') {
@@ -74,21 +82,88 @@ $productQuery .= match ($_GET['sort'] ?? '') {
     default => " ORDER BY s.lpa_stock_ID DESC",
 };
 
-$countStmt = $conn->prepare($productQuery);
-$countStmt->execute($params);
-$totalProducts = count($countStmt->fetchAll());
-$totalPages    = ceil($totalProducts / $pageSize);
+$cacheKeyData = [
+    'page'       => $pageNum,
+    'page_size'  => $pageSize,
+    'q'          => $q,
+    'category'   => array_values(array_map('strval', array_unique($categoryFilter))),
+    'type'       => array_values(array_map('strval', array_unique($typeFilter))),
+    'min_price'  => ($hasGroupFilter && isset($_GET['min_price'])) ? (string)$_GET['min_price'] : null,
+    'max_price'  => ($hasGroupFilter && isset($_GET['max_price'])) ? (string)$_GET['max_price'] : null,
+    'sort'       => $_GET['sort'] ?? '',
+];
 
-$productQuery .= " LIMIT $offset, $pageSize";
-$productStmt = $conn->prepare($productQuery);
-$productStmt->execute($params);
-$products = $productStmt->fetchAll();
+sort($cacheKeyData['category']);
+sort($cacheKeyData['type']);
+ksort($cacheKeyData);
 
+$cacheKeySegments = [];
+foreach ($cacheKeyData as $key => $value) {
+    if (is_array($value)) {
+        $value = implode(',', $value);
+    }
 
-foreach ($products as &$product) {
-    $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
+    if ($value === null || $value === '') {
+        $value = 'null';
+    }
+
+    $cacheKeySegments[] = $key . '=' . $value;
 }
-unset($product);
+
+$cacheKey = 'catalog:' . implode('|', $cacheKeySegments);
+
+$cachedListingJson = getCatalogListing($cacheKey);
+$cacheHit = false;
+$products = [];
+$totalProducts = 0;
+$totalPages = 0;
+
+if ($cachedListingJson !== null) {
+    $decoded = json_decode($cachedListingJson, true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+        $products = $decoded['products'] ?? [];
+        $totalProducts = (int)($decoded['total_products'] ?? 0);
+        $totalPages = (int)($decoded['total_pages'] ?? 0);
+        $cacheHit = true;
+    }
+}
+
+if (!$cacheHit) {
+    // Efficient total count using COUNT(*)
+    $countStmt = $conn->prepare($countQuery);
+    $countStmt->execute($params);
+    $totalProducts = (int)$countStmt->fetchColumn();
+    $totalPages    = (int)ceil($totalProducts / $pageSize);
+
+    $productQuery .= " LIMIT $offset, $pageSize";
+    $productStmt = $conn->prepare($productQuery);
+    $productStmt->execute($params);
+    $products = $productStmt->fetchAll();
+
+    foreach ($products as &$product) {
+        $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
+    }
+    unset($product);
+
+    $listingPayload = json_encode([
+        'products' => $products,
+        'total_products' => $totalProducts,
+        'total_pages' => $totalPages,
+    ]);
+
+    if ($listingPayload !== false) {
+        setCatalogListing($cacheKey, $listingPayload);
+    }
+}
+
+if ($cacheHit) {
+    foreach ($products as &$product) {
+        if (empty($product['lpa_stock_slug']) && isset($product['lpa_stock_ID'], $product['lpa_stock_name'])) {
+            $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], (string)$product['lpa_stock_name']);
+        }
+    }
+    unset($product);
+}
 
 function renderProducts(array $products): string {
     ob_start();
@@ -147,10 +222,12 @@ if ($isAjax) {
         ? 'Search'
         : ((!empty($_GET['category']) || !empty($_GET['type'])) ? 'Filtered' : 'All');
     echo json_encode([
-        'html'       => $productsHtml,
-        'pagination' => $paginationHtml,
-        'label'      => $activeLabel,
-        'count'      => count($products),
+        'html'           => $productsHtml,
+        'pagination'     => $paginationHtml,
+        'label'          => $activeLabel,
+        'count'          => count($products),
+        'total_products' => $totalProducts,
+        'total_pages'    => $totalPages,
     ]);
     return;
 }
