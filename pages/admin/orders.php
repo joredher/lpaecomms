@@ -71,6 +71,8 @@ if ($isAjax) {
 $title = 'Orders';
 $adminJs = '../assets/js/admin_orders.js';
 ob_start();
+
+error_log('Admin orders page loaded with search: ' . $searchTerm . ' and status filter: ' . $statusFilter);
 ?>
 <div class="container-account">
     <div class="d-flex justify-content-between align-items-center mb-4">

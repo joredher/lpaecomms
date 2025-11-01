@@ -1740,6 +1740,43 @@ input[name="coupon_code"] {
   z-index: 1020;
 }
 
+/* Responsive cart table (stack on small screens) */
+@media (max-width: 576px) {
+  .pd-cart-section .table-responsive thead { display: none; }
+  .pd-cart-section .table-responsive table,
+  .pd-cart-section .table-responsive tbody,
+  .pd-cart-section .table-responsive tr,
+  .pd-cart-section .table-responsive td { display: block; width: 100%; }
+
+  .pd-cart-section .table-responsive tr {
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+
+  .pd-cart-section .table-responsive td {
+    display: grid;
+    grid-template-columns: 42% 58%;
+    align-items: center;
+    padding: 6px 0 !important;
+    border: none !important;
+  }
+
+  .pd-cart-section .table-responsive td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6c757d;
+    padding-right: 10px;
+  }
+
+  .pd-cart-section .cart-qty { max-width: 120px; }
+
+  /* If a TD used flex on desktop, avoid conflicting display rules on mobile */
+  .pd-cart-section td.text-start.d-flex { display: block !important; }
+}
+
 /** Errors **/
 .error-box {
   background: white;

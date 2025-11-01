@@ -32,16 +32,6 @@ class AuthController
         $user = $this->userRepo->findByEmail($username);
 
         if ($user && password_verify($password, $user['lpa_user_password'])) {
-            // Prevent admins signing in via the standard user/client login route
-            if ((int)($user['lpa_fk_user_group_ID'] ?? 0) === 1) {
-                $_SESSION['flash_message'] = [
-                    'message' => 'Admins must use the admin login.',
-                    'type' => 'warning',
-                    'img' => 'assets/images/icons/error.png'
-                ];
-                header('Location: /admin-login');
-                exit;
-            }
             $now = \Carbon\Carbon::now();
             $tokenCreatedAt = \Carbon\Carbon::parse($user['token_created_at'] ?? '1970-01-01');
             $interval = $now->diff($tokenCreatedAt);
@@ -93,56 +83,6 @@ class AuthController
 
             header('Location: /login');
         }
-        exit;
-    }
-
-    public function adminLogin(): void
-    {
-        $username = trim($_POST['username'] ?? '');
-        $password = trim($_POST['password'] ?? '');
-
-        if (empty($username) || empty($password)) {
-            $_SESSION['flash_message'] = [
-                'message' => 'Please fill out all fields correctly.',
-                'type' => 'danger',
-                'img' => 'assets/images/icons/error.png'
-            ];
-            header('Location: /admin-login');
-            exit;
-        }
-
-        $user = $this->userRepo->findByEmail($username);
-
-        if ($user && password_verify($password, $user['lpa_user_password'])) {
-            // Only allow admins (group 1) in this route
-            if ((int)($user['lpa_fk_user_group_ID'] ?? 0) !== 1) {
-                $_SESSION['flash_message'] = [
-                    'message' => 'Clients must use the standard login.',
-                    'type' => 'warning',
-                    'img' => 'assets/images/icons/error.png'
-                ];
-                header('Location: /login');
-                exit;
-            }
-
-            $_SESSION['user'] = [
-                'id' => $user['lpa_users_ID'],
-                'username' => $user['lpa_user_username'],
-                'email' => $user['lpa_user_email'],
-                'firstname' => $user['lpa_user_firstname'],
-                'group' => $user['lpa_fk_user_group_ID']
-            ];
-
-            header('Location: /admin');
-            exit;
-        }
-
-        $_SESSION['flash_message'] = [
-            'message' => 'Invalid credentials.',
-            'type' => 'danger',
-            'img' => 'assets/images/icons/error.png'
-        ];
-        header('Location: /admin-login');
         exit;
     }
 

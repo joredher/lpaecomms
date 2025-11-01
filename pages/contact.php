@@ -3,6 +3,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 $backUrl = $_SESSION['previous_page'] ?? '/home';
+
+error_log('Contact page loaded, back URL: ' . $backUrl);
+
 ?>
 
 

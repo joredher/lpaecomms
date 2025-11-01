@@ -21,7 +21,7 @@ $route = $_GET['route'] ?? ($segments[0] ?? 'home');
 if ($route === ''): $route = 'home'; endif;
 $path = 'pages/';
 
-RegisterController::register($route, 'auth', 'AuthController', ['login', 'register', 'logout', 'forgot', 'resetPassword']);
+RegisterController::register($route, 'auth', 'AuthController', ['login', 'adminLogin', 'register', 'logout', 'forgot', 'resetPassword']);
 RegisterController::register($route, 'profile', 'ProfileController', ['create', 'store']);
 RegisterController::register($route, 'cart', 'CartController', ['add', 'remove', 'update', 'applyCoupon']);
 RegisterController::register($route, 'checkout', 'CheckoutController', ['process', 'confirmation', 'keepAlive']);
@@ -87,6 +87,30 @@ if (isset($_GET['welcome'])) {
 $firstVisitDone = isset($_COOKIE['lpa_first_visit']);
 
 switch ($route) {
+    case 'admin-login':
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $isLogged = isset($_SESSION['user']['id']);
+        $isAdmin = isset($_SESSION['user']['group']) && (int)$_SESSION['user']['group'] === 1;
+        if ($isAdmin) {
+            header('Location: /admin');
+            exit;
+        }
+        if ($isLogged && !$isAdmin) {
+            $_SESSION['flash_message'] = [
+                'message' => 'Access denied: admin area only.',
+                'type' => 'warning'
+            ];
+            header('Location: /home');
+            exit;
+        }
+        $_SESSION['intended_route'] = '/admin';
+        $title = 'Admin Login';
+        $enablePWA = true; // enable PWA only for admin login
+        $pageContent = 'pages/auth/admin_login.php';
+        include 'includes/layout_auth.php';
+        break;
     case 'home':
         if (!$isBot && !$firstVisitDone) {
             $title = 'Welcome';

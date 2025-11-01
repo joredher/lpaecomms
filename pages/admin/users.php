@@ -230,7 +230,7 @@ function renderRows(array $users, int $currentId): string {
                     <i class="bi bi-check-circle-fill text-success"></i>
                 <?php endif; ?>
             </td>
-            <td>
+            <td class="d-flex flex-wrap gap-1">
                 <?php if ($isSelf): ?>
                     <a href="/profile" class="btn btn-sm btn-primary text-white me-1 icon-btn" data-bs-toggle="tooltip" title="My Account"><i class="bi bi-person"></i></a>
                 <?php else: ?>
@@ -292,16 +292,16 @@ ob_start();
     <script>
         window.userFormState = <?= json_encode($serverFormState, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     </script>
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-4">
         <h1 class="h3 mb-0">Users</h1>
-        <button id="add-user" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+        <button id="add-user" class="btn btn-primary btn-sm d-flex align-items-center gap-1 order-0 order-sm-1">
             <i class="bi bi-plus-lg"></i>
             <span>Add User</span>
         </button>
     </div>
 
     <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><?= $formIsEdit ? 'Edit User' : 'Add User' ?></h5>
@@ -321,7 +321,7 @@ ob_start();
                                        readonly>
                                 <div class="invalid-feedback" id="username-error"><?= htmlspecialchars($formErrors['username'] ?? '') ?></div>
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label">Email</label>
                                 <input type="email"
                                        class="form-control<?= isset($formErrors['email']) ? ' is-invalid' : '' ?>"
@@ -330,7 +330,7 @@ ob_start();
                                        value="<?= htmlspecialchars($formData['email'] ?? '') ?>">
                                 <div class="invalid-feedback" id="email-error"><?= htmlspecialchars($formErrors['email'] ?? '') ?></div>
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label">First Name</label>
                                 <input type="text"
                                        class="form-control<?= isset($formErrors['firstname']) ? ' is-invalid' : '' ?>"
@@ -339,7 +339,7 @@ ob_start();
                                        value="<?= htmlspecialchars($formData['firstname'] ?? '') ?>">
                                 <div class="invalid-feedback" id="firstname-error"><?= htmlspecialchars($formErrors['firstname'] ?? '') ?></div>
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label">Last Name</label>
                                 <input type="text"
                                        class="form-control<?= isset($formErrors['lastname']) ? ' is-invalid' : '' ?>"
@@ -348,7 +348,7 @@ ob_start();
                                        value="<?= htmlspecialchars($formData['lastname'] ?? '') ?>">
                                 <div class="invalid-feedback" id="lastname-error"><?= htmlspecialchars($formErrors['lastname'] ?? '') ?></div>
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label">Group</label>
                                 <select class="form-select<?= isset($formErrors['group_id']) ? ' is-invalid' : '' ?>" name="group_id" id="user-group">
                                     <?php foreach ($groups as $group): ?>
@@ -371,8 +371,8 @@ ob_start();
     </div>
 
     <div class="bg-white rounded shadow-sm p-4">
-        <div class="d-flex justify-content-between mb-3">
-            <input type="text" id="user-search" class="form-control w-25" placeholder="Search by name or email">
+        <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 mb-3">
+            <input type="text" id="user-search" class="form-control w-100 w-sm-50 w-lg-25" placeholder="Search by name or email">
         </div>
         <div class="table-responsive">
             <table class="table align-middle">

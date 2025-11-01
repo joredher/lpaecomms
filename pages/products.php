@@ -84,6 +84,7 @@ $productStmt = $conn->prepare($productQuery);
 $productStmt->execute($params);
 $products = $productStmt->fetchAll();
 
+
 foreach ($products as &$product) {
     $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
 }

@@ -32,6 +32,8 @@ class ProductRepository extends BaseRepository
 
     public function updateProduct($id, array $data): bool
     {
+
+        var_dump('This is the data when the product is being updated \n', $data);
         return $this->update($id, [
             'lpa_stock_name'      => $data['name'],
             'lpa_stock_slug'      => $this->generateUniqueSlug($data['name'], (int)$id),
