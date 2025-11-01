@@ -2,6 +2,7 @@
 //namespace controllers\cart;
 
 require_once 'includes/config.php'; // ✅ Load config first (DB, constants, etc.)
+require_once 'middleware/AuthMiddleware.php';
 require_once 'services/CartService.php';
 class CartController
 {
@@ -13,6 +14,17 @@ class CartController
 
     public function add()
     {
+        if (!AuthMiddleware::userOnly()) {
+            http_response_code(403);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => false,
+                'status' => 403,
+                'error' => 'Only customer accounts may manage the cart.',
+            ]);
+            exit;
+        }
+
         header('Content-Type: application/json');
         $productId = (int)($_POST['productId'] ?? 0);
         if ($productId <= 0) {
@@ -30,6 +42,9 @@ class CartController
     }
 
     public function remove() {
+        if (!AuthMiddleware::userOnly()) {
+            AuthMiddleware::abort403('Only customer accounts may manage the cart.');
+        }
         if (!isset($_GET['id'])) return;
 
         $id = (int) $_GET['id'];
@@ -40,6 +55,9 @@ class CartController
     }
 
     public function update() {
+        if (!AuthMiddleware::userOnly()) {
+            AuthMiddleware::abort403('Only customer accounts may manage the cart.');
+        }
         $ids = $_POST['id'] ?? [];
         $quantities = $_POST['quantity'] ?? [];
 
@@ -60,6 +78,9 @@ class CartController
     }
 
     public function applyCoupon() {
+        if (!AuthMiddleware::userOnly()) {
+            AuthMiddleware::abort403('Only customer accounts may manage the cart.');
+        }
         $coupon = $_POST['coupon_code'] ?? '';
         $this->cartService->applyCoupon($coupon);
 

@@ -14,8 +14,8 @@ class CheckoutApiController extends BaseApiController
 
     public function process(): void
     {
-        if ($auth = $this->requireAuth()) {
-            $this->respond($auth);
+        if ($guard = $this->requireCustomer()) {
+            $this->respond($guard);
             return;
         }
 

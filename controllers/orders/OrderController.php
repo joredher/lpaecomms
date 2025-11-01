@@ -14,6 +14,9 @@ class OrderController
     public function __construct()
     {
         AuthMiddleware::authOnly();
+        if (!AuthMiddleware::userOnly()) {
+            AuthMiddleware::abort403('Orders are only available to customer accounts.');
+        }
         $this->invoiceRepo = new InvoiceRepository();
         $this->orderService = new OrderService();
         if (session_status() === PHP_SESSION_NONE) {

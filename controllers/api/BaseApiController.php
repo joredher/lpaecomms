@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../../middleware/AuthMiddleware.php';
 
 abstract class BaseApiController
 {
@@ -28,6 +29,24 @@ abstract class BaseApiController
                 'message' => 'Authentication required.',
             ];
         }
+        return null;
+    }
+
+    protected function requireCustomer(): ?array
+    {
+        if ($auth = $this->requireAuth()) {
+            return $auth;
+        }
+
+        if (!AuthMiddleware::userOnly()) {
+            return [
+                'success' => false,
+                'status' => 403,
+                'message' => 'Only customer accounts may access this resource.',
+                'error' => 'forbidden',
+            ];
+        }
+
         return null;
     }
 }

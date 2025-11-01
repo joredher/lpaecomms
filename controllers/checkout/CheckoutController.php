@@ -54,6 +54,10 @@ class CheckoutController
             exit;
         }
 
+        if (!AuthMiddleware::userOnly()) {
+            AuthMiddleware::abort403('Checkout is only available to customer accounts.');
+        }
+
         $user = $_SESSION['user'];
         $client = $this->clientRepo->findByUserId($user['id']);
 
@@ -75,6 +79,10 @@ class CheckoutController
     public function process()
     {
         AuthMiddleware::authOnly();
+
+        if (!AuthMiddleware::userOnly()) {
+            AuthMiddleware::abort403('Checkout is only available to customer accounts.');
+        }
 
         $result = $this->checkoutService->process($_POST);
 
@@ -105,6 +113,11 @@ class CheckoutController
         header('Content-Type: application/json');
         try {
             AuthMiddleware::authOnly();
+            if (!AuthMiddleware::userOnly()) {
+                http_response_code(403);
+                echo json_encode(['ok' => false, 'status' => 403, 'error' => 'Only customer accounts may keep carts active']);
+                return;
+            }
             if (empty($_SESSION['cart'])) {
                 echo json_encode(['ok' => false, 'error' => 'Cart is empty']);
                 return;
@@ -124,6 +137,21 @@ class CheckoutController
     {
         // must be logged in
         AuthMiddleware::authOnly();
+
+        $acceptsJson = strtolower($_GET['accept'] ?? '') === 'json';
+        if (!AuthMiddleware::userOnly()) {
+            if ($acceptsJson) {
+                http_response_code(403);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode([
+                    'ok' => false,
+                    'status' => 403,
+                    'error' => 'Only customer accounts may view order confirmations.',
+                ], JSON_THROW_ON_ERROR);
+                return;
+            }
+            AuthMiddleware::abort403('Only customer accounts may view order confirmations.');
+        }
 
         $userId = (int) $_SESSION['user']['id'];
 
@@ -165,7 +193,7 @@ class CheckoutController
         $totals  = $result['totals'];
 
         // 6) Optional JSON mode: /checkout.confirmation?order=123&accept=json
-        if (strtolower($_GET['accept'] ?? '') === 'json') {
+        if ($acceptsJson) {
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
                 'ok' => true,

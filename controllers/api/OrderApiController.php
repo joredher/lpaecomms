@@ -14,8 +14,8 @@ class OrderApiController extends BaseApiController
 
     public function index(): void
     {
-        if ($auth = $this->requireAuth()) {
-            $this->respond($auth);
+        if ($guard = $this->requireCustomer()) {
+            $this->respond($guard);
             return;
         }
         $userId = (int)$_SESSION['user']['id'];
@@ -27,8 +27,8 @@ class OrderApiController extends BaseApiController
 
     public function show(string $identifier): void
     {
-        if ($auth = $this->requireAuth()) {
-            $this->respond($auth);
+        if ($guard = $this->requireCustomer()) {
+            $this->respond($guard);
             return;
         }
         $userId = (int)$_SESSION['user']['id'];

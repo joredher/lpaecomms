@@ -14,11 +14,19 @@ class CartApiController extends BaseApiController
 
     public function summary(): void
     {
+        if ($guard = $this->requireCustomer()) {
+            $this->respond($guard);
+            return;
+        }
         $this->respond($this->cartService->getCart());
     }
 
     public function add(): void
     {
+        if ($guard = $this->requireCustomer()) {
+            $this->respond($guard);
+            return;
+        }
         $data = $this->readInput();
         $productId = (int)($data['productId'] ?? $data['product_id'] ?? 0);
         if ($productId <= 0) {
@@ -34,6 +42,10 @@ class CartApiController extends BaseApiController
 
     public function update(): void
     {
+        if ($guard = $this->requireCustomer()) {
+            $this->respond($guard);
+            return;
+        }
         $data = $this->readInput();
         $items = $data['items'] ?? [];
         if (!is_array($items)) {
@@ -49,11 +61,19 @@ class CartApiController extends BaseApiController
 
     public function remove(int $productId): void
     {
+        if ($guard = $this->requireCustomer()) {
+            $this->respond($guard);
+            return;
+        }
         $this->respond($this->cartService->removeItem($productId));
     }
 
     public function applyCoupon(): void
     {
+        if ($guard = $this->requireCustomer()) {
+            $this->respond($guard);
+            return;
+        }
         $data = $this->readInput();
         $code = (string)($data['coupon'] ?? $data['coupon_code'] ?? '');
         $this->respond($this->cartService->applyCoupon($code));
