@@ -21,11 +21,12 @@ $pageSize = 9;
 $offset   = ($pageNum - 1) * $pageSize;
 
 // Build product query
-$productQuery = /** @lang text */
-    "SELECT s.*, c.lpa_category_name, t.lpa_type_name
-                 FROM lpa_stock s
+$baseFrom = /** @lang text */
+    " FROM lpa_stock s
                  JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
                  JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
+$productQuery = "SELECT s.*, c.lpa_category_name, t.lpa_type_name" . $baseFrom;
+$countQuery   = "SELECT COUNT(*)" . $baseFrom;
 $params     = [];
 $conditions = ["(s.lpa_stock_status IN ('P','A','D') OR (s.lpa_stock_status = 'S' AND s.lpa_stock_publish_at <= NOW()))"];
 
@@ -46,27 +47,33 @@ $typeFilter = $_GET['type'] ?? [];
 if (!is_array($typeFilter)) $typeFilter = [$typeFilter];
 $typeFilter = array_filter($typeFilter, fn($val) => $val !== '4');
 
+// Determine if any group filter (A or B) is active. If none, price filter is ignored.
+$hasGroupFilter = !empty($categoryFilter) || !empty($typeFilter);
+
 if (!empty($typeFilter)) {
     $placeholders = implode(',', array_fill(0, count($typeFilter), '?'));
     $conditions[] = "s.lpa_fk_type_ID IN ($placeholders)";
     $params      = array_merge($params, $typeFilter);
-} elseif (!empty($categoryFilter)) {
+}
+if (!empty($categoryFilter)) {
     $placeholders = implode(',', array_fill(0, count($categoryFilter), '?'));
     $conditions[] = "s.lpa_fk_category_ID IN ($placeholders)";
     $params      = array_merge($params, $categoryFilter);
 }
 
-if (isset($_GET['min_price']) && is_numeric($_GET['min_price'])) {
+if ($hasGroupFilter && isset($_GET['min_price']) && is_numeric($_GET['min_price'])) {
     $conditions[] = "s.lpa_stock_price >= ?";
     $params[]     = $_GET['min_price'];
 }
-if (isset($_GET['max_price']) && is_numeric($_GET['max_price'])) {
+if ($hasGroupFilter && isset($_GET['max_price']) && is_numeric($_GET['max_price'])) {
     $conditions[] = "s.lpa_stock_price <= ?";
     $params[]     = $_GET['max_price'];
 }
 
 if (!empty($conditions)) {
-    $productQuery .= " WHERE " . implode(" AND ", $conditions);
+    $where = " WHERE " . implode(" AND ", $conditions);
+    $productQuery .= $where;
+    $countQuery   .= $where;
 }
 
 $productQuery .= match ($_GET['sort'] ?? '') {
@@ -81,8 +88,8 @@ $cacheKeyData = [
     'q'          => $q,
     'category'   => array_values(array_map('strval', array_unique($categoryFilter))),
     'type'       => array_values(array_map('strval', array_unique($typeFilter))),
-    'min_price'  => isset($_GET['min_price']) ? (string)$_GET['min_price'] : null,
-    'max_price'  => isset($_GET['max_price']) ? (string)$_GET['max_price'] : null,
+    'min_price'  => ($hasGroupFilter && isset($_GET['min_price'])) ? (string)$_GET['min_price'] : null,
+    'max_price'  => ($hasGroupFilter && isset($_GET['max_price'])) ? (string)$_GET['max_price'] : null,
     'sort'       => $_GET['sort'] ?? '',
 ];
 
@@ -122,9 +129,10 @@ if ($cachedListingJson !== null) {
 }
 
 if (!$cacheHit) {
-    $countStmt = $conn->prepare($productQuery);
+    // Efficient total count using COUNT(*)
+    $countStmt = $conn->prepare($countQuery);
     $countStmt->execute($params);
-    $totalProducts = count($countStmt->fetchAll());
+    $totalProducts = (int)$countStmt->fetchColumn();
     $totalPages    = (int)ceil($totalProducts / $pageSize);
 
     $productQuery .= " LIMIT $offset, $pageSize";
@@ -214,10 +222,12 @@ if ($isAjax) {
         ? 'Search'
         : ((!empty($_GET['category']) || !empty($_GET['type'])) ? 'Filtered' : 'All');
     echo json_encode([
-        'html'       => $productsHtml,
-        'pagination' => $paginationHtml,
-        'label'      => $activeLabel,
-        'count'      => count($products),
+        'html'           => $productsHtml,
+        'pagination'     => $paginationHtml,
+        'label'          => $activeLabel,
+        'count'          => count($products),
+        'total_products' => $totalProducts,
+        'total_pages'    => $totalPages,
     ]);
     return;
 }
