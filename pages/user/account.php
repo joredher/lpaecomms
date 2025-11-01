@@ -5,6 +5,7 @@ $backUrl = $_SESSION['previous_page'] ?? '/home';
 
 $user = $_SESSION['user'];
 
+error_log('Account page loaded for user: ' . $user['firstname']);
 
 ?>
 <div class="container-account">

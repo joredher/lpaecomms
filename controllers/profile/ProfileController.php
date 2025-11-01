@@ -137,7 +137,6 @@ class ProfileController
             }
         }
 
-
         var_dump('LOG \n', $isClientExists ? $client[0]['lpa_clients_ID'] : '');
         $clientRepo->addLpaUserClientAddressValid([
             'lpa_pid_address' => $addressId,

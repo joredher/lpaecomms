@@ -18,6 +18,9 @@ if ($userId) {
     $primaryId = $clientRepo->getPrimaryClientId($userId);
 }
 
+
+error_log('Profile address page loaded for user ID: ' . $userId . ' with ' . count($addresses) . ' addresses found. Primary ID: ' . $primaryId);
+
 ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h5 class="fw-semibold text-primary">Your Address Book</h5>

@@ -26,6 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const featuresInput = document.getElementById('product-features');
     const imageInput = document.getElementById('product-image');
 
+    // Remove any lingering validation styles from form controls
+    function clearValidationStates() {
+        if (!form) return;
+        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    }
+
     function clampQty() {
         let val = parseInt(qtyInput.value, 10);
         if (isNaN(val)) val = 0;
@@ -79,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         publishGroup.style.display = 'none';
         if (submitBtn) submitBtn.textContent = 'Save Product';
         if (modalTitle) modalTitle.textContent = 'Add Product';
+        clearValidationStates();
     });
 
     if (addBtn) {
@@ -88,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             togglePublishAt();
             if (submitBtn) submitBtn.textContent = 'Save Product';
             if (modalTitle) modalTitle.textContent = 'Add Product';
+            clearValidationStates();
             productModal.show();
         });
     }
@@ -101,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function attachEditHandlers() {
         document.querySelectorAll('.edit-product').forEach(btn => {
             btn.addEventListener('click', () => {
+                clearValidationStates();
                 idInput.value = btn.dataset.id;
                 document.getElementById('product-name').value = btn.dataset.name || '';
                 document.getElementById('product-desc').value = btn.dataset.desc || '';

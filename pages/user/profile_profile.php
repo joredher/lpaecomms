@@ -40,6 +40,8 @@ $client = array_merge($user, [
     'address' => !empty($clientExists) ? $clientExists : '',
 ]);
 
+error_log('Profile page loaded for user ID: ' . $user['lpa_users_ID']);
+
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">

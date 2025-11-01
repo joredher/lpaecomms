@@ -1,0 +1,18 @@
+{
+  "name": "LPA Ecomms Admin",
+  "short_name": "Admin",
+  "description": "Administration for LPA Ecomms",
+  "start_url": "/admin-login?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "icons": [
+    {
+      "src": "/assets/images/Logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -58,6 +58,9 @@ unset($item);
 $features = array_filter(
     array_map('trim', explode('.', (string)($product['lpa_stock_features'] ?? '')))
 );
+
+error_log('Product page loaded for product ID: ' . $productId);
+
 ?>
 
 <div class="pd-details-section container py-5">

@@ -4,6 +4,7 @@ $conn = Database::getConnection();
 $path_body_images =  "../assets/images/body_page/";
 $searchPageLink = "";
 
+error_log('Home page loaded with path_body_images: ' . $path_body_images);
 ?>
 
 <div class="frame-parent">

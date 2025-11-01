@@ -32,7 +32,7 @@ $total = $_SESSION['total'] ?? 0;
                             <th>Price</th>
                             <th>Quantity</th>
                             <th>Subtotal</th>
-                            <th>Subtotal</th>
+                            <th>Remove</th>
                         </tr>
                         </thead>
                         <tbody class="table-group-divider">
@@ -41,16 +41,18 @@ $total = $_SESSION['total'] ?? 0;
                             $total += $subtotal;
                             ?>
                             <tr>
-                                <td class="text-start d-flex align-items-center">
-                                    <img src="<?= htmlspecialchars($item['image']) ?>"
-                                         alt="<?= htmlspecialchars($item['name']) ?>"
-                                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;"
-                                         class="me-3"
-                                         onerror="this.src='<?= PRODUCT_PLACEHOLDER_URL ?>';">
-                                    <?= $item['name'] ?>
+                                <td class="text-start" data-label="Product">
+                                    <div class="d-flex align-items-center">
+                                        <img src="<?= htmlspecialchars($item['image']) ?>"
+                                             alt="<?= htmlspecialchars($item['name']) ?>"
+                                             style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;"
+                                             class="me-3"
+                                             onerror="this.src='<?= PRODUCT_PLACEHOLDER_URL ?>';">
+                                        <span><?= htmlspecialchars($item['name']) ?></span>
+                                    </div>
                                 </td>
-                                <td class="cart-price" data-price-aud="<?= number_format((float)$item['price'], 2, '.', '') ?>">$<?= number_format((float)$item['price'], 2) ?> AUD</td>
-                                <td>
+                                <td class="cart-price" data-label="Price" data-price-aud="<?= number_format((float)$item['price'], 2, '.', '') ?>">$<?= number_format((float)$item['price'], 2) ?> AUD</td>
+                                <td data-label="Quantity">
                                     <input type="hidden" name="id[]" value="<?= $id ?>">
                                     <input type="number"
                                            name="quantity[]"
@@ -61,9 +63,9 @@ $total = $_SESSION['total'] ?? 0;
                                            style="width: 70px;">
                                     <div class="invalid-feedback"></div>
                                 </td>
-                                <td class="cart-subtotal" data-price-aud="<?= number_format((float)$subtotal, 2, '.', '') ?>">$<?= number_format((float)$subtotal, 2) ?> AUD</td>
-                                <td>
-                                    <a href="?route=cart.remove&id=<?= $id ?>" class="btn btn-sm btn-outline-danger">✖</a>
+                                <td class="cart-subtotal" data-label="Subtotal" data-price-aud="<?= number_format((float)$subtotal, 2, '.', '') ?>">$<?= number_format((float)$subtotal, 2) ?> AUD</td>
+                                <td data-label="Remove">
+                                    <a href="?route=cart.remove&id=<?= $id ?>" class="btn btn-sm btn-outline-danger" aria-label="Remove item">✖</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
