@@ -8,6 +8,7 @@ require_once 'helpers/mail.php';
 loadRepo('services/AddressService.php');
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/InvoiceWorkflow.php');
+require_once 'services/CheckoutService.php';
 
 
 
@@ -16,12 +17,14 @@ class CheckoutController
     private ClientRepository $clientRepo;
     private InvoiceRepository $invoiceRepo;
     private InvoiceWorkflow $workflow;
+    private CheckoutService $checkoutService;
 
     public function __construct()
     {
         $this->clientRepo = new ClientRepository();
         $this->invoiceRepo = new InvoiceRepository();
         $this->workflow = new InvoiceWorkflow();
+        $this->checkoutService = new CheckoutService();
     }
 
     public function start()
@@ -71,139 +74,25 @@ class CheckoutController
 
     public function process()
     {
-
         AuthMiddleware::authOnly();
 
-        if (!isset($_SESSION['user']) || empty($_SESSION['cart'])) {
+        $result = $this->checkoutService->process($_POST);
+
+        if ($result['success']) {
             $_SESSION['flash_message'] = [
-                'message' => 'Your session expired or your cart is empty.',
-                'type' => 'danger'
+                'message' => '✅ ' . $result['message'],
+                'type' => 'success'
             ];
-            header('Location: /products');
-            exit;
-        }
-
-        $user = $_SESSION['user'];
-
-        // 1. Collect billing address from form
-        $billingData = [
-            'user_id' => $user['id'],
-            'firstname' => trim($_POST['firstname'] ?? ''),
-            'lastname' => trim($_POST['lastname'] ?? ''),
-            'street' => trim($_POST['street'] ?? ''),
-            'apartment' => trim($_POST['apartment'] ?? ''),
-            'city' => trim($_POST['city'] ?? ''),
-            'zipcode' => trim($_POST['zipcode'] ?? ''),
-            'phone' => trim($_POST['phone'] ?? ''),
-            'email' => trim($_POST['email'] ?? ''),
-        ];
-
-        // Optional preference: save checkout info for next time
-        $saveInfo = isset($_POST['save_info']) && ($_POST['save_info'] === 'on' || $_POST['save_info'] === '1');
-        $_SESSION['save_checkout_info'] = $saveInfo ? 1 : 0;
-        // Also carry it with billing payload for repository methods
-        $billingData['consent'] = $_SESSION['save_checkout_info'];
-
-        $addressId = trim($_POST['address-id'] ?? '');
-
-        // Payment method validation (server-side)
-        $paymentMethod = strtolower(trim($_POST['payment_method'] ?? 'card'));
-        if (!in_array($paymentMethod, ['card','cod'], true)) {
-            $paymentMethod = 'card';
-        }
-        $cardBrand = trim($_POST['card_brand'] ?? '');
-        $cardLast4 = trim($_POST['card_last4'] ?? '');
-        $cardToken = trim($_POST['card_token'] ?? '');
-        if ($paymentMethod === 'card' && ($cardBrand === '' || $cardLast4 === '' || $cardToken === '')) {
-            $_SESSION['flash_message'] = [
-                'message' => 'Please select or add a test card to pay.',
-                'type' => 'warning'
-            ];
-            header('Location: /checkout');
-            exit;
-        }
-
-//        $addressData = $billingData['street'] . ' ' . $billingData['apartment'] . ' ' . $billingData['city'];
-//        $billingData['lpa_client_address'] = $addressData;
-
-        // Validate required fields
-        foreach (['firstname', 'street', 'city', 'phone', 'email'] as $field) {
-            if (empty($billingData[$field])) {
-                $_SESSION['flash_message'] = [
-                    'message' => "⚠️ Missing required billing field: $field",
-                    'type' => 'danger'
-                ];
-                header('Location: ?route=checkout');
-                exit;
-            }
-        }
-
-
-        $exists = $this->clientRepo->findIfTheAddressValid($billingData['street'], $user['id'])[0];
-
-
-        if ($exists['isValid'] === true){
-            $fullStreet = $exists['data']['lpa_full_address'];
-            $billingId = $exists['data']['lpa_fk_client_ID'];
-            // Update consent preference on the existing client record
-            if (method_exists($this->clientRepo, 'updateConsent')) {
-                $this->clientRepo->updateConsent($billingId, (int)($_SESSION['save_checkout_info'] ?? 0));
-            }
-
+            $redirect = $result['data']['redirect'] ?? $this->orderUrl((int)($result['data']['order_id'] ?? 0), true);
+            header('Location: ' . $redirect);
         } else {
-            $addressService = new AddressService();
-            var_dump($_POST);
-            die();
-            $addressData = $addressService->getStructuredAddress($addressId);
-
-            $billingData = array_merge($billingData, [
-                'address' => $addressData['sla'],
-                'addressId' => $addressId
-            ]);
-
-            // 2. Save billing info (temporary, specific to this invoice)
-            $clientRepo = new ClientRepository();
-            $billingId = $clientRepo->createFromBillingForm($billingData); // <- we’ll create this method
-
-            $fullStreet = $addressData['streetNumberFrom']
-                . (empty($addressData['streetNumberTo']) ? "" : " - " . $addressData['streetNumberTo'])
-                . " {$addressData['streetName']} {$addressData['streetType']} {$addressData['suburb']}";
-
-            $clientRepo->addLpaUserClientAddressValid([
-                'lpa_pid_address' => $addressId,
-                'lpa_full_address' => $addressData['sla'],
-                'lpa_fk_client_ID' => $billingId,
-                'lpa_fk_users_ID' =>$user['id']
-            ], true);
+            $_SESSION['flash_message'] = [
+                'message' => '⚠️ ' . $result['message'],
+                'type' => $result['status'] === 422 ? 'warning' : 'danger'
+            ];
+            $fallback = $result['status'] === 401 ? '/login' : '/checkout';
+            header('Location: ' . $fallback);
         }
-
-        // 3-5. Persist invoice, items and mark as paid (workflow)
-        $invoiceId = $this->workflow->handle([
-            'client_id' => $billingId,
-            'total' => $_POST['total'] ?: 0,
-            'address' => $fullStreet,
-            'client_name' => $billingData['firstname'],
-            'save_info' => $_SESSION['save_checkout_info'] ?? 0,
-            'payment_method' => $paymentMethod,
-            'card_brand' => $cardBrand ?: null,
-            'card_last4' => $cardLast4 ?: null,
-        ], $_SESSION['cart']);
-
-        // Send invoice confirmation email
-        $invoiceData = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $user['id']);
-        if ($invoiceData && !sendInvoiceConfirmationEmail($invoiceData)) {
-            error_log('❌ Failed to send invoice confirmation email.');
-        }
-
-        // 6. Clear cart
-        unset($_SESSION['cart'], $_SESSION['total']);
-
-        $_SESSION['flash_message'] = [
-            'message' => '✅ Your order was placed successfully!',
-            'type' => 'success'
-        ];
-
-        header("Location: ".$this->orderUrl($invoiceId, true));
         exit;
     }
 

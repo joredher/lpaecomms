@@ -1,10 +1,12 @@
 <?php
 require_once __DIR__ . '/../../helpers/mail.php';
 require_once __DIR__ . '/../../repositories/UserRepository.php';
+require_once __DIR__ . '/../../services/AuthService.php';
 
 class AuthController
 {
     private UserRepository $userRepo;
+    private AuthService $authService;
 
     public function __construct()
     {
@@ -12,86 +14,36 @@ class AuthController
             session_start();
         }
         $this->userRepo = new UserRepository();
+        $this->authService = new AuthService();
     }
 
     public function login()
     {
-        $username = trim($_POST['username'] ?? '');
-        $password = trim($_POST['password'] ?? '');
+        $result = $this->authService->attemptLogin(
+            $_POST['username'] ?? '',
+            $_POST['password'] ?? ''
+        );
 
-        if (empty($username) || empty($password)) {
-            $_SESSION['flash_message'] = [
-                'message' => '⚠️ Please fill out all fields correctly.',
-                'type' => 'danger',
-                'img' => 'assets/images/icons/error.png'
-            ];
-            header('Location: /login');
-            exit;
-        }
-
-        $user = $this->userRepo->findByEmail($username);
-
-        if ($user && password_verify($password, $user['lpa_user_password'])) {
-            // Prevent admins signing in via the standard user/client login route
-            if ((int)($user['lpa_fk_user_group_ID'] ?? 0) === 1) {
+        if ($result['success']) {
+            if (!empty($result['data']['requires_validation'])) {
                 $_SESSION['flash_message'] = [
-                    'message' => 'Admins must use the admin login.',
-                    'type' => 'warning',
-                    'img' => 'assets/images/icons/error.png'
+                    'message' => $result['message'],
+                    'type' => 'info',
+                    'img' => 'assets/images/icons/info.png'
                 ];
-                header('Location: /admin-login');
-                exit;
-            }
-            $now = \Carbon\Carbon::now();
-            $tokenCreatedAt = \Carbon\Carbon::parse($user['token_created_at'] ?? '1970-01-01');
-            $interval = $now->diff($tokenCreatedAt);
-
-            error_log('Password Validation: Passed!');
-            //$_SESSION['pending_user_id'] = false;
-
-            if (AuthMiddleware::userOnly($user) && (!$user['validation_token'] || ($interval->days >= 7))) {
-                error_log('Token Process with code: Passed!');
-
-                // Generate a new token
-                $validationCode = random_int(100000, 999999);
-
-                // Update user token and timestamp in DB
-                $this->userRepo->updateValidationToken($user['lpa_users_ID'], $validationCode);
-
-                // Send email via Mailtrap (helper or direct implementation)
-                $sendSuccess = sendValidationCodeEmail([
-                    'firstname' => $user['lpa_user_firstname'],
-                    'username' => $user['lpa_user_username'],
-                    'validationCode' => $validationCode,
-                    'to' => $user['lpa_user_email']
-                ]);
-                error_log("📤 Email sending to" . $user['lpa_user_email'] . " was " . ($sendSuccess ? 'successful' : 'unsuccessful'));
-
-                $_SESSION['pending_user_id'] = $user['lpa_users_ID'];
                 header('Location: /login');
             } else {
-
-                $_SESSION['user'] = [
-                    'id' => $user['lpa_users_ID'],
-                    'username' => $user['lpa_user_username'],
-                    'email' => $user['lpa_user_email'],
-                    'firstname' => $user['lpa_user_firstname'],
-                    'group' => $user['lpa_fk_user_group_ID']
-                ];
-
-                $redirectTo = @$_SESSION['intended_route'] ?? '/home';
-                unset($_SESSION['intended_route']);
-
-                header("Location: $redirectTo");
+                $redirectTo = $result['data']['redirect'] ?? '/home';
+                header('Location: ' . $redirectTo);
             }
         } else {
             $_SESSION['flash_message'] = [
-                'message' => '⚠️ Invalid credentials.',
-                'type' => 'danger',
+                'message' => '⚠️ ' . $result['message'],
+                'type' => $result['status'] === 403 ? 'warning' : 'danger',
                 'img' => 'assets/images/icons/error.png'
             ];
-
-            header('Location: /login');
+            $redirect = $result['status'] === 403 ? '/admin-login' : '/login';
+            header('Location: ' . $redirect);
         }
         exit;
     }
@@ -148,123 +100,47 @@ class AuthController
 
     public function register()
     {
-
-        if (isset($_SESSION['user'])) {
-            // Optional: Flash message
-            $_SESSION['flash_message'] = [
-                'message' => 'You are already logged in.',
-                'type' => 'info'
-            ];
-            header('Location: /home'); // Or ?route=dashboard
-            exit;
-        }
-
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: /register');
             exit;
         }
 
-        // Sanitize inputs
-        $firstname = trim($_POST['firstname'] ?? '');
-        $lastname = trim($_POST['lastname'] ?? '');
-        $email = strtolower(trim(filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL)));
-        $phone = trim(preg_replace('/[^0-9]/', '', $_POST['phone'] ?? ''));
-        $password = $_POST['password'] ?? '';
-        $emailPrefix = explode('@', $email)[0];
-        $currentYear = date('Y');
-        $username = $emailPrefix . $currentYear;
+        $result = $this->authService->register($_POST);
 
-        // Basic validation
-        if (!$firstname || !$lastname || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 6) {
+        if ($result['success']) {
             $_SESSION['flash_message'] = [
-                'message' => '⚠️ Please fill out all fields correctly.',
-                'type' => 'danger'
+                'message' => '🎉 ' . $result['message'] . ' Please check your email for verification instructions.',
+                'type' => 'success'
+            ];
+            $email = strtolower(trim($_POST['email'] ?? ''));
+            $firstname = trim($_POST['firstname'] ?? '');
+            if ($email !== '' && $firstname !== '') {
+                $newUser = $this->userRepo->findByEmail($email);
+                if ($newUser) {
+                    $this->generateToken($newUser, $firstname, $email);
+                }
+            }
+            header('Location: /login');
+        } else {
+            $_SESSION['flash_message'] = [
+                'message' => '⚠️ ' . $result['message'],
+                'type' => $result['status'] === 409 ? 'warning' : 'danger'
             ];
             header('Location: /register');
-            exit;
         }
-
-        // Check if user already exists
-        if ($this->userRepo->emailExists($email)) {
-            $existingUser = $this->userRepo->findByEmail($email);
-            sendEmailAlreadyExistsNotification([
-                'firstname' => $existingUser['lpa_user_firstname'] ?? '',
-                'email' => $email,
-                'reset_password_url' => 'https://lpaecomms.test/forgot_password'
-            ]);
-
-            $_SESSION['flash_message'] = [
-                'message' => '⚠️ Email already exists.',
-                'type' => 'danger'
-            ];
-            header('Location: /register');
-            exit;
-        }
-
-        // Create user
-        $data = [
-            'firstname' => $firstname,
-            'lastname' => $lastname,
-            'email' => $email,
-            'username' => $username,
-            'phone' => $phone,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
-            'group_id' => 2 // Default: client group
-        ];
-
-        if (!$this->userRepo->createUser($data)) {
-            error_log("❌ Failed to create user in DB for: $email");
-            $_SESSION['flash_message'] = [
-                'message' => '❌ Failed to create user.',
-                'type' => 'danger'
-            ];
-            header('Location: /register');
-            exit;
-        }
-
-        error_log("✅ User created: $email");
-        // Retrieve new user
-        $newUser = $this->userRepo->findByEmail($email);
-
-
-        $this->generateToken($newUser, $firstname, $email);
-//        // Login user
-//        $_SESSION['user'] = [
-//            'id' => $newUser['lpa_users_ID'],
-//            'firstname' => $firstname,
-//            'lastname' => $lastname,
-//            'email' => $email,
-//            'group_id' => $data['group_id']
-//        ];
-
-//        session_regenerate_id(true); // security best practice
-//        $_SESSION['flash_message'] = [
-//            'message' => '✅ Account created successfully!',
-//            'type' => 'success'
-//        ];
-
-
-        $_SESSION['flash_message'] = [
-            'message' => '📧 Please check your email to verify your account.',
-            'type' => 'info'
-        ];
-
-        header('Location: /verify_email');
         exit;
     }
 
     public function logout()
     {
-        if (session_status() === PHP_SESSION_NONE): session_start(); endif;
-        session_unset();
-        session_destroy();
+        $result = $this->authService->logout();
 
-        // Optional: Regenerate session ID for security
-        session_start();
-        session_regenerate_id(true);
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
 
         $_SESSION['flash_message'] = [
-            'message' => '👋 You’ve been logged out successfully.',
+            'message' => $result['message'],
             'type' => 'info'
         ];
 

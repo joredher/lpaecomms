@@ -11,6 +11,11 @@ require_once 'controllers/auth/AuthController.php';
 require_once 'controllers/checkout/CheckoutController.php';
 require_once 'controllers/contact/ContactController.php';
 require_once 'controllers/orders/OrderController.php';
+require_once 'controllers/api/AuthApiController.php';
+require_once 'controllers/api/ProductApiController.php';
+require_once 'controllers/api/CartApiController.php';
+require_once 'controllers/api/CheckoutApiController.php';
+require_once 'controllers/api/OrderApiController.php';
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/AddressService.php');
 
@@ -20,6 +25,94 @@ $segments = explode('/', $uriPath);
 $route = $_GET['route'] ?? ($segments[0] ?? 'home');
 if ($route === ''): $route = 'home'; endif;
 $path = 'pages/';
+
+if (!function_exists('respondApiNotFound')) {
+    function respondApiNotFound(): void
+    {
+        http_response_code(404);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['success' => false, 'message' => 'Endpoint not found.'], JSON_THROW_ON_ERROR);
+        exit;
+    }
+}
+
+if (!empty($segments) && $segments[0] === 'api') {
+    $apiSegments = array_values(array_filter(array_slice($segments, 1), static fn($seg) => $seg !== ''));
+    $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+
+    switch ($apiSegments[0] ?? '') {
+        case 'auth':
+            $controller = new AuthApiController();
+            $action = $apiSegments[1] ?? '';
+            if ($method === 'POST' && $action === 'login') {
+                $controller->login();
+                return;
+            }
+            if ($method === 'POST' && $action === 'register') {
+                $controller->register();
+                return;
+            }
+            if ($method === 'POST' && $action === 'logout') {
+                $controller->logout();
+                return;
+            }
+            break;
+        case 'products':
+            $controller = new ProductApiController();
+            if ($method === 'GET' && isset($apiSegments[1])) {
+                $controller->show($apiSegments[1]);
+                return;
+            }
+            if ($method === 'GET') {
+                $controller->index();
+                return;
+            }
+            break;
+        case 'cart':
+            $controller = new CartApiController();
+            if ($method === 'GET' && empty($apiSegments[1])) {
+                $controller->summary();
+                return;
+            }
+            if ($method === 'POST' && ($apiSegments[1] ?? '') === 'add') {
+                $controller->add();
+                return;
+            }
+            if ($method === 'POST' && ($apiSegments[1] ?? '') === 'coupon') {
+                $controller->applyCoupon();
+                return;
+            }
+            if ($method === 'PATCH') {
+                $controller->update();
+                return;
+            }
+            if ($method === 'DELETE' && isset($apiSegments[1])) {
+                $controller->remove((int)$apiSegments[1]);
+                return;
+            }
+            break;
+        case 'checkout':
+            if ($method === 'POST') {
+                $controller = new CheckoutApiController();
+                $controller->process();
+                return;
+            }
+            break;
+        case 'orders':
+            $controller = new OrderApiController();
+            if ($method === 'GET' && isset($apiSegments[1])) {
+                $controller->show($apiSegments[1]);
+                return;
+            }
+            if ($method === 'GET') {
+                $controller->index();
+                return;
+            }
+            break;
+    }
+
+    respondApiNotFound();
+}
 
 RegisterController::register($route, 'auth', 'AuthController', ['login', 'adminLogin', 'register', 'logout', 'forgot', 'resetPassword']);
 RegisterController::register($route, 'profile', 'ProfileController', ['create', 'store']);
