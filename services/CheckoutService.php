@@ -9,18 +9,25 @@ loadRepo('helpers/mail.php');
 
 class CheckoutService
 {
+    public const ERROR_ADDRESS_CACHE_MISSING = 'checkout_address_cache_missing';
+    public const ERROR_ADDRESS_INVALID = 'checkout_address_invalid';
+
     private ClientRepository $clientRepo;
     private InvoiceRepository $invoiceRepo;
     private InvoiceWorkflow $workflow;
 
-    public function __construct()
+    public function __construct(
+        ?ClientRepository $clientRepo = null,
+        ?InvoiceRepository $invoiceRepo = null,
+        ?InvoiceWorkflow $workflow = null
+    )
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        $this->clientRepo = new ClientRepository();
-        $this->invoiceRepo = new InvoiceRepository();
-        $this->workflow = new InvoiceWorkflow();
+        $this->clientRepo = $clientRepo ?? new ClientRepository();
+        $this->invoiceRepo = $invoiceRepo ?? new InvoiceRepository();
+        $this->workflow = $workflow ?? new InvoiceWorkflow();
     }
 
     /**
@@ -97,19 +104,35 @@ class CheckoutService
             }
         }
 
-        $exists = $this->clientRepo->findIfTheAddressValid($billingData['street'], $user['id']);
-        $addressInfo = $exists[0] ?? null;
+        $addressLookup = $this->clientRepo->findIfTheAddressValid($billingData['street'], $user['id']);
 
-        if (!$addressInfo || $addressInfo['isValid'] !== true) {
+        if (!empty($addressLookup['missing'])) {
+            return [
+                'success' => false,
+                'status' => 422,
+                'message' => 'We could not find a verified address on file. Please confirm your profile address before checking out.',
+                'errors' => [
+                    'address' => 'No verified address saved for this account.',
+                ],
+                'code' => self::ERROR_ADDRESS_CACHE_MISSING,
+            ];
+        }
+
+        if (($addressLookup['isValid'] ?? false) !== true) {
             return [
                 'success' => false,
                 'status' => 422,
                 'message' => 'The provided address must match a saved address. Please update your profile.',
+                'errors' => [
+                    'address' => 'The address could not be matched to the cached profile address.',
+                ],
+                'code' => self::ERROR_ADDRESS_INVALID,
             ];
         }
 
-        $fullStreet = $addressInfo['data']['lpa_full_address'] ?? $billingData['street'];
-        $billingId = $addressInfo['data']['lpa_fk_client_ID'] ?? null;
+        $addressInfo = $addressLookup['data'] ?? [];
+        $fullStreet = $addressInfo['lpa_full_address'] ?? $billingData['street'];
+        $billingId = $addressInfo['lpa_fk_client_ID'] ?? null;
         if ($billingId && method_exists($this->clientRepo, 'updateConsent')) {
             $this->clientRepo->updateConsent($billingId, (int)$_SESSION['save_checkout_info']);
         }

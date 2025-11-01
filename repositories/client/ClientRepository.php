@@ -161,14 +161,22 @@ class ClientRepository extends BaseRepository
 
         $value = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $addressClean1 = str_replace([' ', ',', '-'], '', strtolower($value['lpa_full_address']));
+        if (!$value || empty($value['lpa_full_address'])) {
+            return [
+                'data' => null,
+                'isValid' => false,
+                'missing' => true,
+            ];
+        }
+
+        $addressClean1 = str_replace([' ', ',', '-'], '', strtolower((string) $value['lpa_full_address']));
         $addressClean2 = str_replace([' ', ',', '-'], '', strtolower($address));
 
-
-        return array([
+        return [
             'data' => $value,
-            'isValid' => str_contains($addressClean1, $addressClean2)
-        ]);
+            'isValid' => str_contains($addressClean1, $addressClean2),
+            'missing' => false,
+        ];
     }
 
     public function existsClientWithSameData($data): array

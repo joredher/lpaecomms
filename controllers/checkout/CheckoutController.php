@@ -98,7 +98,13 @@ class CheckoutController
                 'message' => '⚠️ ' . $result['message'],
                 'type' => $result['status'] === 422 ? 'warning' : 'danger'
             ];
-            $fallback = $result['status'] === 401 ? '/login' : '/checkout';
+            $fallback = '/checkout';
+            if (($result['status'] ?? 0) === 401) {
+                $fallback = '/login';
+            } elseif (($result['code'] ?? '') === CheckoutService::ERROR_ADDRESS_CACHE_MISSING) {
+                $_SESSION['from_checkout'] = true;
+                $fallback = '/profile.create';
+            }
             header('Location: ' . $fallback);
         }
         exit;
