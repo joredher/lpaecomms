@@ -21,7 +21,7 @@ LPA eComms is a proof-of-concept e-commerce platform created to validate the use
    composer install
    ```
 2. Configure your environment variables (database credentials, cache settings, app URL, etc.) in `.env` using `.env.example` as a template.
-3. Ensure a Redis server is available and matches the connection details defined by `REDIS_HOST` and `REDIS_PORT` (defaults to `127.0.0.1:6379`).
+3. Ensure a Redis server is available and matches the connection details defined by `REDIS_HOST` and `REDIS_PORT` (defaults to `127.0.0.1:6379`). The application will use the native PHP Redis extension when present, or fall back to the bundled Predis client after installing Composer dependencies.
 4. Run the database migrations or import the provided schema in `db/`.
 5. Serve the project with your preferred PHP web server (e.g., `php -S localhost:8000 -t public`).
 

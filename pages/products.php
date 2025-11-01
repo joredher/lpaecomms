@@ -90,7 +90,20 @@ sort($cacheKeyData['category']);
 sort($cacheKeyData['type']);
 ksort($cacheKeyData);
 
-$cacheKey = 'catalog:' . hash('sha256', json_encode($cacheKeyData));
+$cacheKeySegments = [];
+foreach ($cacheKeyData as $key => $value) {
+    if (is_array($value)) {
+        $value = implode(',', $value);
+    }
+
+    if ($value === null || $value === '') {
+        $value = 'null';
+    }
+
+    $cacheKeySegments[] = $key . '=' . $value;
+}
+
+$cacheKey = 'catalog:' . implode('|', $cacheKeySegments);
 
 $cachedListingJson = getCatalogListing($cacheKey);
 $cacheHit = false;
