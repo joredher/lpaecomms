@@ -1,93 +1,11 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/pagination.php';
+require_once 'helpers/cache.php';
 loadRepo('repositories/ProductRepository.php');
 $conn = Database::getConnection();
 $productRepo = new ProductRepository();
 $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-
-// Fetch categories and types
-$categoryStmt = $conn->prepare(/** @lang text */ "SELECT * FROM lpa_category");
-$categoryStmt->execute();
-$categories = $categoryStmt->fetchAll();
-
-$typeStmt = $conn->prepare(/** @lang text */ "SELECT * FROM lpa_type");
-$typeStmt->execute();
-$types = $typeStmt->fetchAll();
-
-$pageNum = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
-$pageSize = 9;
-$offset   = ($pageNum - 1) * $pageSize;
-
-// Build product query
-$productQuery = /** @lang text */
-    "SELECT s.*, c.lpa_category_name, t.lpa_type_name
-                 FROM lpa_stock s
-                 JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
-                 JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
-$params     = [];
-$conditions = ["(s.lpa_stock_status IN ('P','A','D') OR (s.lpa_stock_status = 'S' AND s.lpa_stock_publish_at <= NOW()))"];
-
-// Text search (from home hero or querystring)
-$q = trim($_GET['q'] ?? ($_GET['query'] ?? ''));
-if ($q !== '') {
-    $conditions[] = "(s.lpa_stock_name LIKE ? OR c.lpa_category_name LIKE ? OR t.lpa_type_name LIKE ?)";
-    $like = "%$q%";
-    $params[] = $like;
-    $params[] = $like;
-    $params[] = $like;
-}
-
-$categoryFilter = $_GET['category'] ?? [];
-if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
-
-$typeFilter = $_GET['type'] ?? [];
-if (!is_array($typeFilter)) $typeFilter = [$typeFilter];
-$typeFilter = array_filter($typeFilter, fn($val) => $val !== '4');
-
-if (!empty($typeFilter)) {
-    $placeholders = implode(',', array_fill(0, count($typeFilter), '?'));
-    $conditions[] = "s.lpa_fk_type_ID IN ($placeholders)";
-    $params      = array_merge($params, $typeFilter);
-} elseif (!empty($categoryFilter)) {
-    $placeholders = implode(',', array_fill(0, count($categoryFilter), '?'));
-    $conditions[] = "s.lpa_fk_category_ID IN ($placeholders)";
-    $params      = array_merge($params, $categoryFilter);
-}
-
-if (isset($_GET['min_price']) && is_numeric($_GET['min_price'])) {
-    $conditions[] = "s.lpa_stock_price >= ?";
-    $params[]     = $_GET['min_price'];
-}
-if (isset($_GET['max_price']) && is_numeric($_GET['max_price'])) {
-    $conditions[] = "s.lpa_stock_price <= ?";
-    $params[]     = $_GET['max_price'];
-}
-
-if (!empty($conditions)) {
-    $productQuery .= " WHERE " . implode(" AND ", $conditions);
-}
-
-$productQuery .= match ($_GET['sort'] ?? '') {
-    'price_low_high' => " ORDER BY s.lpa_stock_price ASC",
-    'price_high_low' => " ORDER BY s.lpa_stock_price DESC",
-    default => " ORDER BY s.lpa_stock_ID DESC",
-};
-
-$countStmt = $conn->prepare($productQuery);
-$countStmt->execute($params);
-$totalProducts = count($countStmt->fetchAll());
-$totalPages    = ceil($totalProducts / $pageSize);
-
-$productQuery .= " LIMIT $offset, $pageSize";
-$productStmt = $conn->prepare($productQuery);
-$productStmt->execute($params);
-$products = $productStmt->fetchAll();
-
-foreach ($products as &$product) {
-    $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
-}
-unset($product);
 
 function renderProducts(array $products): string {
     ob_start();
@@ -138,8 +56,155 @@ function renderProducts(array $products): string {
     return ob_get_clean();
 }
 
-$productsHtml   = renderProducts($products);
-$paginationHtml = renderPagination($pageNum, $totalPages, $_GET);
+function buildCatalogCacheKey(array $criteria): string {
+    if (isset($criteria['category']) && is_array($criteria['category'])) {
+        $criteria['category'] = array_values(array_map('strval', $criteria['category']));
+        sort($criteria['category']);
+    }
+
+    if (isset($criteria['type']) && is_array($criteria['type'])) {
+        $criteria['type'] = array_values(array_map('strval', $criteria['type']));
+        sort($criteria['type']);
+    }
+
+    ksort($criteria);
+
+    return 'catalog:' . md5(json_encode($criteria, JSON_UNESCAPED_UNICODE));
+}
+
+// Fetch categories and types
+$categoryStmt = $conn->prepare(/** @lang text */ "SELECT * FROM lpa_category");
+$categoryStmt->execute();
+$categories = $categoryStmt->fetchAll();
+
+$typeStmt = $conn->prepare(/** @lang text */ "SELECT * FROM lpa_type");
+$typeStmt->execute();
+$types = $typeStmt->fetchAll();
+
+$pageNum = isset($_GET['page_num']) && is_numeric($_GET['page_num']) ? (int)$_GET['page_num'] : 1;
+$pageSize = 9;
+$offset   = ($pageNum - 1) * $pageSize;
+
+// Build product query
+$productQuery = /** @lang text */
+    "SELECT s.*, c.lpa_category_name, t.lpa_type_name
+                 FROM lpa_stock s
+                 JOIN lpa_category c ON s.lpa_fk_category_ID = c.lpa_category_ID
+                 JOIN lpa_type t ON s.lpa_fk_type_ID = t.lpa_type_ID";
+$params     = [];
+$conditions = ["(s.lpa_stock_status IN ('P','A','D') OR (s.lpa_stock_status = 'S' AND s.lpa_stock_publish_at <= NOW()))"];
+
+// Text search (from home hero or querystring)
+$q = trim($_GET['q'] ?? ($_GET['query'] ?? ''));
+if ($q !== '') {
+    $conditions[] = "(s.lpa_stock_name LIKE ? OR c.lpa_category_name LIKE ? OR t.lpa_type_name LIKE ?)";
+    $like = "%$q%";
+    $params[] = $like;
+    $params[] = $like;
+    $params[] = $like;
+}
+
+$categoryFilter = $_GET['category'] ?? [];
+if (!is_array($categoryFilter)) $categoryFilter = [$categoryFilter];
+
+$typeFilter = $_GET['type'] ?? [];
+if (!is_array($typeFilter)) $typeFilter = [$typeFilter];
+$typeFilter = array_filter($typeFilter, fn($val) => $val !== '4');
+
+if (!empty($typeFilter)) {
+    $placeholders = implode(',', array_fill(0, count($typeFilter), '?'));
+    $conditions[] = "s.lpa_fk_type_ID IN ($placeholders)";
+    $params      = array_merge($params, $typeFilter);
+} elseif (!empty($categoryFilter)) {
+    $placeholders = implode(',', array_fill(0, count($categoryFilter), '?'));
+    $conditions[] = "s.lpa_fk_category_ID IN ($placeholders)";
+    $params      = array_merge($params, $categoryFilter);
+}
+
+$minPrice = isset($_GET['min_price']) && is_numeric($_GET['min_price']) ? (float)$_GET['min_price'] : null;
+$maxPrice = isset($_GET['max_price']) && is_numeric($_GET['max_price']) ? (float)$_GET['max_price'] : null;
+
+if ($minPrice !== null) {
+    $conditions[] = "s.lpa_stock_price >= ?";
+    $params[]     = $minPrice;
+}
+if ($maxPrice !== null) {
+    $conditions[] = "s.lpa_stock_price <= ?";
+    $params[]     = $maxPrice;
+}
+
+if (!empty($conditions)) {
+    $productQuery .= " WHERE " . implode(" AND ", $conditions);
+}
+
+$sortOrder = $_GET['sort'] ?? '';
+$productQuery .= match ($sortOrder) {
+    'price_low_high' => " ORDER BY s.lpa_stock_price ASC",
+    'price_high_low' => " ORDER BY s.lpa_stock_price DESC",
+    default => " ORDER BY s.lpa_stock_ID DESC",
+};
+
+$cacheKeyData = [
+    'page'       => $pageNum,
+    'page_size'  => $pageSize,
+    'q'          => $q,
+    'category'   => $categoryFilter,
+    'type'       => $typeFilter,
+    'min_price'  => $minPrice,
+    'max_price'  => $maxPrice,
+    'sort'       => $sortOrder,
+];
+$cacheKey = buildCatalogCacheKey($cacheKeyData);
+$cachedListing = getCatalogListing($cacheKey);
+$cachePayload = null;
+if ($cachedListing !== null) {
+    $decoded = json_decode($cachedListing, true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+        $cachePayload = $decoded;
+    }
+}
+
+$products       = [];
+$totalProducts  = 0;
+$totalPages     = 0;
+$productsHtml   = '';
+$paginationHtml = '';
+
+if ($cachePayload) {
+    $products       = $cachePayload['products'] ?? [];
+    $totalProducts  = isset($cachePayload['total_products']) ? (int)$cachePayload['total_products'] : count($products);
+    $totalPages     = isset($cachePayload['total_pages']) ? (int)$cachePayload['total_pages'] : (int)ceil($totalProducts / $pageSize);
+    $productsHtml   = $cachePayload['products_html'] ?? renderProducts($products);
+    $paginationHtml = $cachePayload['pagination_html'] ?? renderPagination($pageNum, $totalPages, $_GET);
+} else {
+    $countStmt = $conn->prepare($productQuery);
+    $countStmt->execute($params);
+    $totalProducts = count($countStmt->fetchAll());
+    $totalPages    = (int)ceil($totalProducts / $pageSize);
+
+    $productQuery .= " LIMIT $offset, $pageSize";
+    $productStmt = $conn->prepare($productQuery);
+    $productStmt->execute($params);
+    $products = $productStmt->fetchAll();
+
+    foreach ($products as &$product) {
+        $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
+    }
+    unset($product);
+
+    $productsHtml   = renderProducts($products);
+    $paginationHtml = renderPagination($pageNum, $totalPages, $_GET);
+
+    $payload = [
+        'products'        => $products,
+        'total_products'  => $totalProducts,
+        'total_pages'     => $totalPages,
+        'products_html'   => $productsHtml,
+        'pagination_html' => $paginationHtml,
+    ];
+
+    setCatalogListing($cacheKey, $payload);
+}
 
 if ($isAjax) {
     $activeLabel = (!empty($_GET['q']) || !empty($_GET['query']))
