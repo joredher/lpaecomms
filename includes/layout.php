@@ -8,6 +8,7 @@ $title = $title ?? 'LPA Ecommerce';
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
     <title><?= htmlspecialchars($title) ?></title>
     <meta name="theme-color" content="#0d6efd">
     <?php if (!empty($enablePWA)): ?>
@@ -114,21 +115,30 @@ $title = $title ?? 'LPA Ecommerce';
 <script type="application/javascript" src="../assets/js/ecommerce_script.js"></script>
 <script type="application/javascript" src="../assets/js/toast.js"></script>
 <script type="application/javascript" src="../assets/js/search.js"></script>
-<script type="application/javascript">
-    // Ensure accessibility preferences apply as early as possible on layout load
-    (function(){
-        try {
-            const prefs = JSON.parse(localStorage.getItem('a11y')||'{}');
-            const b = document.body;
-            if (prefs.textSize === 'large') b.classList.add('a11y-text-lg');
-            if (prefs.textSize === 'xlarge') b.classList.add('a11y-text-xl');
-            if (prefs.contrast) b.classList.add('a11y-contrast');
-            if (prefs.underlineLinks) b.classList.add('a11y-underline-links');
-            if (prefs.reduceMotion) b.classList.add('a11y-reduce-motion');
-            if (prefs.focusOutline) b.classList.add('a11y-focus-outline');
-        } catch(e) { /* noop */ }
-    })();
-  </script>
+<script type="application/javascript" src="../assets/js/idle_timeout.js"></script>
+ <script type="application/javascript">
+     window.CSRF_TOKEN = '<?= e(csrf_token()) ?>';
+     window.IS_AUTHENTICATED = <?= isset($_SESSION['user']['id']) ? 'true' : 'false' ?>;
+     window.SERVER_A11Y = <?= json_encode($_SESSION['a11y_prefs'] ?? null) ?>;
+     // Ensure accessibility preferences apply as early as possible on layout load
+     (function(){
+         try {
+             let prefs = {};
+             try { prefs = JSON.parse(localStorage.getItem('a11y')||'{}') || {}; } catch { prefs = {}; }
+             if (window.SERVER_A11Y && typeof window.SERVER_A11Y === 'object') {
+                 prefs = Object.assign({}, prefs, window.SERVER_A11Y);
+                 localStorage.setItem('a11y', JSON.stringify(prefs));
+             }
+             const b = document.body;
+             if (prefs.textSize === 'large') b.classList.add('a11y-text-lg');
+             if (prefs.textSize === 'xlarge') b.classList.add('a11y-text-xl');
+             if (prefs.contrast) b.classList.add('a11y-contrast');
+             if (prefs.underlineLinks) b.classList.add('a11y-underline-links');
+             if (prefs.reduceMotion) b.classList.add('a11y-reduce-motion');
+             if (prefs.focusOutline) b.classList.add('a11y-focus-outline');
+         } catch(e) { /* noop */ }
+     })();
+   </script>
 
 <?php if (!empty($enablePWA)): ?>
     <script>

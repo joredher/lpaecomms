@@ -33,7 +33,7 @@ function addToCartBtn(event) {
 
   fetch("/cart.add", {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRF-Token": (window.CSRF_TOKEN||'') },
     credentials: "same-origin",
     body: new URLSearchParams({ productId: productId }),
   })
@@ -608,6 +608,19 @@ const A11y = (function () {
 
   function save(prefs) {
     localStorage.setItem(STORE_KEY, JSON.stringify(prefs));
+    try {
+      if (window.IS_AUTHENTICATED) {
+        fetch('/profile.saveA11y', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': (window.CSRF_TOKEN || '')
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({ prefs })
+        }).catch(() => {});
+      }
+    } catch (e) { /* no-op */ }
   }
 
   function apply(prefs) {
@@ -697,7 +710,14 @@ const A11y = (function () {
   }
 
   function init() {
-    const prefs = load();
+    let prefs = load();
+    try {
+      if (window.SERVER_A11Y && typeof window.SERVER_A11Y === 'object') {
+        // Server prefs take precedence over local
+        prefs = Object.assign({}, prefs, window.SERVER_A11Y);
+        save(prefs); // keep localStorage in sync for next visits/logouts
+      }
+    } catch (e) { /* no-op */ }
     apply(prefs);
     bind();
   }

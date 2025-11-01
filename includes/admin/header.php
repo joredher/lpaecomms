@@ -10,6 +10,7 @@ $links = [
     '/admin.users' => 'Users',
     '/admin.orders' => 'Orders',
     '/admin.products' => 'Products',
+    '/admin.security' => 'Security',
 ];
 
 $style = 'text-decoration-none';

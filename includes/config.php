@@ -4,6 +4,10 @@ if (!defined('APP_PATH')) {
     define('APP_PATH', dirname(__DIR__));
 }
 
+// Global security helpers (escapers, input, CSRF)
+require_once APP_PATH . '/helpers/security.php';
+require_once APP_PATH . '/helpers/audit.php';
+
 if (!defined('PRODUCT_IMAGE_PATH')) {
     define('PRODUCT_IMAGE_PATH', APP_PATH . '/assets/images/products/');
 }
@@ -35,6 +39,7 @@ class Database {
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
         ];
 
         try {

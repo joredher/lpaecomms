@@ -1,274 +1,491 @@
 <?php
+require_once __DIR__ . '/../../helpers/mail.php';
+require_once __DIR__ . '/../../repositories/UserRepository.php';
 
-require_once __DIR__ . '/../../bootstrap.php';
-
-require_once 'repositories/client/ClientRepository.php';
-require_once 'repositories/invoice/InvoiceRepository.php';
-require_once 'helpers/mail.php';
-loadRepo('services/AddressService.php');
-loadRepo('middleware/AuthMiddleware.php');
-loadRepo('services/InvoiceWorkflow.php');
-
-
-
-class CheckoutController
+class AuthController
 {
-    private ClientRepository $clientRepo;
-    private InvoiceWorkflow $workflow;
+    private UserRepository $userRepo;
 
     public function __construct()
     {
-        $this->clientRepo = new ClientRepository();
-        $this->invoiceRepo = new InvoiceRepository();
-        $this->workflow = new InvoiceWorkflow();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $this->userRepo = new UserRepository();
     }
 
-    public function start()
+    public function login()
     {
-        // Cart expiration logic (30 minutes)
-        $cartExpiryLimit = 30 * 60; // 1800 seconds
-        if (isset($_SESSION['cart_created_at']) && (time() - $_SESSION['cart_created_at']) > $cartExpiryLimit) {
-            unset($_SESSION['cart'], $_SESSION['total'], $_SESSION['cart_created_at']);
+        $username = trim($_POST['username'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+
+        if (empty($username) || empty($password)) {
             $_SESSION['flash_message'] = [
-                'message' => '🕒 Your cart has expired after 30 minutes of inactivity.',
-                'type' => 'warning'
+                'message' => '⚠️ Please fill out all fields correctly.',
+                'type' => 'danger',
+                'img' => 'assets/images/icons/error.png'
             ];
-            if (isset($_SESSION['from_checkout']) && $_SESSION['from_checkout']) {
-                unset($_SESSION['from_checkout']);
-            }
-            header('Location: /products');
+            header('Location: /login');
             exit;
         }
 
-        // User must be logged in
-        if (!isset($_SESSION['user']) || empty($_SESSION['cart'])) {
+        $user = $this->userRepo->findByEmail($username);
+
+        if ($user && password_verify($password, $user['lpa_user_password'])) {
+            // Prevent admins signing in via the standard user/client login route
+            if ((int)($user['lpa_fk_user_group_ID'] ?? 0) === 1) {
+                $_SESSION['flash_message'] = [
+                    'message' => 'Admins must use the admin login.',
+                    'type' => 'warning',
+                    'img' => 'assets/images/icons/error.png'
+                ];
+                header('Location: /admin-login');
+                exit;
+            }
+            $now = \Carbon\Carbon::now();
+            $tokenCreatedAt = \Carbon\Carbon::parse($user['token_created_at'] ?? '1970-01-01');
+            $interval = $now->diff($tokenCreatedAt);
+
+            error_log('Password Validation: Passed!');
+            //$_SESSION['pending_user_id'] = false;
+
+            if (AuthMiddleware::userOnly($user) && (!$user['validation_token'] || ($interval->days >= 7))) {
+                error_log('Token Process with code: Passed!');
+
+                // Generate a new token
+                $validationCode = random_int(100000, 999999);
+
+                // Update user token and timestamp in DB
+                $this->userRepo->updateValidationToken($user['lpa_users_ID'], $validationCode);
+
+                // Send email via Mailtrap (helper or direct implementation)
+                $sendSuccess = sendValidationCodeEmail([
+                    'firstname' => $user['lpa_user_firstname'],
+                    'username' => $user['lpa_user_username'],
+                    'validationCode' => $validationCode,
+                    'to' => $user['lpa_user_email']
+                ]);
+                error_log("📤 Email sending to" . $user['lpa_user_email'] . " was " . ($sendSuccess ? 'successful' : 'unsuccessful'));
+
+                $_SESSION['pending_user_id'] = $user['lpa_users_ID'];
+                header('Location: /login');
+            } else {
+
+                $_SESSION['user'] = [
+                    'id' => $user['lpa_users_ID'],
+                    'username' => $user['lpa_user_username'],
+                    'email' => $user['lpa_user_email'],
+                    'firstname' => $user['lpa_user_firstname'],
+                    'group' => $user['lpa_fk_user_group_ID']
+                ];
+
+                $redirectTo = @$_SESSION['intended_route'] ?? '/home';
+                unset($_SESSION['intended_route']);
+
+                header("Location: $redirectTo");
+            }
+        } else {
             $_SESSION['flash_message'] = [
-                'message' => 'You must be logged in and have items in your cart.',
-                'type' => 'warning'
+                'message' => '⚠️ Invalid credentials.',
+                'type' => 'danger',
+                'img' => 'assets/images/icons/error.png'
+            ];
+
+            header('Location: /login');
+        }
+        exit;
+    }
+
+    public function adminLogin(): void
+    {
+        $username = trim($_POST['username'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+
+        if (empty($username) || empty($password)) {
+            $_SESSION['flash_message'] = [
+                'message' => 'Please fill out all fields correctly.',
+                'type' => 'danger',
+                'img' => 'assets/images/icons/error.png'
+            ];
+            header('Location: /admin-login');
+            exit;
+        }
+
+        $user = $this->userRepo->findByEmail($username);
+
+        if ($user && password_verify($password, $user['lpa_user_password'])) {
+            // Only allow admins (group 1) in this route
+            if ((int)($user['lpa_fk_user_group_ID'] ?? 0) !== 1) {
+                $_SESSION['flash_message'] = [
+                    'message' => 'Clients must use the standard login.',
+                    'type' => 'warning',
+                    'img' => 'assets/images/icons/error.png'
+                ];
+                header('Location: /login');
+                exit;
+            }
+
+            $_SESSION['user'] = [
+                'id' => $user['lpa_users_ID'],
+                'username' => $user['lpa_user_username'],
+                'email' => $user['lpa_user_email'],
+                'firstname' => $user['lpa_user_firstname'],
+                'group' => $user['lpa_fk_user_group_ID']
+            ];
+
+            header('Location: /admin');
+            exit;
+        }
+
+        $_SESSION['flash_message'] = [
+            'message' => 'Invalid credentials.',
+            'type' => 'danger',
+            'img' => 'assets/images/icons/error.png'
+        ];
+        header('Location: /admin-login');
+        exit;
+    }
+
+    public function register()
+    {
+
+        if (isset($_SESSION['user'])) {
+            // Optional: Flash message
+            $_SESSION['flash_message'] = [
+                'message' => 'You are already logged in.',
+                'type' => 'info'
+            ];
+            header('Location: /home'); // Or ?route=dashboard
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: /register');
+            exit;
+        }
+
+        // Sanitize inputs
+        $firstname = trim($_POST['firstname'] ?? '');
+        $lastname = trim($_POST['lastname'] ?? '');
+        $email = strtolower(trim(filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL)));
+        $phone = trim(preg_replace('/[^0-9]/', '', $_POST['phone'] ?? ''));
+        $password = $_POST['password'] ?? '';
+        $emailPrefix = explode('@', $email)[0];
+        $currentYear = date('Y');
+        $username = $emailPrefix . $currentYear;
+
+        // Basic validation
+        if (!$firstname || !$lastname || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 6) {
+            $_SESSION['flash_message'] = [
+                'message' => '⚠️ Please fill out all fields correctly.',
+                'type' => 'danger'
             ];
             header('Location: /register');
             exit;
         }
 
-        $user = $_SESSION['user'];
-        $client = $this->clientRepo->findByUserId($user['id']);
-
-        if (!$client) {
-            $_SESSION['flash_message'] = [
-                'message' => 'Please complete your customer profile before proceeding to checkout.',
-                'type' => 'info'
-            ];
-            $_SESSION['from_checkout'] = true;
-            header('Location: /profile.create');
-            exit;
-        }
-
-        $pageContent = 'pages/client/checkout.php';
-        include 'includes/layout.php';
-    }
-
-
-    public function process()
-    {
-
-        AuthMiddleware::authOnly();
-
-        if (!isset($_SESSION['user']) || empty($_SESSION['cart'])) {
-            $_SESSION['flash_message'] = [
-                'message' => 'Your session expired or your cart is empty.',
-                'type' => 'danger'
-            ];
-            header('Location: /products');
-            exit;
-        }
-
-        $user = $_SESSION['user'];
-
-        // 1. Collect billing address from form
-        $billingData = [
-            'user_id' => $user['id'],
-            'firstname' => trim($_POST['firstname'] ?? ''),
-            'lastname' => trim($_POST['lastname'] ?? ''),
-            'street' => trim($_POST['street'] ?? ''),
-            'apartment' => trim($_POST['apartment'] ?? ''),
-            'city' => trim($_POST['city'] ?? ''),
-            'zipcode' => trim($_POST['zipcode'] ?? ''),
-            'phone' => trim($_POST['phone'] ?? ''),
-            'email' => trim($_POST['email'] ?? ''),
-        ];
-
-        // Optional preference: save checkout info for next time
-        $saveInfo = isset($_POST['save_info']) && ($_POST['save_info'] === 'on' || $_POST['save_info'] === '1');
-        $_SESSION['save_checkout_info'] = $saveInfo ? 1 : 0;
-        // Also carry it with billing payload for repository methods
-        $billingData['consent'] = $_SESSION['save_checkout_info'];
-
-        $addressId = trim($_POST['address-id'] ?? '');
-
-//        $addressData = $billingData['street'] . ' ' . $billingData['apartment'] . ' ' . $billingData['city'];
-//        $billingData['lpa_client_address'] = $addressData;
-
-        // Validate required fields
-        foreach (['firstname', 'street', 'city', 'phone', 'email'] as $field) {
-            if (empty($billingData[$field])) {
-                $_SESSION['flash_message'] = [
-                    'message' => "⚠️ Missing required billing field: $field",
-                    'type' => 'danger'
-                ];
-                header('Location: ?route=checkout');
-                exit;
-            }
-        }
-
-
-        $exists = $this->clientRepo->findIfTheAddressValid($billingData['street'], $user['id'])[0];
-
-        if ($exists['isValid']):
-            $fullStreet = $exists['data']['lpa_full_address'];
-            $billingId = $exists['data']['lpa_fk_client_ID'];
-            // Update consent preference on the existing client record
-            if (method_exists($this->clientRepo, 'updateConsent')) {
-                $this->clientRepo->updateConsent($billingId, (int)($_SESSION['save_checkout_info'] ?? 0));
-            }
-        else:
-
-            $addressService = new AddressService();
-            $addressData = $addressService->getStructuredAddress($addressId);
-
-            $billingData = array_merge($billingData, [
-                'address' => $addressData['sla'],
-                'addressId' => $addressId
+        // Check if user already exists
+        if ($this->userRepo->emailExists($email)) {
+            $existingUser = $this->userRepo->findByEmail($email);
+            sendEmailAlreadyExistsNotification([
+                'firstname' => $existingUser['lpa_user_firstname'] ?? '',
+                'email' => $email,
+                'reset_password_url' => 'https://lpaecomms.test/forgot_password'
             ]);
 
-            // 2. Save billing info (temporary, specific to this invoice)
-            $clientRepo = new ClientRepository();
-            $billingId = $clientRepo->createFromBillingForm($billingData); // <- we’ll create this method
-
-            $fullStreet = $addressData['streetNumberFrom']
-                . (empty($addressData['streetNumberTo']) ? "" : " - " . $addressData['streetNumberTo'])
-                . " {$addressData['streetName']} {$addressData['streetType']} {$addressData['suburb']}";
-
-            $clientRepo->addLpaUserClientAddressValid([
-                'lpa_pid_address' => $addressId,
-                'lpa_full_address' => $addressData['sla'],
-                'lpa_fk_client_ID' => $billingId,
-                'lpa_fk_users_ID' =>$user['id']
-            ], true);
-        endif;
-
-        // 3-5. Persist invoice, items and mark as paid (workflow)
-        $invoiceId = $this->workflow->handle([
-            'client_id' => $billingId,
-            'total' => $_POST['total'] ?: 0,
-            'address' => $fullStreet,
-            'client_name' => $billingData['firstname'],
-            'save_info' => $_SESSION['save_checkout_info'] ?? 0,
-        ], $_SESSION['cart']);
-
-        // Send invoice confirmation email
-        $invoiceData = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $user['id']);
-        if ($invoiceData && !sendInvoiceConfirmationEmail($invoiceData)) {
-            error_log('❌ Failed to send invoice confirmation email.');
+            $_SESSION['flash_message'] = [
+                'message' => '⚠️ Email already exists.',
+                'type' => 'danger'
+            ];
+            header('Location: /register');
+            exit;
         }
 
-        // 6. Clear cart
-        unset($_SESSION['cart'], $_SESSION['total']);
-
-        $_SESSION['flash_message'] = [
-            'message' => '✅ Your order was placed successfully!',
-            'type' => 'success'
+        // Create user
+        $data = [
+            'firstname' => $firstname,
+            'lastname' => $lastname,
+            'email' => $email,
+            'username' => $username,
+            'phone' => $phone,
+            'password' => password_hash($password, PASSWORD_DEFAULT),
+            'group_id' => 2 // Default: client group
         ];
 
-        header("Location: ".$this->orderUrl($invoiceId, true));
+        if (!$this->userRepo->createUser($data)) {
+            error_log("❌ Failed to create user in DB for: $email");
+            $_SESSION['flash_message'] = [
+                'message' => '❌ Failed to create user.',
+                'type' => 'danger'
+            ];
+            header('Location: /register');
+            exit;
+        }
+
+        error_log("✅ User created: $email");
+        // Retrieve new user
+        $newUser = $this->userRepo->findByEmail($email);
+
+
+        $this->generateToken($newUser, $firstname, $email);
+//        // Login user
+//        $_SESSION['user'] = [
+//            'id' => $newUser['lpa_users_ID'],
+//            'firstname' => $firstname,
+//            'lastname' => $lastname,
+//            'email' => $email,
+//            'group_id' => $data['group_id']
+//        ];
+
+//        session_regenerate_id(true); // security best practice
+//        $_SESSION['flash_message'] = [
+//            'message' => '✅ Account created successfully!',
+//            'type' => 'success'
+//        ];
+
+
+        $_SESSION['flash_message'] = [
+            'message' => '📧 Please check your email to verify your account.',
+            'type' => 'info'
+        ];
+
+        header('Location: /verify_email');
         exit;
     }
 
-    /**
-     * @throws JsonException
-     */
-    public function confirmation(): void
+    public function logout()
     {
-        // must be logged in
-        AuthMiddleware::authOnly();
+        if (session_status() === PHP_SESSION_NONE): session_start(); endif;
+        session_unset();
+        session_destroy();
 
-        $userId = (int) $_SESSION['user']['id'];
+        // Optional: Regenerate session ID for security
+        session_start();
+        session_regenerate_id(true);
 
-        // 1) Read the invoice id from ?order= (or &order=)
-        $invoiceId = 0;
-        if (isset($_GET['order'])) {
-            $invoiceId = (int) $_GET['order'];
-        } elseif (!empty($_SERVER['QUERY_STRING'])) {
-            // support router variants like /checkout.confirmation&order=123
-            parse_str($_SERVER['QUERY_STRING'], $qs);
-            if (!empty($qs['order'])) {
-                $invoiceId = (int) $qs['order'];
-            }
-        }
+        $_SESSION['flash_message'] = [
+            'message' => '👋 You’ve been logged out successfully.',
+            'type' => 'info'
+        ];
 
-        // 2) Fallback to last created invoice saved in session
-        if ($invoiceId <= 0 && !empty($_SESSION['last_invoice_id'])) {
-            $invoiceId = (int) $_SESSION['last_invoice_id'];
-        }
-
-        if ($invoiceId <= 0) {
-            $this->renderNotFound('Missing order reference');
-            return;
-        }
-
-        // 3) Load invoice scoped to current user
-        $result = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $userId);
-        if (!$result) {
-            $this->renderNotFound('Order not found or access denied');
-            return;
-        }
-
-        // 4) Clear cart (idempotent)
-        unset($_SESSION['cart'], $_SESSION['cart_created_at']);
-
-        // 5) Prepare data for view
-        $invoice = $result['invoice'];
-        $items   = $result['items'];
-        $totals  = $result['totals'];
-
-        // 6) Optional JSON mode: /checkout.confirmation?order=123&accept=json
-        if (strtolower($_GET['accept'] ?? '') === 'json') {
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode([
-                'ok' => true,
-                'invoice' => $invoice,
-                'items' => $items,
-                'totals' => $totals,
-                'link' => $this->orderUrl((int)$invoice['id']), // same id
-            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
-            return;
-        }
-
-        // 7) Render page
-        $title = 'Order Confirmation';
-        $pageContent = 'pages/client/confirmation.php';
-        include 'includes/layout.php';
-
-        // 8) Cleanup
-        unset($_SESSION['last_invoice_id']);
+        header('Location: /home');
+        exit;
     }
 
-    private function renderNotFound(string $reason = ''): void
+    public function forgot()
     {
-        http_response_code(404);
-        $title = 'Order not found';
-        $_SESSION['notFoundReason'] = $reason;
-        $pageContent = 'pages/error/404.php';
-        include 'includes/layout.php';
+        $email = $_POST['email'] ?? '';
+
+        $_SESSION['flash_message'] = [
+            'message' => 'There is no user with this email.',
+            'type' => 'warning'
+        ];
+
+        if ($user = $this->userRepo->findByEmail($email)) {
+            [$token, $expiresAt] = $this->getToken('+2 hour');
+
+            $this->userRepo->saveVerificationToken($user['lpa_users_ID'], $token, $expiresAt);
+
+            error_log("🔐 Token generated and saved: $token");
+
+            // Build verification URL
+            $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+                . '://' . $_SERVER['HTTP_HOST'];
+            $reset_password = "$baseUrl/reset_password?key_rpu=$token";
+
+            $sendSuccess = sendResetPasswordEmail([
+                'to' => $email,
+                'firstname' => $user['lpa_user_firstname'],
+                'link_to_reset_password' => $reset_password
+            ]);
+            error_log("📤 Email sending to $email was " . ($sendSuccess ? 'successful' : 'unsuccessful'));
+
+            $_SESSION['flash_message'] = [
+                'message' => 'You have received a password reset link.',
+                'type' => 'success'
+            ];
+        }
+        header('Location: /login');
+
     }
 
-    /** Build a URL that uses ?order=… (or &order=… if you prefer) */
-    private function orderUrl(int $invoiceId, bool $questionStyle = true): string
+    public function resetPassword()
     {
-        $encoded = rawurlencode((string)$invoiceId);
-        return $questionStyle
-            ? "/checkout.confirmation?order={$encoded}"
-            : "/checkout.confirmation&order={$encoded}";
+        $token = $_POST['token'] ?? null;
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        if (!$token || empty($password) || empty($confirmPassword)) {
+            $_SESSION['flash_message'] = [
+                'type' => 'warning',
+                'message' => 'All fields are required.'
+            ];
+            header('Location: /reset_password?key_rpu=' . urlencode($token));
+            exit;
+        }
+
+        if ($password !== $confirmPassword) {
+            $_SESSION['flash_message'] = [
+                'type' => 'danger',
+                'message' => 'Passwords do not match.'
+            ];
+            header('Location: /reset_password?key_rpu=' . urlencode($token));
+            exit;
+        }
+
+        $user = $this->userRepo->findByResetToken($token);
+
+        if (!$user || strtotime($user['expires_at']) < time()) {
+            $_SESSION['flash_message'] = [
+                'type' => 'danger',
+                'message' => 'Invalid or expired reset link.'
+            ];
+            header('Location: /forgot_password');
+            exit;
+        }
+
+        $userId = $user['lpa_users_ID'];
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        $this->userRepo->updatePassword($userId, $hashedPassword);
+        $this->userRepo->deleteToken($token); // Eliminar token tras éxito
+
+        $_SESSION['flash_message'] = [
+            'type' => 'success',
+            'message' => 'Password successfully updated. You can now log in.'
+        ];
+        header('Location: /login');
+        exit;
     }
+
+    public function changePassword()
+    {
+    }
+
+    public function generateToken($user, $firstname, $email)
+    {
+        [$token, $expiresAt] = $this->getToken();
+
+        // Save the token to the database
+        $this->userRepo->saveVerificationToken($user['lpa_users_ID'], $token, $expiresAt);
+        error_log("🔐 Token generated and saved: $token");
+
+        // Build verification URL
+        $baseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+            . '://' . $_SERVER['HTTP_HOST'];
+
+        $verificationUrl = "$baseUrl/verify?token=$token";
+
+
+        // Send the email using a helper
+        $sendSuccess = sendVerificationEmail([
+            'to' => $email,
+            'firstname' => $firstname,
+            'verificationUrl' => $verificationUrl]);
+        error_log("📤 Email sending to $email was " . ($sendSuccess ? 'successful' : 'unsuccessful'));
+    }
+
+    public function verifyEmail()
+    {
+        if (!isset($_GET['token'])) {
+            $_SESSION['flash_message'] = [
+                'message' => '❌ Invalid verification link.',
+                'type' => 'danger'
+            ];
+            header('Location: /login');
+            exit;
+        }
+
+        $token = $_GET['token'];
+
+        $user = $this->userRepo->verifyUserByToken($token);
+
+        if ($user) {
+            $_SESSION['flash_message'] = [
+                'message' => '✅ Your email has been verified. Please log in.',
+                'type' => 'success'
+            ];
+        } else {
+            $_SESSION['flash_message'] = [
+                'message' => '⚠️ Invalid or expired verification token.',
+                'type' => 'danger'
+            ];
+        }
+
+        header('Location: /login');
+        exit;
+    }
+
+    public function verifyCode()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $code = trim($_POST['code_validation'] ?? '');
+        $userId = $_SESSION['pending_user_id'] ?? null;
+
+        if (!$userId) {
+            $_SESSION['flash_message'] = [
+                'message' => 'Session expired. Please log in again.',
+                'type' => 'danger'
+            ];
+            header('Location: /login');
+            exit;
+        }
+
+        if (empty($code)) {
+            $_SESSION['flash_message'] = [
+                'message' => '⚠️ Code is required.',
+                'type' => 'danger'
+            ];
+            header('Location: /verify-code');
+            exit;
+        }
+
+        $user = $this->userRepo->findById($userId);
+
+        if ($user && $user['validation_token'] === $code) {
+            // ✅ Successful verification
+            $_SESSION['user'] = [
+                'id' => $user['lpa_users_ID'],
+                'username' => $user['lpa_user_username'],
+                'email' => $user['lpa_user_email'],
+                'firstname' => $user['lpa_user_firstname'],
+                'group' => $user['lpa_fk_user_group_ID']
+            ];
+
+            // Clean up
+            unset($_SESSION['pending_user_id']);
+            $this->userRepo->updateValidationToken($user['lpa_users_ID'], '');
+
+            $_SESSION['flash_message'] = [
+                'message' => '✅ Login successful!',
+                'type' => 'success'
+            ];
+
+            $redirectTo = @$_SESSION['intended_route'] ?? '/home';
+            unset($_SESSION['intended_route']);
+
+            header("Location: $redirectTo");
+        } else {
+            $_SESSION['flash_message'] = [
+                'message' => '❌ Invalid code. Please try again.',
+                'type' => 'danger'
+            ];
+            header('Location: /verify-code');
+        }
+
+        exit;
+    }
+
+
+    public function getToken(string $time = '+1 hour'): array
+    {
+        $token = bin2hex(random_bytes(32));
+        $expiresAt = date('Y-m-d H:i:s', strtotime($time));
+        return array($token, $expiresAt);
+    }
+
 
 }
-

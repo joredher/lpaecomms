@@ -78,6 +78,22 @@ class AuthController
                     'firstname' => $user['lpa_user_firstname'],
                     'group' => $user['lpa_fk_user_group_ID']
                 ];
+                session_regenerate_id(true);
+
+                // Load and store accessibility preferences for this user (if any)
+                try {
+                    if (class_exists('UserRepository') || true) {
+                        $prefsRepo = $this->userRepo;
+                        if (method_exists($prefsRepo, 'getA11yPrefs')) {
+                            $serverPrefs = $prefsRepo->getA11yPrefs($user['lpa_users_ID']);
+                            if (is_array($serverPrefs)) {
+                                $_SESSION['a11y_prefs'] = $serverPrefs;
+                            } else {
+                                unset($_SESSION['a11y_prefs']);
+                            }
+                        }
+                    }
+                } catch (Throwable $e) { /* non-blocking */ }
 
                 $redirectTo = @$_SESSION['intended_route'] ?? '/home';
                 unset($_SESSION['intended_route']);
@@ -132,6 +148,22 @@ class AuthController
                 'firstname' => $user['lpa_user_firstname'],
                 'group' => $user['lpa_fk_user_group_ID']
             ];
+            session_regenerate_id(true);
+
+            // Load and store accessibility preferences for this admin user (if any)
+            try {
+                if (class_exists('UserRepository') || true) {
+                    $prefsRepo = $this->userRepo;
+                    if (method_exists($prefsRepo, 'getA11yPrefs')) {
+                        $serverPrefs = $prefsRepo->getA11yPrefs($user['lpa_users_ID']);
+                        if (is_array($serverPrefs)) {
+                            $_SESSION['a11y_prefs'] = $serverPrefs;
+                        } else {
+                            unset($_SESSION['a11y_prefs']);
+                        }
+                    }
+                }
+            } catch (Throwable $e) { /* non-blocking */ }
 
             header('Location: /admin');
             exit;

@@ -182,18 +182,18 @@ function renderProducts(array $products): string {
         $buttonTitle = $isUnavailable ? 'Product unavailable for purchase' : 'Add to cart';
         ?>
         <div class="col mb-4">
-            <div class="<?= htmlspecialchars($cardClasses, ENT_QUOTES) ?>" data-slug="<?= htmlspecialchars($slug) ?>" data-id="<?= htmlspecialchars($product['lpa_stock_ID']) ?>" data-status="<?= htmlspecialchars($status) ?>">
+            <div class="<?= htmlspecialchars($cardClasses, ENT_QUOTES) ?>" data-slug="<?= htmlspecialchars($slug) ?>" data-id="<?= htmlspecialchars($product['lpa_stock_ID']) ?>" data-status="<?= htmlspecialchars($status, ENT_QUOTES) ?>">
                 <img src="<?= htmlspecialchars(getProductImageUrl($product['lpa_stock_image'] ?? '') ?? '') ?>" alt="<?= ($product['lpa_stock_name'] ?? '') ?>" loading="lazy">
 
                 <div class="product-card-description">
                     <h3 class="text-truncate"><?= htmlspecialchars($product['lpa_stock_name']) ?></h3>
                     <div class="type-category-text">
                         <p class="text-truncate">
-                            Category: <strong><?= $product['lpa_category_name'] ?></strong><br>
+                            Category: <strong><?= e($product['lpa_category_name']) ?></strong><br>
                         </p>
                         <p>*</p>
                         <p class="text-truncate">
-                            Type: <strong><?= $product['lpa_type_name'] ?></strong>
+                            Type: <strong><?= e($product['lpa_type_name']) ?></strong>
                         </p>
                     </div>
                         <div class="product-card-add-cart">

@@ -11,7 +11,7 @@ $total = $_SESSION['total'] ?? 0;
 
 <div class="pd-cart-section container py-5">
     <div class="mb-5">
-        <a href="<?= $backUrl ?>" class="pd-back-button d-flex align-items-center text-decoration-none">
+        <a href="<?= ea(internal_path($backUrl)) ?>" class="pd-back-button d-flex align-items-center text-decoration-none">
             <img src="../../assets/images/icons/back.svg" alt="Back" class="me-2">
             <span>Back</span>
         </a>

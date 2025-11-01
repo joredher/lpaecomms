@@ -5,6 +5,7 @@
     <title><?= $title ?? 'Account' ?></title>
     <link rel="icon" type="image/svg+xml" href="../assets/images/Logo.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
     <meta name="theme-color" content="#0d6efd">
     <?php if (!empty($enablePWA)): ?>
         <link rel="manifest" href="/manifest.webmanifest">
@@ -44,6 +45,24 @@
         crossorigin="anonymous"></script>
 <!--<script type="application/javascript" src="../assets/js/ecommerce_script.js"></script>-->
 <script type="application/javascript" src="../assets/js/toast.js"></script>
+<script type="application/javascript" src="../assets/js/idle_timeout.js"></script>
+<script>
+  window.CSRF_TOKEN='<?= e(csrf_token()) ?>';
+  window.IS_AUTHENTICATED = <?= isset($_SESSION['user']['id']) ? 'true' : 'false' ?>;
+  // Apply local accessibility prefs on auth pages (logout still keeps user style)
+  (function(){
+    try {
+      const prefs = JSON.parse(localStorage.getItem('a11y')||'{}') || {};
+      const b = document.body;
+      if (prefs.textSize === 'large') b.classList.add('a11y-text-lg');
+      if (prefs.textSize === 'xlarge') b.classList.add('a11y-text-xl');
+      if (prefs.contrast) b.classList.add('a11y-contrast');
+      if (prefs.underlineLinks) b.classList.add('a11y-underline-links');
+      if (prefs.reduceMotion) b.classList.add('a11y-reduce-motion');
+      if (prefs.focusOutline) b.classList.add('a11y-focus-outline');
+    } catch(e) { /* noop */ }
+  })();
+</script>
 <?php if (isset($_SESSION['flash_message'])): $msg = $_SESSION['flash_message']; ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {

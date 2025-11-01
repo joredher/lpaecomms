@@ -262,4 +262,27 @@ class UserRepository extends BaseRepository
         return $stmt->execute([':status' => $status, ':id' => $id]);
     }
 
+    /**
+     * Get accessibility preferences stored for the user (JSON column a11y_prefs)
+     */
+    public function getA11yPrefs(int $userId): ?array
+    {
+        $stmt = $this->conn->prepare("SELECT a11y_prefs FROM {$this->table} WHERE lpa_users_ID = :id LIMIT 1");
+        $stmt->execute([':id' => $userId]);
+        $json = $stmt->fetchColumn();
+        if (!$json) return null;
+        $data = json_decode($json, true);
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * Save accessibility preferences for the user.
+     */
+    public function saveA11yPrefs(int $userId, array $prefs): bool
+    {
+        $json = json_encode($prefs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $stmt = $this->conn->prepare("UPDATE {$this->table} SET a11y_prefs = :prefs WHERE lpa_users_ID = :id");
+        return $stmt->execute([':prefs' => $json, ':id' => $userId]);
+    }
+
 }

@@ -23,6 +23,7 @@ class AdminOrderController
         $repo = new InvoiceRepository();
         $ok = $repo->updateStatus($id, $status);
         if ($ok) {
+            audit_log('order_status_update', 'order', (string)$id, ['status' => $status]);
             echo json_encode(['success' => true]);
         } else {
             http_response_code(500);
@@ -39,6 +40,7 @@ class AdminOrderController
         $total  = $repo->countAll($searchTerm, $statusFilter);
         $orders = $repo->findPaginated(0, $total, $searchTerm, $statusFilter);
 
+        audit_log('orders_export', 'order', null, ['search' => $searchTerm, 'status' => $statusFilter]);
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="orders.csv"');
 

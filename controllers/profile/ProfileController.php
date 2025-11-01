@@ -290,4 +290,61 @@ class ProfileController
     }
 
 
+    /**
+     * Persist accessibility preferences for the logged-in user.
+     * Accepts JSON body { prefs: {...} } or form field 'prefs' as JSON.
+     */
+    public function saveA11y(): void
+    {
+        AuthMiddleware::authOnly();
+        header('Content-Type: application/json');
+
+        if (!csrf_verify()) {
+            http_response_code(419);
+            echo json_encode(['ok' => false, 'message' => 'CSRF token mismatch']);
+            return;
+        }
+
+        $raw = file_get_contents('php://input') ?: '';
+        $data = null;
+        if ($raw !== '') {
+            $data = json_decode($raw, true);
+        }
+        if (!is_array($data)) {
+            $data = ['prefs' => isset($_POST['prefs']) ? json_decode((string)$_POST['prefs'], true) : null];
+        }
+
+        $prefs = $data['prefs'] ?? null;
+        if (!is_array($prefs)) {
+            echo json_encode(['ok' => false, 'message' => 'Invalid payload']);
+            return;
+        }
+
+        // Whitelist known keys only
+        $allowed = ['textSize','contrast','darkMode','underlineLinks','reduceMotion','focusOutline'];
+        $clean = [];
+        foreach ($allowed as $k) {
+            if (array_key_exists($k, $prefs)) {
+                $clean[$k] = $prefs[$k];
+            }
+        }
+
+        $userId = (int)($_SESSION['user']['id'] ?? 0);
+        if ($userId <= 0) {
+            http_response_code(401);
+            echo json_encode(['ok' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $userRepo = new UserRepository();
+        $ok = $userRepo->saveA11yPrefs($userId, $clean);
+        if ($ok) {
+            $_SESSION['a11y_prefs'] = $clean;
+            echo json_encode(['ok' => true]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['ok' => false]);
+        }
+    }
+
 }

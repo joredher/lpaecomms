@@ -13,6 +13,7 @@ require_once 'controllers/contact/ContactController.php';
 require_once 'controllers/orders/OrderController.php';
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/AddressService.php');
+loadRepo('middleware/SessionTimeoutMiddleware.php');
 
 
 $uriPath = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
@@ -21,14 +22,18 @@ $route = $_GET['route'] ?? ($segments[0] ?? 'home');
 if ($route === ''): $route = 'home'; endif;
 $path = 'pages/';
 
+// Enforce session idle timeout for every request
+SessionTimeoutMiddleware::handle();
+
 RegisterController::register($route, 'auth', 'AuthController', ['login', 'adminLogin', 'register', 'logout', 'forgot', 'resetPassword']);
-RegisterController::register($route, 'profile', 'ProfileController', ['create', 'store']);
+RegisterController::register($route, 'profile', 'ProfileController', ['create', 'store', 'saveA11y']);
 RegisterController::register($route, 'cart', 'CartController', ['add', 'remove', 'update', 'applyCoupon']);
 RegisterController::register($route, 'checkout', 'CheckoutController', ['process', 'confirmation', 'keepAlive']);
 RegisterController::register($route, 'contact', 'ContactController', ['send', 'capture']);
 RegisterController::register($route, 'orders', 'OrderController', ['index', 'show']);
 RegisterController::register($route, 'nav', 'NavigationController', ['track']);
 RegisterController::register($route, 'search', 'SearchController', ['products']);
+RegisterController::register($route, 'session', 'SessionController', ['keepAlive']);
 
 if ($route === 'admin' || str_starts_with($route, 'admin.')) {
     AuthMiddleware::adminOnly();
@@ -52,6 +57,11 @@ RegisterController::register($route, 'admin', 'AdminOrderController', ['updateSt
 // --- Helpers
 $ua    = $_SERVER['HTTP_USER_AGENT'] ?? '';
 $isBot = (bool) preg_match('/bot|crawl|spider|slurp|facebookexternalhit|preview/i', $ua);
+
+// Log non-GET requests at a high level (skip bots)
+if (!$isBot && (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET')) {
+    audit_log('request', null, null, ['route' => $route, 'query' => $_GET]);
+}
 
 
 // --- Welcome actions (triggered by the two buttons on the welcome page)
