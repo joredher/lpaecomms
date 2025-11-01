@@ -1,6 +1,7 @@
 <?php
 require_once 'includes/config.php';
 require_once 'includes/pagination.php';
+require_once 'helpers/cache.php';
 loadRepo('repositories/ProductRepository.php');
 $conn = Database::getConnection();
 $productRepo = new ProductRepository();
@@ -74,21 +75,74 @@ $productQuery .= match ($_GET['sort'] ?? '') {
     default => " ORDER BY s.lpa_stock_ID DESC",
 };
 
-$countStmt = $conn->prepare($productQuery);
-$countStmt->execute($params);
-$totalProducts = count($countStmt->fetchAll());
-$totalPages    = ceil($totalProducts / $pageSize);
+$cacheKeyData = [
+    'page'       => $pageNum,
+    'page_size'  => $pageSize,
+    'q'          => $q,
+    'category'   => array_values(array_map('strval', array_unique($categoryFilter))),
+    'type'       => array_values(array_map('strval', array_unique($typeFilter))),
+    'min_price'  => isset($_GET['min_price']) ? (string)$_GET['min_price'] : null,
+    'max_price'  => isset($_GET['max_price']) ? (string)$_GET['max_price'] : null,
+    'sort'       => $_GET['sort'] ?? '',
+];
 
-$productQuery .= " LIMIT $offset, $pageSize";
-$productStmt = $conn->prepare($productQuery);
-$productStmt->execute($params);
-$products = $productStmt->fetchAll();
+sort($cacheKeyData['category']);
+sort($cacheKeyData['type']);
+ksort($cacheKeyData);
 
+$cacheKey = 'catalog:' . hash('sha256', json_encode($cacheKeyData));
 
-foreach ($products as &$product) {
-    $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
+$cachedListingJson = getCatalogListing($cacheKey);
+$cacheHit = false;
+$products = [];
+$totalProducts = 0;
+$totalPages = 0;
+
+if ($cachedListingJson !== null) {
+    $decoded = json_decode($cachedListingJson, true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+        $products = $decoded['products'] ?? [];
+        $totalProducts = (int)($decoded['total_products'] ?? 0);
+        $totalPages = (int)($decoded['total_pages'] ?? 0);
+        $cacheHit = true;
+    }
 }
-unset($product);
+
+if (!$cacheHit) {
+    $countStmt = $conn->prepare($productQuery);
+    $countStmt->execute($params);
+    $totalProducts = count($countStmt->fetchAll());
+    $totalPages    = (int)ceil($totalProducts / $pageSize);
+
+    $productQuery .= " LIMIT $offset, $pageSize";
+    $productStmt = $conn->prepare($productQuery);
+    $productStmt->execute($params);
+    $products = $productStmt->fetchAll();
+
+    foreach ($products as &$product) {
+        $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], $product['lpa_stock_name'] ?? '');
+    }
+    unset($product);
+
+    $listingPayload = json_encode([
+        'products' => $products,
+        'total_products' => $totalProducts,
+        'total_pages' => $totalPages,
+    ]);
+
+    if ($listingPayload !== false) {
+        setCatalogListing($cacheKey, $listingPayload);
+    }
+}
+
+if ($cacheHit) {
+    foreach ($products as &$product) {
+        if (empty($product['lpa_stock_slug']) && isset($product['lpa_stock_ID'], $product['lpa_stock_name'])) {
+            $product['lpa_stock_slug'] = $productRepo->ensureSlug((int)$product['lpa_stock_ID'], (string)$product['lpa_stock_name']);
+        }
+    }
+    unset($product);
+}
 
 function renderProducts(array $products): string {
     ob_start();
