@@ -17,6 +17,7 @@ require_once 'controllers/api/CartApiController.php';
 require_once 'controllers/api/CheckoutApiController.php';
 require_once 'controllers/api/OrderApiController.php';
 loadRepo('middleware/AuthMiddleware.php');
+loadRepo('middleware/CorsMiddleware.php');
 loadRepo('services/AddressService.php');
 
 
@@ -39,6 +40,13 @@ if (!function_exists('respondApiNotFound')) {
 if (!empty($segments) && $segments[0] === 'api') {
     $apiSegments = array_values(array_filter(array_slice($segments, 1), static fn($seg) => $seg !== ''));
     $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+
+    $sensitiveResources = ['auth', 'cart', 'checkout', 'orders'];
+    $resourceKey = $apiSegments[0] ?? '';
+
+    if (!CorsMiddleware::handle($method, in_array($resourceKey, $sensitiveResources, true))) {
+        return;
+    }
 
     switch ($apiSegments[0] ?? '') {
         case 'auth':

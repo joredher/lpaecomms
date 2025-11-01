@@ -12,6 +12,14 @@ All API routes are prefixed with `/api` and return JSON responses. Each response
 
 Errors return `success: false`, an explanatory `message`, optional `errors` hashes for validation, and an appropriate HTTP status code.
 
+## CORS & Authentication
+
+- Flutter web clients must present an `Origin` header that is whitelisted in the server's CORS configuration.
+- In production deployments configure `API_CORS_SENSITIVE_ORIGINS` (comma separated) to the trusted storefront domains. These origins are enforced for `/api/auth`, `/api/cart`, `/api/checkout`, and `/api/orders`.
+- Set `API_CORS_ALLOWED_ORIGINS` for non-sensitive resources (defaults to the sensitive list when omitted).
+- Local development automatically allows common `localhost` ports or you can override them via `API_CORS_DEV_ORIGINS`.
+- Use `API_CORS_ALLOWED_METHODS`, `API_CORS_ALLOWED_HEADERS`, and `API_CORS_EXPOSE_HEADERS` to customise the permitted verbs and headers if needed.
+
 ## Authentication
 
 | Method | Path | Description | Request Body |
