@@ -1,5 +1,25 @@
 <?php
 
+if (!function_exists('audit_request_id')) {
+    function audit_request_id(): string {
+        static $rid = null;
+        if ($rid === null) {
+            $rid = bin2hex(random_bytes(8));
+        }
+        return $rid;
+    }
+}
+
+if (!function_exists('audit_session_id')) {
+    function audit_session_id(): string {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (empty($_SESSION['audit_sid'])) {
+            $_SESSION['audit_sid'] = bin2hex(random_bytes(8));
+        }
+        return (string)$_SESSION['audit_sid'];
+    }
+}
+
 function audit_log(string $action, ?string $entityType = null, ?string $entityId = null, array $meta = []): void
 {
     static $registered = false;
@@ -50,6 +70,12 @@ function audit_log(string $action, ?string $entityType = null, ?string $entityId
         if ($ua && preg_match('/bot|crawl|spider|slurp|facebookexternalhit|preview/i', $ua)) {
             return;
         }
+
+        // Attach correlation ids for free to every event
+        $meta = array_merge([
+            'rid' => audit_request_id(),
+            'sid' => audit_session_id(),
+        ], $meta);
 
         $metaJson = json_encode($meta, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 

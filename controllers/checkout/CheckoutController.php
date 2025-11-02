@@ -10,7 +10,6 @@ loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/InvoiceWorkflow.php');
 
 
-
 class CheckoutController
 {
     private ClientRepository $clientRepo;
@@ -52,6 +51,8 @@ class CheckoutController
         }
 
         $user = $_SESSION['user'];
+        $requestId = audit_request_id();
+        $_SESSION['last_checkout_request_id'] = $requestId;
         $client = $this->clientRepo->findByUserId($user['id']);
 
         if (!$client) {
@@ -63,6 +64,17 @@ class CheckoutController
             header('Location: /profile.create');
             exit;
         }
+
+        // Audit view of checkout page (no PII)
+        try {
+            $lines = is_array($_SESSION['cart'] ?? null) ? count($_SESSION['cart']) : 0;
+            $qty = 0; foreach (($_SESSION['cart'] ?? []) as $it) { $qty += (int)($it['quantity'] ?? 0); }
+            audit_log('checkout_viewed', 'cart', null, [
+                'lines' => $lines,
+                'qty'   => $qty,
+                'total' => (float)($_SESSION['total'] ?? 0),
+            ]);
+        } catch (Throwable $e) { /* ignore audit failure */ }
 
         $pageContent = 'pages/client/checkout.php';
         include 'includes/layout.php';
@@ -108,7 +120,7 @@ class CheckoutController
 
         // Payment method validation (server-side)
         $paymentMethod = strtolower(trim($_POST['payment_method'] ?? 'card'));
-        if (!in_array($paymentMethod, ['card','cod'], true)) {
+        if (!in_array($paymentMethod, ['card', 'cod'], true)) {
             $paymentMethod = 'card';
         }
         $cardBrand = trim($_POST['card_brand'] ?? '');
@@ -122,6 +134,21 @@ class CheckoutController
             header('Location: /checkout');
             exit;
         }
+
+        // Audit: process begin (no sensitive data)
+        try {
+            $lines = is_array($_SESSION['cart'] ?? null) ? count($_SESSION['cart']) : 0;
+            $qty = 0; foreach (($_SESSION['cart'] ?? []) as $it) { $qty += (int)($it['quantity'] ?? 0); }
+            audit_log('checkout_process_begin', 'cart', null, [
+                'request_id' => $requestId,
+                'lines' => $lines,
+                'qty'   => $qty,
+                'total' => (float)($_SESSION['total'] ?? 0),
+                'payment_method' => $paymentMethod,
+                'save_info' => (int)($_SESSION['save_checkout_info'] ?? 0),
+                'csrf_present' => isset($_POST['_token']) ? 1 : 0,
+            ]);
+        } catch (Throwable $e) { /* ignore audit failure */ }
 
 //        $addressData = $billingData['street'] . ' ' . $billingData['apartment'] . ' ' . $billingData['city'];
 //        $billingData['lpa_client_address'] = $addressData;
@@ -140,71 +167,138 @@ class CheckoutController
 
 
         $exists = $this->clientRepo->findIfTheAddressValid($billingData['street'], $user['id'])[0];
+        try {
+            $matchedId = $exists['data']['lpa_fk_client_ID'] ?? null;
+            audit_log('address_checked', 'address', $addressId !== '' ? (string)$addressId : null, [
+                'request_id' => $requestId,
+                'exists' => (bool)($exists['isValid'] ?? false),
+                'matched_client_id' => $matchedId ? (int)$matchedId : null,
+            ]);
+        } catch (Throwable $e) { /* ignore audit failure */ }
 
+        $pdo = Database::getConnection();
+        try {
+            $pdo->beginTransaction();
 
-        if ($exists['isValid'] === true){
-            $fullStreet = $exists['data']['lpa_full_address'];
-            $billingId = $exists['data']['lpa_fk_client_ID'];
-            // Update consent preference on the existing client record
-            if (method_exists($this->clientRepo, 'updateConsent')) {
-                $this->clientRepo->updateConsent($billingId, (int)($_SESSION['save_checkout_info'] ?? 0));
+            if ($exists['isValid'] === true) {
+                $fullStreet = $exists['data']['lpa_full_address'];
+                $billingId = $exists['data']['lpa_fk_client_ID'];
+                // Update consent preference on the existing client record
+                if (method_exists($this->clientRepo, 'updateConsent')) {
+                    $this->clientRepo->updateConsent($billingId, (int)($_SESSION['save_checkout_info'] ?? 0));
+                }
+
+            } else {
+                $addressService = new AddressService();
+                $addressData = $addressService->getStructuredAddress($addressId);
+
+                $billingData = array_merge($billingData, [
+                    'address' => $addressData['sla'],
+                    'addressId' => $addressId
+                ]);
+
+                // 2. Save billing info (temporary, specific to this invoice)
+                $clientRepo = new ClientRepository();
+                $billingId = $clientRepo->createFromBillingForm($billingData); // <- we’ll create this method
+
+                $fullStreet = $addressData['streetNumberFrom']
+                    . (empty($addressData['streetNumberTo']) ? "" : " - " . $addressData['streetNumberTo'])
+                    . " {$addressData['streetName']} {$addressData['streetType']} {$addressData['suburb']}";
+
+                $clientRepo->addLpaUserClientAddressValid([
+                    'lpa_pid_address' => $addressId,
+                    'lpa_full_address' => $addressData['sla'],
+                    'lpa_fk_client_ID' => $billingId,
+                    'lpa_fk_users_ID' => $user['id']
+                ], true);
+                try { audit_log('address_created', 'client', (string)$billingId, ['request_id' => $requestId, 'address_id' => $addressId]); } catch (Throwable $e) { }
             }
 
-        } else {
-            $addressService = new AddressService();
-            var_dump($_POST);
-            die();
-            $addressData = $addressService->getStructuredAddress($addressId);
+            // 3-5. Persist invoice, items and mark as paid (workflow)
+            try {
+                $lines = is_array($_SESSION['cart'] ?? null) ? count($_SESSION['cart']) : 0;
+                audit_log('invoice_create_attempt', 'invoice', null, [
+                    'request_id' => $requestId,
+                    'client_id' => (int)$billingId,
+                    'total' => (float)($_POST['total'] ?? 0),
+                    'payment_method' => $paymentMethod,
+                    'lines' => $lines,
+                ]);
+            } catch (Throwable $e) { /* ignore audit failure */ }
 
-            $billingData = array_merge($billingData, [
-                'address' => $addressData['sla'],
-                'addressId' => $addressId
-            ]);
+            $invoiceId = $this->workflow->handle([
+                'client_id' => $billingId,
+                'total' => $_POST['total'] ?: 0,
+                'address' => $fullStreet,
+                'client_name' => $billingData['firstname'],
+                'save_info' => $_SESSION['save_checkout_info'] ?? 0,
+                'payment_method' => $paymentMethod,
+                'card_brand' => $cardBrand ?: null,
+                'card_last4' => $cardLast4 ?: null,
+            ], $_SESSION['cart']);
 
-            // 2. Save billing info (temporary, specific to this invoice)
-            $clientRepo = new ClientRepository();
-            $billingId = $clientRepo->createFromBillingForm($billingData); // <- we’ll create this method
+            if (!$invoiceId) {
+                throw new RuntimeException('Failed to create invoice');
+            }
 
-            $fullStreet = $addressData['streetNumberFrom']
-                . (empty($addressData['streetNumberTo']) ? "" : " - " . $addressData['streetNumberTo'])
-                . " {$addressData['streetName']} {$addressData['streetType']} {$addressData['suburb']}";
+            // Commit DB changes before sending email
+            $pdo->commit();
 
-            $clientRepo->addLpaUserClientAddressValid([
-                'lpa_pid_address' => $addressId,
-                'lpa_full_address' => $addressData['sla'],
-                'lpa_fk_client_ID' => $billingId,
-                'lpa_fk_users_ID' =>$user['id']
-            ], true);
+            // Audit success and invoice created
+            try {
+                $lines = is_array($_SESSION['cart'] ?? null) ? count($_SESSION['cart']) : 0;
+                audit_log('invoice_created', 'invoice', (string)$invoiceId, [
+                    'request_id' => $requestId,
+                    'total' => (float)($_POST['total'] ?? 0),
+                    'status' => ($paymentMethod === 'cod' ? 'P' : 'A'),
+                    'lines' => $lines,
+                ]);
+                audit_log('checkout_success', 'invoice', (string)$invoiceId, [
+                    'request_id' => $requestId,
+                    'payment_method' => $paymentMethod,
+                    'total' => (float)($_POST['total'] ?? 0),
+                ]);
+            } catch (Throwable $e) { /* ignore audit failure */ }
+
+            // Send invoice confirmation email
+            $invoiceData = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $user['id']);
+            if ($invoiceData && !sendInvoiceConfirmationEmail($invoiceData)) {
+                error_log('❌ Failed to send invoice confirmation email.');
+            }
+
+            try { audit_log('email_send_attempted', 'invoice', (string)$invoiceId, ['request_id' => $requestId]); } catch (Throwable $e) { }
+            // 6. Clear cart
+            unset($_SESSION['cart'], $_SESSION['total']);
+            try { audit_log('cart_cleared', 'cart', null, ['request_id' => $requestId]); } catch (Throwable $e) { }
+
+            $_SESSION['flash_message'] = [
+                'message' => '✅ Your order was placed successfully!',
+                'type' => 'success'
+            ];
+
+            $_SESSION['flash_message']['title'] = 'Checkout';
+            header("Location: " . $this->orderUrl($invoiceId, true));
+            exit;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('Checkout process failed: ' . $e->getMessage());
+            try {
+                audit_log('checkout_failed', 'invoice', isset($invoiceId) ? (string)$invoiceId : null, [
+                    'request_id' => $requestId,
+                    'error_class' => get_class($e),
+                    'error_message' => substr($e->getMessage(), 0, 256),
+                ]);
+            } catch (Throwable $ignored) {}
+            $_SESSION['flash_message'] = [
+                'message' => 'There was a problem placing your order. Please try again.',
+                'type' => 'danger'
+            ];
+            $_SESSION['flash_message']['title'] = 'Checkout';
+            header('Location: /checkout');
+            exit;
         }
-
-        // 3-5. Persist invoice, items and mark as paid (workflow)
-        $invoiceId = $this->workflow->handle([
-            'client_id' => $billingId,
-            'total' => $_POST['total'] ?: 0,
-            'address' => $fullStreet,
-            'client_name' => $billingData['firstname'],
-            'save_info' => $_SESSION['save_checkout_info'] ?? 0,
-            'payment_method' => $paymentMethod,
-            'card_brand' => $cardBrand ?: null,
-            'card_last4' => $cardLast4 ?: null,
-        ], $_SESSION['cart']);
-
-        // Send invoice confirmation email
-        $invoiceData = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $user['id']);
-        if ($invoiceData && !sendInvoiceConfirmationEmail($invoiceData)) {
-            error_log('❌ Failed to send invoice confirmation email.');
-        }
-
-        // 6. Clear cart
-        unset($_SESSION['cart'], $_SESSION['total']);
-
-        $_SESSION['flash_message'] = [
-            'message' => '✅ Your order was placed successfully!',
-            'type' => 'success'
-        ];
-
-        header("Location: ".$this->orderUrl($invoiceId, true));
-        exit;
     }
 
     /**
@@ -217,13 +311,16 @@ class CheckoutController
         try {
             AuthMiddleware::authOnly();
             if (empty($_SESSION['cart'])) {
+                try { audit_log('keepalive_result', 'cart', null, ['ok' => 0, 'reason' => 'empty_cart', 'request_id' => audit_request_id()]); } catch (Throwable $e) {}
                 echo json_encode(['ok' => false, 'error' => 'Cart is empty']);
                 return;
             }
             $_SESSION['cart_created_at'] = time();
             $expiresAt = $_SESSION['cart_created_at'] + 1800; // 30 minutes
+            try { audit_log('keepalive_result', 'cart', null, ['ok' => 1, 'expiresAt' => $expiresAt, 'request_id' => audit_request_id()]); } catch (Throwable $e) {}
             echo json_encode(['ok' => true, 'expiresAt' => $expiresAt]);
         } catch (Throwable $e) {
+            try { audit_log('keepalive_result', 'cart', null, ['ok' => 0, 'reason' => 'exception', 'request_id' => audit_request_id()]); } catch (Throwable $ignored) {}
             echo json_encode(['ok' => false, 'error' => 'keepAlive failed']);
         }
     }
@@ -236,26 +333,27 @@ class CheckoutController
         // must be logged in
         AuthMiddleware::authOnly();
 
-        $userId = (int) $_SESSION['user']['id'];
+        $userId = (int)$_SESSION['user']['id'];
 
         // 1) Read the invoice id from ?order= (or &order=)
         $invoiceId = 0;
         if (isset($_GET['order'])) {
-            $invoiceId = (int) $_GET['order'];
+            $invoiceId = (int)$_GET['order'];
         } elseif (!empty($_SERVER['QUERY_STRING'])) {
             // support router variants like /checkout.confirmation&order=123
             parse_str($_SERVER['QUERY_STRING'], $qs);
             if (!empty($qs['order'])) {
-                $invoiceId = (int) $qs['order'];
+                $invoiceId = (int)$qs['order'];
             }
         }
 
         // 2) Fallback to last created invoice saved in session
         if ($invoiceId <= 0 && !empty($_SESSION['last_invoice_id'])) {
-            $invoiceId = (int) $_SESSION['last_invoice_id'];
+            $invoiceId = (int)$_SESSION['last_invoice_id'];
         }
 
         if ($invoiceId <= 0) {
+            try { audit_log('confirmation_not_found', 'invoice', null, ['reason' => 'missing_param', 'request_id' => audit_request_id(), 'prev_request_id' => ($_SESSION['last_checkout_request_id'] ?? null)]); } catch (Throwable $e) {}
             $this->renderNotFound('Missing order reference');
             return;
         }
@@ -263,6 +361,7 @@ class CheckoutController
         // 3) Load invoice scoped to current user
         $result = $this->invoiceRepo->getInvoiceWithItems($invoiceId, $userId);
         if (!$result) {
+            try { audit_log('confirmation_not_found', 'invoice', (string)$invoiceId, ['reason' => 'not_found_or_denied', 'request_id' => audit_request_id(), 'prev_request_id' => ($_SESSION['last_checkout_request_id'] ?? null)]); } catch (Throwable $e) {}
             $this->renderNotFound('Order not found or access denied');
             return;
         }
@@ -272,10 +371,11 @@ class CheckoutController
 
         // 5) Prepare data for view
         $invoice = $result['invoice'];
-        $items   = $result['items'];
-        $totals  = $result['totals'];
+        $items = $result['items'];
+        $totals = $result['totals'];
 
         // 6) Optional JSON mode: /checkout.confirmation?order=123&accept=json
+        try { audit_log('confirmation_viewed', 'invoice', (string)$invoiceId, ['request_id' => audit_request_id(), 'prev_request_id' => ($_SESSION['last_checkout_request_id'] ?? null)]); } catch (Throwable $e) {}
         if (strtolower($_GET['accept'] ?? '') === 'json') {
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([

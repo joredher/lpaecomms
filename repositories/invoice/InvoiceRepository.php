@@ -151,8 +151,10 @@ class InvoiceRepository extends BaseRepository
         $params = [];
 
         if ($term !== '') {
-            $conditions[] = "(i.lpa_inv_no LIKE :term OR i.lpa_inv_client_name LIKE :term OR CONCAT(c.lpa_clients_firstname, ' ', c.lpa_clients_lastname) LIKE :term)";
-            $params[':term'] = "%{$term}%";
+            $conditions[] = "(i.lpa_inv_no LIKE :term1 OR i.lpa_inv_client_name LIKE :term2 OR CONCAT(c.lpa_clients_firstname, ' ', c.lpa_clients_lastname) LIKE :term3)";
+            $params[':term1'] = "%{$term}%";
+            $params[':term2'] = "%{$term}%";
+            $params[':term3'] = "%{$term}%";
         }
 
         if ($status !== '') {
@@ -189,8 +191,10 @@ class InvoiceRepository extends BaseRepository
         $params = [':offset' => $offset, ':limit' => $limit];
 
         if ($term !== '') {
-            $conditions[] = "(i.lpa_inv_no LIKE :term OR i.lpa_inv_client_name LIKE :term OR CONCAT(c.lpa_clients_firstname, ' ', c.lpa_clients_lastname) LIKE :term)";
-            $params[':term'] = "%{$term}%";
+            $conditions[] = "(i.lpa_inv_no LIKE :term1 OR i.lpa_inv_client_name LIKE :term2 OR CONCAT(c.lpa_clients_firstname, ' ', c.lpa_clients_lastname) LIKE :term3)";
+            $params[':term1'] = "%{$term}%";
+            $params[':term2'] = "%{$term}%";
+            $params[':term3'] = "%{$term}%";
         }
 
         if ($status !== '') {

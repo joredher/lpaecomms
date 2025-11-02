@@ -1199,6 +1199,13 @@ input[name="coupon_code"] {
   }
 }
 
+/* Tweak header between tablet and small desktop to avoid crowding */
+@media (min-width: 901px) and (max-width: 1100px) {
+  header { padding: 20px 40px; height: auto; gap: 32px; flex-wrap: wrap; }
+  .logo-nav, .actions { flex-wrap: wrap; gap: 16px; }
+  .navigation { flex-wrap: wrap; gap: 16px; }
+}
+
 @media (max-width: 1200px) {
   .categories {
     padding: 20px 40px;
@@ -1242,6 +1249,11 @@ input[name="coupon_code"] {
   .navigation a {
     padding: 8px 0;
   }
+}
+
+/* Ensure search input containers don’t overflow at mid widths */
+@media (max-width: 1100px) {
+  .what-are-you-looking-for-parent { max-width: 100%; width: 100%; }
 }
 
 @media (max-width: 768px) {
@@ -1792,7 +1804,8 @@ input[name="coupon_code"] {
 }
 
 .text-contact-form {
-  width: 262px;
+  width: auto;
+  max-width: 100%;
   position: relative;
   font-size: 14px;
   line-height: 21px;
@@ -1828,4 +1841,10 @@ input[name="coupon_code"] {
   font-size: 16px;
   color: #000;
   font-family: Poppins, serif;
+}
+
+/* Let the card wrap at mid-widths to avoid overflow */
+.contact-card { flex-wrap: wrap; }
+@media (min-width: 901px) and (max-width: 1100px) {
+  .contact-card { padding: 2rem; gap: 1.5rem; }
 }

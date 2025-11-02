@@ -17,7 +17,7 @@ error_log('Contact page loaded, back URL: ' . $backUrl);
         </a>
     </div>
     <div class="container my-5">
-        <div class="bg-white rounded-4 shadow d-flex flex-column flex-md-row p-5">
+        <div class="bg-white rounded-4 shadow d-flex flex-column flex-md-row gap-4 p-5 contact-card">
 
             <!-- Contact info box (left column) -->
             <div class="col-12 col-md-4">

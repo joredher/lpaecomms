@@ -1,6 +1,9 @@
 @import url("partials/variables.css");
 @import url("partials/utilities.css");
 
+/* utility for toggling icons without Bootstrap */
+.d-none { display: none !important; }
+
 body {
   width: 100%;
   height: 100%;
@@ -112,10 +115,43 @@ input {
   opacity: 0.9;
 }
 
+/* password visibility toggle (right inside field) */
+.toggle-password-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.toggle-password-btn:hover {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* ensure consistent right padding when toggle exists */
+#login_password {
+  padding-right: 45px;
+}
+
+/* make label span full width to keep inputs same size */
+.form-group > label {
+  display: block;
+  width: 100%;
+}
+
 .form-control {
   height: 50px;
   padding-left: 45px;
   border-radius: 6px;
+  box-sizing: border-box;
 }
 
 .vector-icon,

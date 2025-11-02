@@ -37,9 +37,23 @@ $hasValidateThroughFirst = isset($_SESSION['pending_user_id']);
                     <div class="form-group position-relative">
                         <label>
                             <img class="input-icon" src="<?= $path ?>password_key.svg" alt="password">
-                            <input class="form-control ps-5" type="password" name="password" placeholder="Password"
-                                   required>
+                            <input id="login_password" class="form-control ps-5 pe-5" type="password" name="password" placeholder="Password"
+                                   autocomplete="current-password" required>
                         </label>
+                        <button type="button" id="togglePasswordBtn" class="toggle-password-btn" aria-label="Show password" aria-pressed="false" title="Show password">
+                            <!-- eye icon -->
+                            <svg class="icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            <!-- eye-off icon -->
+                            <svg class="icon-eye-off d-none" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M17.94 17.94C16.24 19.01 14.23 19.67 12 19.67 5 19.67 1 12 1 12a21.35 21.35 0 0 1 5.11-5.92" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10.59 10.59a2 2 0 0 0 2.82 2.82" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M23 12s-4 7-11 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
                     </div>
 
                     <button type="submit" class="submit-btn">Login</button>
@@ -51,3 +65,23 @@ $hasValidateThroughFirst = isset($_SESSION['pending_user_id']);
 
     </div>
 </div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var pwd = document.getElementById('login_password');
+    var btn = document.getElementById('togglePasswordBtn');
+    if (pwd && btn) {
+      btn.addEventListener('click', function () {
+        var show = pwd.type === 'password';
+        pwd.type = show ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', String(show));
+        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+        var eye = btn.querySelector('.icon-eye');
+        var eyeOff = btn.querySelector('.icon-eye-off');
+        if (eye && eyeOff) {
+          eye.classList.toggle('d-none');
+          eyeOff.classList.toggle('d-none');
+        }
+      });
+    }
+  });
+</script>

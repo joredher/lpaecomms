@@ -179,8 +179,11 @@ class UserRepository extends BaseRepository
         $params = [];
 
         if ($search !== '') {
-            $conditions[] = "(u.lpa_user_username LIKE :term OR u.lpa_user_email LIKE :term OR u.lpa_user_firstname LIKE :term OR u.lpa_user_lastname LIKE :term)";
-            $params[':term'] = "%{$search}%";
+            $conditions[] = "(u.lpa_user_username LIKE :term1 OR u.lpa_user_email LIKE :term2 OR u.lpa_user_firstname LIKE :term3 OR u.lpa_user_lastname LIKE :term4)";
+            $params[':term1'] = "%{$search}%";
+            $params[':term2'] = "%{$search}%";
+            $params[':term3'] = "%{$search}%";
+            $params[':term4'] = "%{$search}%";
         }
 
         if ($status !== '') {
@@ -209,8 +212,11 @@ class UserRepository extends BaseRepository
         $params = [':offset' => $offset, ':limit' => $limit];
 
         if ($search !== '') {
-            $conditions[] = "(u.lpa_user_username LIKE :term OR u.lpa_user_email LIKE :term OR u.lpa_user_firstname LIKE :term OR u.lpa_user_lastname LIKE :term)";
-            $params[':term'] = "%{$search}%";
+            $conditions[] = "(u.lpa_user_username LIKE :term1 OR u.lpa_user_email LIKE :term2 OR u.lpa_user_firstname LIKE :term3 OR u.lpa_user_lastname LIKE :term4)";
+            $params[':term1'] = "%{$search}%";
+            $params[':term2'] = "%{$search}%";
+            $params[':term3'] = "%{$search}%";
+            $params[':term4'] = "%{$search}%";
         }
 
         if ($status !== '') {

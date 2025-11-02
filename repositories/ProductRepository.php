@@ -77,8 +77,10 @@ class ProductRepository extends BaseRepository
         $conditions = [];
         $params = [];
         if ($search !== '') {
-            $conditions[] = "(s.lpa_stock_name LIKE :term OR s.lpa_invitem_inv_no LIKE :term OR s.lpa_stock_price LIKE :term)";
-            $params[':term'] = "%{$search}%";
+            $conditions[] = "(s.lpa_stock_name LIKE :term1 OR s.lpa_invitem_inv_no LIKE :term2 OR s.lpa_stock_price LIKE :term3)";
+            $params[':term1'] = "%{$search}%";
+            $params[':term2'] = "%{$search}%";
+            $params[':term3'] = "%{$search}%";
         }
         if ($status !== '') {
             switch ($status) {
@@ -112,8 +114,10 @@ class ProductRepository extends BaseRepository
         $conditions = [];
         $params = [':offset' => $offset, ':limit' => $limit];
         if ($search !== '') {
-            $conditions[] = "(s.lpa_stock_name LIKE :term OR s.lpa_invitem_inv_no LIKE :term OR s.lpa_stock_price LIKE :term)";
-            $params[':term'] = "%{$search}%";
+            $conditions[] = "(s.lpa_stock_name LIKE :term1 OR s.lpa_invitem_inv_no LIKE :term2 OR s.lpa_stock_price LIKE :term3)";
+            $params[':term1'] = "%{$search}%";
+            $params[':term2'] = "%{$search}%";
+            $params[':term3'] = "%{$search}%";
         }
         if ($status !== '') {
             switch ($status) {

@@ -153,13 +153,19 @@ $title = $title ?? 'LPA Ecommerce';
 <?php endif; ?>
 
 <?php if (isset($_SESSION['flash_message'])): ?>
+    <?php
+        $flash = $_SESSION['flash_message'];
+        $flashTitle = $flash['title'] ?? 'Notification';
+        $flashType  = $flash['type']  ?? 'info';
+        $flashImage = $flash['image'] ?? ($flashType === 'success' ? 'assets/images/icons/success.png' : 'assets/images/icons/error.png');
+    ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             showToast({
-                title: 'Cart',
-                message: <?= json_encode($_SESSION['flash_message']['message']) ?>,
-                type: <?= json_encode($_SESSION['flash_message']['type']) ?>,
-                image: 'assets/images/icons/success.png'
+                title: <?= json_encode($flashTitle) ?>,
+                message: <?= json_encode($flash['message'] ?? '') ?>,
+                type: <?= json_encode($flashType) ?>,
+                image: <?= json_encode($flashImage) ?>
             });
         });
     </script>
