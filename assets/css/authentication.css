@@ -1,0 +1,362 @@
+@import url("partials/variables.css");
+@import url("partials/utilities.css");
+
+/* utility for toggling icons without Bootstrap */
+.d-none { display: none !important; }
+
+body {
+  width: 100%;
+  height: 100%;
+  /*margin: 0;*/
+  padding: 0;
+  font-size: 20px;
+  /*box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);*/
+
+  background-size: contain;
+  /* Keeps the background fixed while scrolling */
+  /*background: linear-gradient(180deg, rgba(78, 181, 144, 0.7), rgba(53, 153, 143, 0.7) 50%, rgba(53, 124, 130, 0.7)) no-repeat fixed center center;*/
+  position: relative;
+  overflow: hidden;
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(
+    135deg,
+    var(--gradient-start),
+    var(--gradient-mid),
+    var(--gradient-end)
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 10s ease infinite;
+  min-height: 100vh;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.login_layout {
+  margin: 0 auto;
+  max-width: 980px;
+  padding: 0 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.sign-up,
+.login,
+.first-page {
+  width: 100%;
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 2rem;
+  background-color: var(--neutral-bg);
+  box-shadow: 0 14px 16px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login > form,
+.sign-up > form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sign-up > form {
+  gap: 1rem;
+}
+
+.form-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 100px;
+  min-height: 100vh;
+}
+
+.wrapper-login {
+  top: 15%;
+}
+
+.first-page div a {
+  text-decoration: none;
+  text-align: center;
+}
+
+/*form {*/
+/*    width: 100%;*/
+/*    max-width: 400px;*/
+/*    background: rgba(255, 255, 255, 0.3);*/
+/*    padding: 2rem;*/
+/*    border-radius: 10px;*/
+/*    box-shadow: 0 10px 20px rgba(0,0,0,0.2);*/
+/*}*/
+
+input {
+  width: 100%;
+}
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  opacity: 0.9;
+}
+
+/* password visibility toggle (right inside field) */
+.toggle-password-btn {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.toggle-password-btn:hover {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+/* ensure consistent right padding when toggle exists */
+#login_password {
+  padding-right: 45px;
+}
+
+/* make label span full width to keep inputs same size */
+.form-group > label {
+  display: block;
+  width: 100%;
+}
+
+.form-control {
+  height: 50px;
+  padding-left: 45px;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.vector-icon,
+.group-icon,
+.group-icon1,
+.input-password-child {
+  position: absolute;
+  transform: translateY(-50%);
+  top: 50%;
+  left: 12px;
+  width: 20px;
+  height: 20px;
+}
+
+.submit-btn {
+  display: block;
+  width: 100%;
+  max-width: 180px;
+  margin: 0 auto;
+  background-color: var(--cta-color);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  border-radius: 30px;
+  padding: 12px 24px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+}
+
+.submit-btn:hover {
+  background-color: var(--cta-hover);
+  transform: translateY(-2px);
+}
+
+.logo-container {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  z-index: 10;
+  text-align: center;
+  padding: 1rem 0 0 46%;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px 12px 0 0;
+}
+
+/* seam handled by original design; no ::after divider */
+
+/* logo image uses base transform rules */
+
+.first-page-logo {
+  padding: 2.1% 50%;
+}
+
+.logo-img {
+  width: 150px;
+  transform: translateX(-50%);
+  height: auto;
+  opacity: 0;
+  animation:
+    fadeAndFloat 2s ease-out forwards,
+    floatLoop 4s ease-in-out infinite;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes fadeAndFloat {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes floatLoop {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, -10px);
+  }
+}
+
+.auth-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.form-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Auth header panel to match design (dark top card) */
+/* (reverted header panel customizations) */
+
+@media (max-width: 480px) {
+  .logo-img {
+    width: 90px;
+  }
+
+  .sign-up {
+    padding: 1.5rem;
+  }
+}
+
+/* Responsive refinements */
+@media (max-width: 992px) {
+  .login_layout { max-width: 760px; padding: 0 20px; }
+  .form-wrapper { padding-top: 80px; }
+  .logo-container{ top: -4px;}
+  /* keep original absolute positioning */
+}
+
+@media (max-width: 768px) {
+  .login_layout { max-width: 560px; padding: 0 16px; }
+  .sign-up, .login, .first-page { margin: 40px auto; padding: 1.75rem; }
+  .form-control { height: 48px; }
+  .logo-container{ top: -24px;}
+}
+
+@media (max-width: 576px) {
+  .login_layout { max-width: 100%; padding: 0 12px; }
+  .form-wrapper { padding-top: 60px; }
+  .sign-up, .first-page { margin: 24px auto; padding: 1.25rem; border-radius: 12px; }
+  .login { margin: 24px auto; padding: 1.25rem; border-radius: 0 0 12px 12px; }
+  .form-control { height: 46px; }
+  .logo-container{ top: -7px;}
+  /* keep original absolute positioning */
+
+/* attach body cards to header without gap */
+/* keep default margins so header and body are separate as designed */
+}
+
+.verify-container {
+  max-width: 500px;
+  margin: 100px auto;
+  padding: 40px 30px;
+  background: linear-gradient(
+    180deg,
+    rgba(78, 181, 144, 0.7),
+    rgba(53, 153, 143, 0.7) 50%,
+    rgba(53, 124, 130, 0.7)
+  );
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  font-family: "Poppins", sans-serif;
+}
+
+.verify-logo {
+  width: 80px;
+  margin-bottom: 20px;
+  animation: floatLogo 3s ease-in-out infinite;
+}
+
+.verify-title {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.verify-message {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Optional animation for logo */
+@keyframes floatLogo {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.sign-up-link {
+  display: block;
+  color: white;
+  text-decoration: underline;
+  font-weight: 800;
+  text-align: center;
+  margin: auto;
+  font-size: 15px;
+}
+
+#passwordMismatch {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  font-size: 0.8rem;
+  color: red;
+  margin-top: 2px;
+}

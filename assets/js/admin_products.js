@@ -1,0 +1,255 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const productModalEl = document.getElementById('productModal');
+    const productModal = new bootstrap.Modal(productModalEl);
+    const addBtn = document.getElementById('add-product');
+    const form = document.getElementById('product-form');
+    const idInput = document.getElementById('product-id');
+    const currentImageInput = document.getElementById('current-image');
+    const categorySelect = document.getElementById('product-category');
+    const typeSelect = document.getElementById('product-type');
+    const qtyInput = document.getElementById('product-qty');
+    const priceInput = document.getElementById('product-price');
+    const statusSelect = document.getElementById('product-status');
+    const publishGroup = document.getElementById('publish-at-group');
+    const publishInput = document.getElementById('product-publish-at');
+    const paginationContainer = document.getElementById('pagination-container');
+    const tbody = document.getElementById('product-rows');
+    const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+    const modalTitle = productModalEl ? productModalEl.querySelector('.modal-title') : null;
+    const confirmModalEl = document.getElementById('confirmModal');
+    const confirmModal = confirmModalEl ? new bootstrap.Modal(confirmModalEl) : null;
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmOk = document.getElementById('confirmOk');
+    const confirmTitle = confirmModalEl ? confirmModalEl.querySelector('.modal-title') : null;
+    const nameInput = document.getElementById('product-name');
+    const descInput = document.getElementById('product-desc');
+    const featuresInput = document.getElementById('product-features');
+    const imageInput = document.getElementById('product-image');
+
+    // Remove any lingering validation styles from form controls
+    function clearValidationStates() {
+        if (!form) return;
+        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    }
+
+    function clampQty() {
+        let val = parseInt(qtyInput.value, 10);
+        if (isNaN(val)) val = 0;
+        val = Math.min(Math.max(val, 0), 999);
+        qtyInput.value = val;
+    }
+
+    function formatPrice() {
+        let val = parseFloat(priceInput.value.replace(/[^\d.]/g, ''));
+        if (isNaN(val)) val = 0;
+        val = Math.min(Math.max(val, 0), 999999);
+        priceInput.value = new Intl.NumberFormat('en-AU', {
+            style: 'currency',
+            currency: 'AUD'
+        }).format(val);
+    }
+
+    if (qtyInput) qtyInput.addEventListener('blur', clampQty);
+    if (priceInput) priceInput.addEventListener('blur', formatPrice);
+    function togglePublishAt() {
+        if (!statusSelect) return;
+        publishGroup.style.display = statusSelect.value === 'S' ? '' : 'none';
+        if (statusSelect.value !== 'S') publishInput.value = '';
+    }
+    if (statusSelect) statusSelect.addEventListener('change', togglePublishAt);
+
+    async function loadTypes(selectedType = '') {
+        typeSelect.innerHTML = '<option value="">Select Type</option>';
+
+        try {
+            const res = await fetch(`/admin.types`);
+            const data = await res.json();
+            data.forEach(type => {
+                const opt = document.createElement('option');
+                opt.value = type.id;
+                opt.textContent = type.name;
+                typeSelect.appendChild(opt);
+            });
+            if (selectedType) typeSelect.value = selectedType;
+        } catch (e) {
+            console.error('Failed to load types', e);
+        }
+    }
+
+    productModalEl.addEventListener('hidden.bs.modal', () => {
+        form.reset();
+        idInput.value = '';
+        currentImageInput.value = '';
+        typeSelect.innerHTML = '<option value="">Select Type</option>';
+        publishInput.value = '';
+        publishGroup.style.display = 'none';
+        if (submitBtn) submitBtn.textContent = 'Save Product';
+        if (modalTitle) modalTitle.textContent = 'Add Product';
+        clearValidationStates();
+    });
+
+    if (addBtn) {
+        addBtn.addEventListener('click', () => {
+            loadTypes();
+            currentImageInput.value = '';
+            togglePublishAt();
+            if (submitBtn) submitBtn.textContent = 'Save Product';
+            if (modalTitle) modalTitle.textContent = 'Add Product';
+            clearValidationStates();
+            productModal.show();
+        });
+    }
+
+    const searchInput = document.getElementById('product-search');
+    const statusFilter = document.getElementById('status-filter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => loadPage(1));
+    }
+
+    function attachEditHandlers() {
+        document.querySelectorAll('.edit-product').forEach(btn => {
+            btn.addEventListener('click', () => {
+                clearValidationStates();
+                idInput.value = btn.dataset.id;
+                document.getElementById('product-name').value = btn.dataset.name || '';
+                document.getElementById('product-desc').value = btn.dataset.desc || '';
+                document.getElementById('product-features').value = btn.dataset.features || '';
+                document.getElementById('product-qty').value = btn.dataset.qty || '';
+                priceInput.value = btn.dataset.price || '';
+                formatPrice();
+                currentImageInput.value = btn.dataset.image || '';
+                const st = btn.dataset.status;
+                document.getElementById('product-status').value =
+                    st === 'A' ? 'P' : st === 'I' ? 'U' : (st || 'P');
+                publishInput.value = (btn.dataset.publishAt || '').replace(' ', 'T').slice(0,16);
+                togglePublishAt();
+                categorySelect.value = btn.dataset.category || '';
+                loadTypes(btn.dataset.type);
+                if (submitBtn) submitBtn.textContent = 'Update Product';
+                if (modalTitle) modalTitle.textContent = 'Edit Product';
+                productModal.show();
+            });
+        });
+    }
+
+    function attachToggleHandlers() {
+        document.querySelectorAll('.toggle-status-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const formEl = btn.closest('form');
+                if (!formEl) return;
+
+                const action = (btn.dataset.action || 'deactivate').toLowerCase();
+                const name = btn.dataset.name || 'this product';
+                const isActivate = action === 'activate';
+                const actionLabel = isActivate ? 'Activate' : 'Deactivate';
+                const message = `${actionLabel} ${name}?`;
+
+                if (!confirmModal) {
+                    if (confirm(message)) {
+                        formEl.submit();
+                    }
+                    return;
+                }
+
+                confirmMessage.textContent = message;
+                if (confirmTitle) confirmTitle.textContent = `${actionLabel} Product`;
+                if (confirmOk) {
+                    confirmOk.textContent = actionLabel;
+                    confirmOk.className = isActivate ? 'btn btn-success' : 'btn btn-danger';
+                    confirmOk.onclick = null;
+                    confirmOk.onclick = () => {
+                        formEl.submit();
+                    };
+                }
+                confirmModal.show();
+            });
+        });
+    }
+    function initTooltips() {
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+    }
+
+    attachEditHandlers();
+    attachToggleHandlers();
+    initTooltips();
+
+    async function loadPage(page) {
+        try {
+            const term = searchInput ? searchInput.value.trim() : '';
+            const statusVal = statusFilter ? statusFilter.value : '';
+            const res = await fetch(`/admin.products?page_num=${page}&search=${encodeURIComponent(term)}&status=${statusVal}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            tbody.innerHTML = data.rows;
+            paginationContainer.innerHTML = data.pagination;
+            attachEditHandlers();
+            attachToggleHandlers();
+            initTooltips();
+        } catch (e) {
+            console.error('Failed to load page', e);
+        }
+    }
+
+    if (paginationContainer) {
+        paginationContainer.addEventListener('click', (e) => {
+            const link = e.target.closest('a.page-link');
+            if (!link) return;
+            e.preventDefault();
+            const page = link.dataset.page;
+            loadPage(page);
+        });
+    }
+
+    let searchTimer;
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => loadPage(1), 300);
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            const required = [
+                { el: nameInput, name: 'Product Name' },
+                { el: qtyInput, name: 'Quantity' },
+                { el: priceInput, name: 'Price' },
+                { el: categorySelect, name: 'Category' },
+                { el: typeSelect, name: 'Type' },
+                { el: descInput, name: 'Description' },
+                { el: featuresInput, name: 'Features' }
+            ];
+            if (!currentImageInput.value && imageInput) {
+                required.push({ el: imageInput, name: 'Image' });
+            }
+            if (statusSelect.value === 'S') {
+                required.push({ el: publishInput, name: 'Publish At' });
+            }
+
+            const missing = required.filter(f => !f.el || !f.el.value.trim());
+            if (missing.length > 0) {
+                e.preventDefault();
+                missing.forEach(f => f.el.classList.add('is-invalid'));
+                showToast({ message: `Please fill in: ${missing.map(f => f.name).join(', ')}`, type: 'danger' });
+                return;
+            }
+
+            clampQty();
+            let val = parseFloat(priceInput.value.replace(/[^\d.]/g, ''));
+            if (isNaN(val)) val = 0;
+            val = Math.min(Math.max(val, 0), 999999);
+            priceInput.value = val;
+            if (statusSelect.value !== 'S') publishInput.value = '';
+        });
+
+        const fields = [nameInput, qtyInput, priceInput, categorySelect, typeSelect, descInput, featuresInput, imageInput, publishInput];
+        fields.forEach(f => {
+            if (!f) return;
+            ['input', 'change'].forEach(evt => {
+                f.addEventListener(evt, () => f.classList.remove('is-invalid'));
+            });
+        });
+    }
+});

@@ -1,0 +1,89 @@
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .categories {
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .products-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+/* 🔹 Responsive 🔹 */
+@media (max-width: 768px) {
+    .filter-panel {
+        max-width: 100%;
+    }
+
+    .price-inputs {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+}
+
+
+@media screen and (max-width: 1024px) {
+    .feature-grid {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+
+@media (max-width: 900px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px;
+    }
+
+    .logo-nav, .actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .navigation {
+        gap: 15px;
+    }
+
+    .search-box, .create-account, .currency {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .frame-parent {
+        padding: 24px;
+    }
+
+    .explore-logic-peripherals {
+        font-size: 36px;
+        line-height: 44px;
+    }
+
+    .frame-container {
+        flex-direction: column;
+        gap: 24px;
+        font-size: 24px;
+    }
+
+    .frame-child {
+        display: none;
+    }
+
+    .what-are-you-looking-for-parent {
+        height: 54px;
+        font-size: 16px;
+    }
+
+    .frame-item {
+        width: 40px;
+        height: 40px;
+    }
+}

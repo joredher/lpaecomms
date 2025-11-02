@@ -1,0 +1,73 @@
+/** ACCOUNT **/
+.container-account {
+    max-width: 1280px;
+    margin: 0 auto 2rem;
+    padding: 3rem 0;
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    .container-account {
+        padding: 1.5rem 1rem;
+        margin: 0 auto 1.5rem;
+    }
+}
+
+.container-account .form-label {
+    color: var(--color-primary);
+    font-weight: 500;
+    line-height: 24px;
+}
+
+.container-account .form-control {
+    border: none;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    height: 40px;
+    padding-left: 16px;
+    font-size: 1rem;
+    color: #333;
+    box-shadow: none;
+}
+
+.container-account .form-control::placeholder {
+    color: #999;
+    opacity: 0.6;
+}
+
+.container-account .btn-success {
+    background-color: var(--success-color);
+    color: #fafafa;
+    font-weight: 500;
+    /*padding: 12px 32px;*/
+    border: none;
+    /*border-radius: 4px;*/
+    transition: background 0.3s ease;
+}
+
+.container-account .btn-success:hover {
+    background-color: var(--success-hover);
+}
+
+.container-account .btn-outline-secondary {
+    border: 1px solid #ccc;
+    color: var(--color-primary);
+    padding: 12px 32px;
+    font-weight: 500;
+}
+
+.container-account .bg-white {
+    background-color: #fff !important;
+}
+
+.container-account .text-primary {
+    color: var(--color-primary) !important;
+}
+
+.container-account .shadow-sm {
+    box-shadow: 0 1px 13px rgba(0, 0, 0, 0.05) !important;
+}
+
+.container-account .rounded {
+    border-radius: 8px !important;
+}

@@ -1,0 +1,15 @@
+:root {
+  --color-primary: #003459;
+  --color-primary-hover: #caf0f8;
+  --color-secondary: #013a63;
+  --color-secondary-hover: #01497c;
+  --gradient-start: rgba(78, 181, 144, 0.7);
+  --gradient-mid: rgba(53, 153, 143, 0.7);
+  --gradient-end: rgba(53, 124, 130, 0.7);
+  --link-color: #0066cc;
+  --success-color: #aada6f;
+  --success-hover: #96c85d;
+  --cta-color: #b6e67b;
+  --cta-hover: #a3d066;
+  --neutral-bg: rgba(217, 217, 217, 0.45);
+}
