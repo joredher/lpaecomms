@@ -70,7 +70,7 @@ $valueTotal = 0;
                 </div>
                 <div class="form-group-custom  position-relative">
                     <label class="form-label" for="autocomplete-address">Address</label>
-                    <input type="hidden" name=" -id" id="address-id">
+                    <input type="hidden" name="address-id" id="address-id">
                     <input
                             type="text"
                             class="input-style"
