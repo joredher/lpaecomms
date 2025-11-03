@@ -30,3 +30,9 @@ This repository exists to support usability studies and requirement validation f
 
 ## Contributing
 Contributions that improve documentation, clarify assessment workflows, or enhance the demo features are welcome. Please open an issue describing the proposed change before submitting a pull request.
+
+## Mobile/API Integration
+To consume the JSON API from the Flutter client (or any other external app), ensure the mobile device can resolve the same domain you use for the web storefront. By default the project expects `https://lpaecomms.test/api`, so add a hosts entry or DNS record pointing `lpaecomms.test` to your web server and configure your virtual host to also answer for `api.lpaecomms.test` if you prefer the subdomain.
+
+Override `API_BASE_URL` in your `.env` or via `--dart-define=API_BASE_URL=…` during the Flutter build whenever the backend runs on a different hostname or port. The value should include the `/api` prefix when you expose the endpoints on the main domain (e.g. `https://example.com/api`).
+

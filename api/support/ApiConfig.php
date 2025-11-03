@@ -13,7 +13,7 @@ final class ApiConfig
         }
 
         $defaults = [
-            'API_BASE_URL'                => 'https://api.lpaecomms.local',
+            'API_BASE_URL'                => '',
             'API_CORS_ALLOWED_ORIGINS'    => '',
             'API_CORS_SENSITIVE_ORIGINS'  => '',
             'API_CORS_DEV_ORIGINS'        => 'http://localhost:3000,http://127.0.0.1:3000',
@@ -103,7 +103,23 @@ final class ApiConfig
 
     public static function baseUrl(): string
     {
-        return (string)self::get('API_BASE_URL', 'https://api.lpaecomms.local');
+        $configured = trim((string)self::get('API_BASE_URL', ''));
+        if ($configured !== '') {
+            return rtrim($configured, '/');
+        }
+
+        $isHttps = false;
+        if (isset($_SERVER['HTTPS'])) {
+            $https = strtolower((string)$_SERVER['HTTPS']);
+            $isHttps = $https === 'on' || $https === '1';
+        }
+        $scheme = $isHttps ? 'https' : 'http';
+        $host = (string)($_SERVER['HTTP_HOST'] ?? 'localhost');
+        $script = (string)($_SERVER['SCRIPT_NAME'] ?? '');
+        $dir = rtrim(str_replace('\\', '/', dirname($script)), '/');
+        $path = $dir !== '' && $dir !== '.' ? $dir : '';
+
+        return rtrim($scheme . '://' . $host . $path, '/');
     }
 
     private static function shouldIncludeDevOrigins(): bool
