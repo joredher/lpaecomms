@@ -6,6 +6,7 @@ loadRepo('repositories/client/ClientRepository.php');
 loadRepo('repositories/invoice/InvoiceRepository.php');
 loadRepo('services/InvoiceWorkflow.php');
 loadRepo('helpers/mail.php');
+loadRepo('services/AddressService.php');
 
 class CheckoutService
 {
@@ -15,11 +16,13 @@ class CheckoutService
     private ClientRepository $clientRepo;
     private InvoiceRepository $invoiceRepo;
     private InvoiceWorkflow $workflow;
+    private AddressService $addressService;
 
     public function __construct(
         ?ClientRepository $clientRepo = null,
         ?InvoiceRepository $invoiceRepo = null,
-        ?InvoiceWorkflow $workflow = null
+        ?InvoiceWorkflow $workflow = null,
+        ?AddressService $addressService = null
     )
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -28,6 +31,7 @@ class CheckoutService
         $this->clientRepo = $clientRepo ?? new ClientRepository();
         $this->invoiceRepo = $invoiceRepo ?? new InvoiceRepository();
         $this->workflow = $workflow ?? new InvoiceWorkflow();
+        $this->addressService = $addressService ?? new AddressService();
     }
 
     /**
@@ -105,36 +109,78 @@ class CheckoutService
         }
 
         $addressLookup = $this->clientRepo->findIfTheAddressValid($billingData['street'], $user['id']);
-
-        if (!empty($addressLookup['missing'])) {
-            return [
-                'success' => false,
-                'status' => 422,
-                'message' => 'We could not find a verified address on file. Please confirm your profile address before checking out.',
-                'errors' => [
-                    'address' => 'No verified address saved for this account.',
-                ],
-                'code' => self::ERROR_ADDRESS_CACHE_MISSING,
-            ];
-        }
-
-        if (($addressLookup['isValid'] ?? false) !== true) {
-            return [
-                'success' => false,
-                'status' => 422,
-                'message' => 'The provided address must match a saved address. Please update your profile.',
-                'errors' => [
-                    'address' => 'The address could not be matched to the cached profile address.',
-                ],
-                'code' => self::ERROR_ADDRESS_INVALID,
-            ];
-        }
-
-        $addressInfo = $addressLookup['data'] ?? [];
-        $fullStreet = $addressInfo['lpa_full_address'] ?? $billingData['street'];
+        $addressInfo = $addressLookup['data'] ?? null;
         $billingId = $addressInfo['lpa_fk_client_ID'] ?? null;
-        if ($billingId && method_exists($this->clientRepo, 'updateConsent')) {
-            $this->clientRepo->updateConsent($billingId, (int)$_SESSION['save_checkout_info']);
+        $fullStreet = $addressInfo['lpa_full_address'] ?? $billingData['street'];
+
+        if (($addressLookup['isValid'] ?? false) === true && $addressInfo) {
+            if ($billingId && method_exists($this->clientRepo, 'updateConsent')) {
+                $this->clientRepo->updateConsent($billingId, (int)$_SESSION['save_checkout_info']);
+            }
+        } else {
+            $addressId = trim((string)($payload['address-id'] ?? $payload['address_id'] ?? ''));
+            if ($addressId === '') {
+                return [
+                    'success' => false,
+                    'status' => 422,
+                    'message' => 'We could not find a verified address on file. Please confirm your profile address before checking out.',
+                    'errors' => [
+                        'address' => 'No verified address saved for this account.',
+                    ],
+                    'code' => self::ERROR_ADDRESS_CACHE_MISSING,
+                ];
+            }
+
+            $structured = $this->addressService->getStructuredAddress($addressId);
+            if (!$structured) {
+                return [
+                    'success' => false,
+                    'status' => 422,
+                    'message' => 'The provided address must match a saved address. Please update your profile.',
+                    'errors' => [
+                        'address' => 'The address could not be matched to the cached profile address.',
+                    ],
+                    'code' => self::ERROR_ADDRESS_INVALID,
+                ];
+            }
+
+            $formattedStreet = $this->formatStructuredStreet($structured);
+            $formattedApartment = $this->formatStructuredApartment($structured);
+            $addressLine = $structured['sla']
+                ?? ($structured['mla'] ?? ($structured['smla'] ?? $formattedStreet));
+
+            $billingData = array_merge($billingData, [
+                'street' => $formattedStreet !== '' ? $formattedStreet : $billingData['street'],
+                'apartment' => $formattedApartment !== '' ? $formattedApartment : $billingData['apartment'],
+                'city' => $structured['state'] ?? $billingData['city'],
+                'zipcode' => $structured['postcode'] ?? $billingData['zipcode'],
+                'address' => $addressLine,
+                'addressId' => $addressId,
+            ]);
+
+            $billingId = $this->clientRepo->createFromBillingForm($billingData);
+            if (!$billingId) {
+                return [
+                    'success' => false,
+                    'status' => 500,
+                    'message' => 'We were unable to save your address information.',
+                    'errors' => [
+                        'address' => 'Address could not be saved for this order.',
+                    ],
+                ];
+            }
+
+            $fullStreet = $addressLine;
+            $this->clientRepo->addLpaUserClientAddressValid([
+                'lpa_pid_address' => $addressId,
+                'lpa_full_address' => $addressLine,
+                'lpa_fk_client_ID' => $billingId,
+                'lpa_fk_users_ID' => $user['id'],
+            ], true);
+
+            if (method_exists($this->clientRepo, 'updateConsent')) {
+                $this->clientRepo->updateConsent($billingId, (int)$_SESSION['save_checkout_info']);
+            }
         }
 
         $total = (float)($payload['total'] ?? 0);
@@ -171,5 +217,39 @@ class CheckoutService
     private function orderUrl(int $invoiceId): string
     {
         return '/checkout.confirmation?order=' . rawurlencode((string)$invoiceId);
+    }
+
+    /**
+     * @param array<string,mixed> $structured
+     */
+    private function formatStructuredStreet(array $structured): string
+    {
+        $from = trim((string)($structured['streetNumberFrom'] ?? ''));
+        $to = trim((string)($structured['streetNumberTo'] ?? ''));
+        $range = $from;
+        if ($from !== '' && $to !== '' && $to !== $from) {
+            $range = $from . ' - ' . $to;
+        } elseif ($from === '' && $to !== '') {
+            $range = $to;
+        }
+
+        $parts = array_filter([
+            $range,
+            $structured['streetName'] ?? null,
+            $structured['streetType'] ?? null,
+            $structured['suburb'] ?? null,
+        ], static fn($part) => !empty($part));
+
+        return trim(implode(' ', $parts));
+    }
+
+    /**
+     * @param array<string,mixed> $structured
+     */
+    private function formatStructuredApartment(array $structured): string
+    {
+        $type = trim((string)($structured['typeApt'] ?? ''));
+        $number = trim((string)($structured['unitNumber'] ?? ''));
+        return trim($type . ' ' . $number);
     }
 }

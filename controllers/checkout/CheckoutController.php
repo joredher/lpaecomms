@@ -5,7 +5,6 @@ require_once __DIR__ . '/../../bootstrap.php';
 require_once 'repositories/client/ClientRepository.php';
 require_once 'repositories/invoice/InvoiceRepository.php';
 require_once 'helpers/mail.php';
-loadRepo('services/AddressService.php');
 loadRepo('middleware/AuthMiddleware.php');
 loadRepo('services/InvoiceWorkflow.php');
 require_once 'services/CheckoutService.php';
